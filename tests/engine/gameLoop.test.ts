@@ -4,8 +4,8 @@ import { FIXED_DT, MAX_FRAME_DELTA } from "../../core/constants/timing";
 
 describe("GameLoop", () => {
   beforeEach(() => {
-    vi.stubGlobal("requestAnimationFrame", vi.fn((cb) => setTimeout(cb, 16)));
-    vi.stubGlobal("cancelAnimationFrame", vi.fn(clearTimeout));
+    vi.stubGlobal("requestAnimationFrame", vi.fn((cb) => 123));
+    vi.stubGlobal("cancelAnimationFrame", vi.fn());
   });
 
   afterEach(() => {

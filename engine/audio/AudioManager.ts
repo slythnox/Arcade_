@@ -171,6 +171,18 @@ export class AudioManager {
       }, i * 100);
     });
   }
+
+  public destroy(): void {
+    try {
+      this.masterGain?.disconnect();
+      this.ctx?.close();
+    } catch {
+      // Best-effort cleanup
+    }
+    // Null out refs so GC can collect
+    (this as any).ctx = null;
+    (this as any).masterGain = null;
+  }
 }
 
 let sharedAudio: AudioManager | null = null;

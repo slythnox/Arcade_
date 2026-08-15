@@ -18,6 +18,7 @@ export const GameCard: React.FC<GameCardProps> = ({ game, basePath = "/games" })
   return (
     <div
       className="arcade-game-card"
+      data-testid="game-card"
       style={
         {
           "--card-accent": theme.primary,
