@@ -112,6 +112,13 @@ import { pegBlastDefinition } from "./definitions/pegBlastDefinition";
 import { caveHunterDefinition } from "./definitions/caveHunterDefinition";
 import { donkeyClimbDefinition } from "./definitions/donkeyClimbDefinition";
 
+// Nostalgia Classics — Phase 3B Additions
+import { marbleRushDefinition } from "./definitions/marbleRushDefinition";
+import { velocityRushDefinition } from "./definitions/velocityRushDefinition";
+import { lineRiderLabDefinition } from "./definitions/lineRiderLabDefinition";
+import { gardenDefenseDefinition } from "./definitions/gardenDefenseDefinition";
+import { coasterLabDefinition } from "./definitions/coasterLabDefinition";
+
 /**
  * Single source of truth for all 60 game cartridges in ARCADE_.
  */
@@ -136,6 +143,13 @@ export const gameRegistry: readonly GameDefinition[] = [
   pegBlastDefinition,
   caveHunterDefinition,
   donkeyClimbDefinition,
+
+  // Nostalgia Classics — Phase 3B Additions
+  marbleRushDefinition,
+  velocityRushDefinition,
+  lineRiderLabDefinition,
+  gardenDefenseDefinition,
+  coasterLabDefinition,
 
   // Tier 2 — Puzzle Games (11-22)
   twentyFortyEightDefinition,
