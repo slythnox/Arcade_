@@ -80,11 +80,10 @@ export class SnakeGame implements GameInstance {
     this.moveTimer += dt;
 
     if (this.isAIMode) {
-      const aiDir = getNextSnakeAIMove(this.body[0], this.food, this.body, this.cols, this.rows);
-      if (aiDir) this.direction = aiDir;
-    } else {
-      this.direction = this.nextDirection;
+      const aiMove = getNextSnakeAIMove(this.body[0], this.food, this.body, this.cols, this.rows);
+      if (aiMove) this.handleDirectionInput(aiMove);
     }
+    this.direction = this.nextDirection;
 
     if (this.moveTimer >= this.moveInterval) {
       this.moveTimer = 0;
