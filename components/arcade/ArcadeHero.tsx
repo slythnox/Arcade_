@@ -298,7 +298,7 @@ export const ArcadeHero: React.FC<ArcadeHeroProps> = ({ searchQuery, onSearchCha
             marginBottom: "32px",
           }}
         >
-          84 deterministic cartridges · zero ROMs · pure TypeScript mathematics
+          102 deterministic cartridges · zero ROMs · pure TypeScript mathematics
         </div>
 
         {/* Search bar */}
@@ -332,7 +332,7 @@ export const ArcadeHero: React.FC<ArcadeHeroProps> = ({ searchQuery, onSearchCha
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search 84 cartridges — tetris, physics, orbital, 1989..."
+            placeholder="Search 102 cartridges — tetris, physics, orbital, 1989..."
             style={{
               width: "100%",
               padding: "16px 20px 16px 52px",

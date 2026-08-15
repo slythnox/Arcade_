@@ -119,6 +119,16 @@ import { lineRiderLabDefinition } from "./definitions/lineRiderLabDefinition";
 import { gardenDefenseDefinition } from "./definitions/gardenDefenseDefinition";
 import { coasterLabDefinition } from "./definitions/coasterLabDefinition";
 
+// Nostalgia Classics — Phase 3C Additions (high complexity)
+import { pixelQuestDefinition } from "./definitions/pixelQuestDefinition";
+import { raySectorDefinition } from "./definitions/raySectorDefinition";
+import { pixelBrawlDefinition } from "./definitions/pixelBrawlDefinition";
+
+// Nostalgia Classics — Phase 3D Additions (largest)
+import { monsterArenaDefinition } from "./definitions/monsterArenaDefinition";
+import { pixelCircuitDefinition } from "./definitions/pixelCircuitDefinition";
+import { dungeonQuestDefinition } from "./definitions/dungeonQuestDefinition";
+
 /**
  * Single source of truth for all 60 game cartridges in ARCADE_.
  */
@@ -150,6 +160,16 @@ export const gameRegistry: readonly GameDefinition[] = [
   lineRiderLabDefinition,
   gardenDefenseDefinition,
   coasterLabDefinition,
+
+  // Nostalgia Classics — Phase 3C Additions (high complexity)
+  pixelQuestDefinition,
+  raySectorDefinition,
+  pixelBrawlDefinition,
+
+  // Nostalgia Classics — Phase 3D Additions (largest games)
+  monsterArenaDefinition,
+  pixelCircuitDefinition,
+  dungeonQuestDefinition,
 
   // Tier 2 — Puzzle Games (11-22)
   twentyFortyEightDefinition,
