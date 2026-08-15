@@ -1,0 +1,63 @@
+{
+  "name": "arcade_",
+  "version": "1.0.0",
+  "description": "A mathematical, zero-dependency retro arcade platform and 2D game engine built from scratch in pure TypeScript with 84 deterministic cartridges, real-time procedural Web Audio sound synthesis, and HTML5 Canvas rendering.",
+  "type": "module",
+  "homepage": "https://github.com/slythnox/Arcade_#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/slythnox/Arcade_.git"
+  },
+  "bugs": {
+    "url": "https://github.com/slythnox/Arcade_/issues"
+  },
+  "author": "slythnox",
+  "license": "MIT",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "lint": "eslint . --ext .ts,.tsx --max-warnings 0"
+  },
+  "keywords": [
+    "arcade",
+    "retro",
+    "game-engine",
+    "canvas",
+    "canvas-2d",
+    "math-physics",
+    "deterministic",
+    "typescript",
+    "nextjs",
+    "web-audio-api",
+    "tetris",
+    "snake",
+    "breakout",
+    "sokoban",
+    "cellular-automata",
+    "spatial-hash",
+    "procedural-generation"
+  ],
+  "dependencies": {
+    "lucide-react": "^1.31.0",
+    "next": "^16.3.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-unused-imports": "^3.0.0",
+    "prettier": "^3.2.0",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.10"
+  }
+}

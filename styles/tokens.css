@@ -1,0 +1,86 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;600;700;800&display=swap');
+
+:root {
+  /* --- Deep Navy Space Backdrop (Google Arcade aesthetic) --- */
+  --color-bg: #060e1c;
+  --color-bg-deep: #0a1628;
+  --color-bg-surface: #0d1b3a;
+  --color-surface: #111f3c;
+  --color-surface-elevated: #172548;
+  --color-surface-hover: #1e2f58;
+  --color-surface-border: #1e3060;
+  --color-surface-border-subtle: rgba(77, 163, 255, 0.15);
+
+  /* --- Saturated Primary Arcade Palette --- */
+  --arcade-yellow: #ffd84d;
+  --arcade-yellow-glow: rgba(255, 216, 77, 0.35);
+
+  --arcade-pink: #ff5c8a;
+  --arcade-pink-bright: #ff759d;
+  --arcade-pink-glow: rgba(255, 92, 138, 0.4);
+
+  --arcade-blue: #4da3ff;
+  --arcade-blue-glow: rgba(77, 163, 255, 0.35);
+
+  --arcade-cyan: #4de8e8;
+  --arcade-cyan-glow: rgba(77, 232, 232, 0.35);
+
+  --arcade-orange: #ff9f43;
+  --arcade-orange-glow: rgba(255, 159, 67, 0.35);
+
+  --arcade-purple: #a879ff;
+  --arcade-purple-glow: rgba(168, 121, 255, 0.35);
+
+  --arcade-green: #63e66d;
+  --arcade-green-glow: rgba(99, 230, 109, 0.35);
+
+  --arcade-lime: #a3e635;
+  --arcade-white: #ffffff;
+
+  /* Legacy aliases for backward compatibility */
+  --color-green: var(--arcade-green);
+  --color-green-bright: #7df586;
+  --color-green-dim: #4ade80;
+  --color-green-glow: var(--arcade-green-glow);
+  --color-cyan: var(--arcade-cyan);
+  --color-cyan-glow: var(--arcade-cyan-glow);
+  --color-warning: var(--arcade-yellow);
+  --color-danger: var(--arcade-pink);
+
+  /* --- Text & Hierarchy --- */
+  --color-text: #f3f6fc;
+  --color-text-dim: #9bb0d4;
+  --color-text-muted: #62769c;
+
+  /* --- Typography --- */
+  --font-pixel: 'Press Start 2P', monospace, cursive;
+  --font-sans: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, Menlo, Monaco, Consolas, monospace;
+  --font-display: var(--font-pixel);
+
+  /* --- Spacing --- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-24: 96px;
+
+  /* --- Pixel Borders & Shadows --- */
+  --border-width: 1px;
+  --border-width-thick: 2px;
+  --border-radius-pixel: 0px;
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+
+  --shadow-pixel: 3px 3px 0px #04060a;
+  --shadow-pixel-lg: 5px 5px 0px #04060a;
+  --shadow-card: 0 8px 24px rgba(4, 6, 12, 0.6), 3px 3px 0px #000000;
+
+  /* --- Layout --- */
+  --max-width-content: 1360px;
+  --header-height: 64px;
+}
