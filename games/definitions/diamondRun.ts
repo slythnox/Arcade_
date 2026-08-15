@@ -4,7 +4,7 @@ export const diamondRunDefinition: GameDefinition = {
   id: "diamond-run",
   slug: "diamond-run",
   name: "Diamond Run",
-  platform: "custom",
+  platform: "handheld",
   genre: "platformer",
   era: "2000s",
   year: 2008,
