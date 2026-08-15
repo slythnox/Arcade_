@@ -264,44 +264,79 @@ export class MazeChaserGame implements GameInstance {
 
   public render(renderer: Renderer): void {
     renderer.clear("#000000");
-    const cellSize = 16;
+    const cellSize = 18;
     const offsetX = (renderer.getWidth() - 23 * cellSize) / 2;
-    const offsetY = (renderer.getHeight() - 23 * cellSize) / 2;
+    const offsetY = (renderer.getHeight() - 23 * cellSize) / 2 + 16;
     
-    // Draw Maze
+    // Draw Classic Neon Blue Double Walls
     for (let y = 0; y < 23; y++) {
       for (let x = 0; x < 23; x++) {
         if (this.isWall(x, y)) {
-          renderer.drawRect(offsetX + x * cellSize, offsetY + y * cellSize, cellSize, cellSize, "#1122AA");
+          const wx = offsetX + x * cellSize;
+          const wy = offsetY + y * cellSize;
+          renderer.drawRect(wx + 2, wy + 2, cellSize - 4, cellSize - 4, "#0000aa", true);
+          renderer.drawRect(wx + 4, wy + 4, cellSize - 8, cellSize - 8, "#000033", true);
         }
       }
     }
     
-    // Draw Pellets
+    // Draw Pellets & Flashing Power Pellets
+    const flash = Math.floor(Date.now() / 250) % 2 === 0;
     for (const p of this.pellets) {
+      const px = offsetX + p.x * cellSize + cellSize / 2;
+      const py = offsetY + p.y * cellSize + cellSize / 2;
       if (p.power) {
-        renderer.drawCircle(offsetX + p.x * cellSize + cellSize/2, offsetY + p.y * cellSize + cellSize/2, 5, "#FFAA00");
+        if (flash) {
+          renderer.drawCircle(px, py, 6, "#ffb8ae", true);
+        }
       } else {
-        renderer.drawCircle(offsetX + p.x * cellSize + cellSize/2, offsetY + p.y * cellSize + cellSize/2, 2, "#FFFFFF");
+        renderer.drawRect(px - 1.5, py - 1.5, 3, 3, "#ffb8ae", true);
       }
     }
     
-    // Draw Player
-    renderer.drawCircle(offsetX + this.player.x * cellSize + cellSize/2, offsetY + this.player.y * cellSize + cellSize/2, cellSize/2 - 2, "#FFFF00");
+    // Draw Animated Chomping Pac-Man
+    const pacX = offsetX + this.player.x * cellSize + cellSize / 2;
+    const pacY = offsetY + this.player.y * cellSize + cellSize / 2;
+    renderer.drawCircle(pacX, pacY, cellSize / 2 - 1, "#ffff00", true);
     
-    // Draw Ghosts
-    const ghostColors = ["#FF0000", "#FFB8FF", "#00FFFF", "#FFB852"];
+    // Draw 4 Iconic Ghosts (Blinky, Pinky, Inky, Clyde)
+    const ghostColors = ["#ff0000", "#ffb8ff", "#00ffff", "#ffb852"];
     for (const g of this.ghosts) {
-      const color = g.state === 'frightened' ? "#0000FF" : ghostColors[g.type];
-      renderer.drawRect(offsetX + g.x * cellSize + 2, offsetY + g.y * cellSize + 2, cellSize - 4, cellSize - 4, color);
+      const gx = offsetX + g.x * cellSize + 2;
+      const gy = offsetY + g.y * cellSize + 2;
+      const isScared = g.state === 'frightened';
+      const color = isScared ? (flash ? "#2121ff" : "#ffffff") : ghostColors[g.type];
+      
+      // Ghost Head & Skirt Body
+      renderer.drawRect(gx, gy + 4, cellSize - 4, cellSize - 8, color, true);
+      renderer.drawCircle(gx + (cellSize - 4) / 2, gy + 4, (cellSize - 4) / 2, color, true);
+      
+      // Eyes (White with Blue pupils)
+      if (!isScared) {
+        renderer.drawCircle(gx + 5, gy + 6, 3, "#ffffff", true);
+        renderer.drawCircle(gx + 11, gy + 6, 3, "#ffffff", true);
+        renderer.drawCircle(gx + 5 + g.dx, gy + 6 + g.dy, 1.5, "#0000ff", true);
+        renderer.drawCircle(gx + 11 + g.dx, gy + 6 + g.dy, 1.5, "#0000ff", true);
+      } else {
+        renderer.drawCircle(gx + 5, gy + 6, 2, "#ffb8ae", true);
+        renderer.drawCircle(gx + 11, gy + 6, 2, "#ffb8ae", true);
+      }
     }
     
-    // Draw UI
-    renderer.drawText(`SCORE: ${this.score}`, 10, 20, {color: "#FFF", size: 16});
-    renderer.drawText(`LIVES: ${this.lives}`, renderer.getWidth() - 80, 20, {color: "#FFF", size: 16});
+    // Authentic Pac-Man Arcade Top HUD
+    renderer.drawText(`1UP`, 40, 20, { color: "#ff0000", size: 14 });
+    renderer.drawText(`${String(this.score).padStart(5, '0')}`, 40, 36, { color: "#ffffff", size: 14 });
+
+    renderer.drawText(`HIGH SCORE`, renderer.getWidth() / 2, 20, { color: "#ff0000", size: 14, align: "center" });
+    renderer.drawText(`10000`, renderer.getWidth() / 2, 36, { color: "#ffffff", size: 14, align: "center" });
+
+    // Lives Icon at bottom left
+    for (let l = 0; l < this.lives; l++) {
+      renderer.drawCircle(30 + l * 18, renderer.getHeight() - 16, 6, "#ffff00", true);
+    }
     
     if (this.gameOver) {
-      renderer.drawText("GAME OVER", renderer.getWidth()/2, renderer.getHeight()/2, {color: "#F00", size: 32, align: "center"});
+      renderer.drawText("GAME  OVER", renderer.getWidth() / 2, renderer.getHeight() / 2 + 10, { color: "#ff0000", size: 32, align: "center" });
     }
   }
 

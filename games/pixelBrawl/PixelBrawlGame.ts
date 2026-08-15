@@ -238,40 +238,85 @@ export class PixelBrawlGame implements GameInstance {
     const w = renderer.getWidth();
     const h = renderer.getHeight();
     
-    renderer.clear("#1a1a2e");
+    // Street Fighter II Temple Stage Background
+    renderer.drawRect(0, 0, w, this.groundY, "#1e1b4b", true); // Night sky
+    renderer.drawRect(0, 0, w, 100, "#311042", true);
+    // Roof silhouette & lanterns
+    renderer.drawRect(40, this.groundY - 120, 160, 120, "#0f172a", true);
+    renderer.drawRect(w - 200, this.groundY - 120, 160, 120, "#0f172a", true);
+    renderer.drawCircle(80, this.groundY - 60, 8, "#ff3300", true);
+    renderer.drawCircle(w - 120, this.groundY - 60, 8, "#ff3300", true);
+
+    // Dojo Wooden Floor
+    renderer.drawRect(0, this.groundY, w, h - this.groundY, "#78350f", true);
+    for (let lx = 0; lx < w; lx += 40) {
+      renderer.drawRect(lx, this.groundY, 2, h - this.groundY, "#451a03", true);
+    }
     
-    // Draw ground
-    renderer.drawRect(0, this.groundY, w, h - this.groundY, "#16213e", true);
+    // Draw fighters with arcade silhouettes (Ryu red gi vs Ken blue gi)
+    this.drawFighter(renderer, this.p1, "#dc2626", "RYU");
+    this.drawFighter(renderer, this.p2, "#2563eb", "KEN");
     
-    // Draw fighters
-    this.drawFighter(renderer, this.p1, "#e94560");
-    this.drawFighter(renderer, this.p2, "#0f3460");
-    
-    // UI
-    renderer.drawRect(20, 20, 200, 20, "#333", true);
-    renderer.drawRect(20, 20, (this.p1.hp / this.p1.maxHp) * 200, 20, "#00ff00", true);
-    
-    renderer.drawRect(w - 220, 20, 200, 20, "#333", true);
-    renderer.drawRect(w - 220, 20, (this.p2.hp / this.p2.maxHp) * 200, 20, "#ff0000", true);
-    
-    renderer.drawText(`Round ${this.round}`, w/2, 30, { align: 'center', size: 20 });
-    
+    // Street Fighter II Arcade HUD
+    const barW = 220;
+    const barH = 18;
+    const barY = 24;
+
+    // P1 Health Bar (Yellow / Green fill)
+    renderer.drawRect(20, barY, barW, barH, "#7f1d1d", true);
+    const p1HpW = Math.max(0, (this.p1.hp / this.p1.maxHp) * barW);
+    renderer.drawRect(20 + (barW - p1HpW), barY, p1HpW, barH, "#facc15", true);
+    renderer.drawRect(20, barY, barW, barH, "#f59e0b", false);
+
+    // P2 Health Bar
+    renderer.drawRect(w - 20 - barW, barY, barW, barH, "#7f1d1d", true);
+    const p2HpW = Math.max(0, (this.p2.hp / this.p2.maxHp) * barW);
+    renderer.drawRect(w - 20 - barW, barY, p2HpW, barH, "#facc15", true);
+    renderer.drawRect(w - 20 - barW, barY, barW, barH, "#f59e0b", false);
+
+    // Fighter Names
+    renderer.drawText(`RYU`, 20, barY - 6, { color: "#ffffff", size: 14 });
+    renderer.drawText(`KEN`, w - 20, barY - 6, { color: "#ffffff", size: 14, align: "right" });
+
+    // Round Timer Box (Center)
+    const timerW = 44;
+    renderer.drawRect(w / 2 - timerW / 2, 16, timerW, 32, "#0f172a", true);
+    renderer.drawRect(w / 2 - timerW / 2, 16, timerW, 32, "#facc15", false);
+    const timeSec = Math.max(0, 99 - Math.floor((99 * (this.round - 1)) / 10));
+    renderer.drawText(`${timeSec}`, w / 2, 38, { color: "#ffd84d", size: 20, align: "center" });
+
+    // K.O. Emblem
+    renderer.drawText(`K.O.`, w / 2, barY + 36, { color: "#ef4444", size: 16, align: "center" });
+
+    // Round / Combo Splash
     if (this.combo > 1) {
-      renderer.drawText(`${this.combo} Hit Combo!`, 50, 100, { color: '#ffeb3b', size: 24 });
+      renderer.drawText(`${this.combo} HIT COMBO!`, 30, 90, { color: '#ffeb3b', size: 20 });
     }
   }
   
-  private drawFighter(renderer: Renderer, p: FighterState, color: string) {
-    // Body
-    renderer.drawRect(p.x - 15, p.y - 60, 30, 60, color, true);
-    // Head
-    renderer.drawCircle(p.x, p.y - 75, 15, color, true);
+  private drawFighter(renderer: Renderer, p: FighterState, color: string, name: string) {
+    const isP1 = name === "RYU";
+    // Body & Gi
+    renderer.drawRect(p.x - 16, p.y - 64, 32, 64, color, true);
+    // Head & Headband
+    renderer.drawCircle(p.x, p.y - 76, 14, "#fce0a8", true);
+    renderer.drawRect(p.x - 14, p.y - 84, 28, 6, isP1 ? "#dc2626" : "#facc15", true); // Headband
+    // Belt & Pants
+    renderer.drawRect(p.x - 16, p.y - 32, 32, 6, "#0f172a", true); // Black belt
     
-    // Attack extension
+    // Attack visual (Hadoken / Punch / Kick)
     if (p.state === 'attacking' && p.currentMove) {
       const move = MOVES[p.currentMove];
       if (p.frame >= move.startup && p.frame < move.startup + move.active) {
-        renderer.drawRect(p.x + (p.facing * 15), p.y - 50, p.facing * 30, 10, "#ffffff", true);
+        if (p.currentMove === 'special') {
+          // HADOKEN Fireball Energy Wave!
+          const fbX = p.x + (p.facing * 45);
+          renderer.drawCircle(fbX, p.y - 50, 16, "#38bdf8", true);
+          renderer.drawCircle(fbX, p.y - 50, 10, "#ffffff", true);
+        } else {
+          // Punch / Kick Extension
+          renderer.drawRect(p.x + (p.facing * 16), p.y - 54, p.facing * 32, 12, "#fce0a8", true);
+        }
       }
     }
   }

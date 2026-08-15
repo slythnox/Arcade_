@@ -172,13 +172,14 @@ export class DungeonQuestGame implements GameInstance {
   public getLevel(): number { return this.level; }
   
   public render(renderer: Renderer): void {
-    renderer.clear("#000000");
-    
     const w = renderer.getWidth();
     const h = renderer.getHeight();
     
+    // Classic Zelda Dungeon Floor (Dark Slate / Brown)
+    renderer.clear("#000000");
+    
+    const offsetY = 72; // Space for NES Top Inventory Header
     const offsetX = (w - 10 * TILE_SIZE) / 2;
-    const offsetY = (h - 10 * TILE_SIZE) / 2;
     
     // Draw Map
     for (let y = 0; y < 10; y++) {
@@ -188,41 +189,95 @@ export class DungeonQuestGame implements GameInstance {
         const py = offsetY + y * TILE_SIZE;
         
         if (tile === "#") {
-          renderer.drawRect(px, py, TILE_SIZE, TILE_SIZE, "#555555", true);
+          // NES Dungeon Stone Wall
+          renderer.drawRect(px, py, TILE_SIZE, TILE_SIZE, "#008080", true);
+          renderer.drawRect(px + 2, py + 2, TILE_SIZE - 4, TILE_SIZE - 4, "#005555", true);
         } else if (tile === ".") {
-          renderer.drawRect(px, py, TILE_SIZE, TILE_SIZE, "#222222", true);
+          // Dungeon Floor
+          renderer.drawRect(px, py, TILE_SIZE, TILE_SIZE, "#1e293b", true);
+          renderer.drawRect(px, py, TILE_SIZE, TILE_SIZE, "#0f172a", false);
         } else if (tile === "D") {
-          renderer.drawRect(px, py, TILE_SIZE, TILE_SIZE, "#8B4513", true);
+          // Locked Wooden Door
+          renderer.drawRect(px, py, TILE_SIZE, TILE_SIZE, "#78350f", true);
+          renderer.drawRect(px + 12, py + 12, 8, 8, "#ffd84d", true);
         } else if (tile === "K") {
-          renderer.drawRect(px, py, TILE_SIZE, TILE_SIZE, "#222222", true);
-          renderer.drawCircle(px + TILE_SIZE/2, py + TILE_SIZE/2, 8, "#FFD700", true);
+          // Golden Triforce Key
+          renderer.drawRect(px, py, TILE_SIZE, TILE_SIZE, "#1e293b", true);
+          renderer.drawCircle(px + TILE_SIZE/2, py + TILE_SIZE/2 - 4, 6, "#ffd84d", true);
+          renderer.drawRect(px + TILE_SIZE/2 - 2, py + TILE_SIZE/2, 4, 10, "#ffd84d", true);
         }
       }
     }
     
-    // Draw Enemies
+    // Draw Enemies (Octorok red octopuses & Slimes)
     for (const enemy of this.enemies) {
       if (enemy.hp > 0) {
-        const px = offsetX + enemy.x * TILE_SIZE;
-        const py = offsetY + enemy.y * TILE_SIZE;
-        renderer.drawCircle(px + TILE_SIZE/2, py + TILE_SIZE/2, TILE_SIZE/2 - 4, enemy.type === "slime" ? "#00FF00" : "#FF0000", true);
+        const ePx = offsetX + enemy.x * TILE_SIZE;
+        const ePy = offsetY + enemy.y * TILE_SIZE;
+        if (enemy.type === "slime") {
+          renderer.drawCircle(ePx + TILE_SIZE/2, ePy + TILE_SIZE/2 + 4, 12, "#22c55e", true);
+          renderer.drawCircle(ePx + TILE_SIZE/2 - 4, ePy + TILE_SIZE/2 + 2, 2, "#ffffff", true);
+          renderer.drawCircle(ePx + TILE_SIZE/2 + 4, ePy + TILE_SIZE/2 + 2, 2, "#ffffff", true);
+        } else {
+          // Red Octorok
+          renderer.drawCircle(ePx + TILE_SIZE/2, ePy + TILE_SIZE/2, 14, "#dc2626", true);
+          renderer.drawCircle(ePx + TILE_SIZE/2, ePy + TILE_SIZE/2, 6, "#7f1d1d", true);
+        }
       }
     }
     
-    // Draw Player
-    const px = offsetX + this.player.x * TILE_SIZE;
-    const py = offsetY + this.player.y * TILE_SIZE;
-    renderer.drawCircle(px + TILE_SIZE/2, py + TILE_SIZE/2, TILE_SIZE/2 - 2, "#0000FF", true);
-    
-    // Direction Indicator
-    renderer.drawCircle(px + TILE_SIZE/2 + this.player.dirX * 10, py + TILE_SIZE/2 + this.player.dirY * 10, 4, "#FFFFFF", true);
-    
-    // HUD
-    renderer.drawText(`HP: ${this.player.hp}/6`, 20, 30, { size: 20, color: "#FF0000" });
-    renderer.drawText(`Keys: ${this.keys}`, w - 100, 30, { size: 20, color: "#FFD700" });
-    
+    // Draw Player (Link - Green Tunic & Cap)
+    const pPx = offsetX + this.player.x * TILE_SIZE;
+    const pPy = offsetY + this.player.y * TILE_SIZE;
+    // Green Tunic
+    renderer.drawRect(pPx + 6, pPy + 10, 20, 20, "#16a34a", true);
+    // Blonde Hair & Cap
+    renderer.drawRect(pPx + 4, pPy + 2, 24, 10, "#15803d", true);
+    renderer.drawRect(pPx + 8, pPy + 6, 16, 6, "#facc15", true);
+    // Face
+    renderer.drawRect(pPx + 8, pPy + 10, 16, 8, "#fce0a8", true);
+    // Shield
+    if (this.player.dirX > 0) {
+      renderer.drawRect(pPx + 22, pPy + 12, 6, 14, "#3b82f6", true);
+    } else {
+      renderer.drawRect(pPx + 4, pPy + 12, 6, 14, "#3b82f6", true);
+    }
+
+    // NES Top Inventory Header Bar (Legend of Zelda style)
+    renderer.drawRect(0, 0, w, 64, "#000000", true);
+    renderer.drawRect(0, 62, w, 2, "#16a34a", true);
+
+    // Minimap Box
+    renderer.drawRect(16, 10, 60, 44, "#000000", true);
+    renderer.drawRect(16, 10, 60, 44, "#16a34a", false);
+    renderer.drawRect(16 + (this.level % 3) * 16 + 4, 10 + Math.floor((this.level - 1) / 3) * 12 + 4, 12, 8, "#63e66d", true);
+
+    // Items Slots: B (Bomb) & A (Sword)
+    renderer.drawRect(110, 12, 28, 40, "#1e293b", true);
+    renderer.drawText(`B`, 120, 24, { color: "#38bdf8", size: 10 });
+    renderer.drawText(`💣`, 116, 44, { size: 12 });
+
+    renderer.drawRect(148, 12, 28, 40, "#1e293b", true);
+    renderer.drawText(`A`, 158, 24, { color: "#facc15", size: 10 });
+    renderer.drawText(`🗡️`, 154, 44, { size: 12 });
+
+    // Rupees & Keys
+    renderer.drawText(`💎x050`, 200, 30, { color: "#63e66d", size: 14 });
+    renderer.drawText(`🗝️x0${this.keys}`, 200, 48, { color: "#ffd84d", size: 14 });
+
+    // -LIFE- Hearts Container
+    renderer.drawText(`-LIFE-`, w - 140, 24, { color: "#ef4444", size: 12 });
+    const fullHearts = Math.floor(this.player.hp / 2);
+    let heartStr = "";
+    for (let hIdx = 0; hIdx < 3; hIdx++) {
+      heartStr += hIdx < fullHearts ? "♥ " : "♡ ";
+    }
+    renderer.drawText(heartStr, w - 140, 48, { color: "#ef4444", size: 18 });
+
     if (this.gameOver) {
-      renderer.drawText("GAME OVER", w/2, h/2, { size: 40, color: "#FF0000", align: "center" });
+      renderer.drawRect(0, 0, w, h, "rgba(0,0,0,0.85)", true);
+      renderer.drawText("GAME OVER", w/2, h/2 - 10, { size: 44, color: "#ef4444", align: "center" });
+      renderer.drawText("Press R to Restart", w/2, h/2 + 30, { size: 16, color: "#ffffff", align: "center" });
     }
   }
 }

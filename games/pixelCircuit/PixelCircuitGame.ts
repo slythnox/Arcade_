@@ -215,7 +215,7 @@ export class PixelCircuitGame implements GameInstance {
   public getLevel(): number { return this.trackIndex + 1; }
   
   public render(renderer: Renderer): void {
-    renderer.clear("#228B22");
+    renderer.clear("#15803d"); // Grass off-road
     
     const w = renderer.getWidth();
     const h = renderer.getHeight();
@@ -223,34 +223,48 @@ export class PixelCircuitGame implements GameInstance {
     renderer.save();
     
     // Camera follow player
-    const scale = 0.5; // Zoom out
+    const scale = 0.6;
     renderer.translate(w/2, h/2);
     renderer.scale(scale, scale);
     renderer.translate(-this.playerKart.x, -this.playerKart.y);
     
-    // Draw Track
+    // Draw Asphalt Track with Red/White Curbstones
     for (let i = 0; i < this.track.length; i++) {
       const p1 = this.track[i];
       const p2 = this.track[(i + 1) % this.track.length];
-      renderer.drawLine(p1.x, p1.y, p2.x, p2.y, "#333333", 80);
-      renderer.drawLine(p1.x, p1.y, p2.x, p2.y, "#FFFFFF", 2); // Center line
+      renderer.drawLine(p1.x, p1.y, p2.x, p2.y, "#ef4444", 100); // Outer red curb
+      renderer.drawLine(p1.x, p1.y, p2.x, p2.y, "#f8fafc", 92);  // Inner white curb
+      renderer.drawLine(p1.x, p1.y, p2.x, p2.y, "#334155", 80);  // Dark asphalt track
+      renderer.drawLine(p1.x, p1.y, p2.x, p2.y, "#ffd84d", 2);   // Golden center line
+    }
+
+    // Checkered Finish Line at Waypoint 0
+    const startWp = this.track[0];
+    for (let f = -40; f <= 40; f += 10) {
+      const isWhite = (f / 10) % 2 === 0;
+      renderer.drawRect(startWp.x + f, startWp.y - 10, 10, 20, isWhite ? "#ffffff" : "#000000", true);
     }
     
-    // Draw Karts
+    // Draw Karts (Mario Kart style top-down pixel karts)
     for (const kart of this.karts) {
       renderer.save();
       renderer.translate(kart.x, kart.y);
       renderer.rotate(kart.angle);
       
-      renderer.drawRect(-10, -5, 20, 10, kart.color, true);
-      renderer.drawCircle(10, 0, 3, "#FFFFFF", true); // Front dot
+      // Kart body & wheels
+      renderer.drawRect(-12, -8, 24, 16, kart.color, true);
+      renderer.drawRect(-14, -10, 6, 4, "#000000", true); // FL Wheel
+      renderer.drawRect(8, -10, 6, 4, "#000000", true);  // FR Wheel
+      renderer.drawRect(-14, 6, 6, 4, "#000000", true);   // BL Wheel
+      renderer.drawRect(8, 6, 6, 4, "#000000", true);    // BR Wheel
+      renderer.drawCircle(0, 0, 5, "#ffffff", true);     // Driver cap
       
       if (kart.drifting) {
-        renderer.drawCircle(-15, -5, 3, "#FFA500", true);
-        renderer.drawCircle(-15, 5, 3, "#FFA500", true);
+        renderer.drawCircle(-16, -6, 4, "#ff9f43", true);
+        renderer.drawCircle(-16, 6, 4, "#ff9f43", true);
       }
       if (kart.driftBoost > 0) {
-        renderer.drawCircle(-15, 0, 5, "#00FFFF", true);
+        renderer.drawCircle(-16, 0, 6, "#00ffff", true);
       }
       
       renderer.restore();
@@ -258,24 +272,40 @@ export class PixelCircuitGame implements GameInstance {
     
     renderer.restore();
     
-    // HUD
-    renderer.drawText(`Lap: ${this.playerKart.lap}/3`, 20, 30, { size: 20, color: "#FFFFFF" });
-    renderer.drawText(`Speed: ${Math.floor(this.playerKart.speed)}`, 20, 60, { size: 20, color: "#FFFFFF" });
+    // Super Mario Kart SNES Replica HUD
+    renderer.drawRect(0, 0, w, 44, "rgba(15, 23, 42, 0.85)", true);
+    renderer.drawRect(0, 42, w, 2, "#ffd84d", true);
+
+    // Position Badge (1st / 2nd)
+    const sortedKarts = [...this.karts].sort((a,b) => (b.lap * 100 + b.waypointIndex) - (a.lap * 100 + a.waypointIndex));
+    const pRank = sortedKarts.findIndex(k => k === this.playerKart) + 1;
+    const rankSuffix = pRank === 1 ? "ST" : (pRank === 2 ? "ND" : (pRank === 3 ? "RD" : "TH"));
+    renderer.drawText(`${pRank}${rankSuffix}`, 24, 30, { size: 24, color: "#ffd84d" });
+
+    // Lap Counter
+    renderer.drawText(`LAP ${Math.min(3, this.playerKart.lap + 1)}/3`, 120, 28, { size: 16, color: "#ffffff" });
+
+    // Time & Speedometer
+    const timeSec = (this.score / 10).toFixed(2);
+    renderer.drawText(`TIME ${timeSec}"`, 240, 28, { size: 16, color: "#ffffff" });
+    renderer.drawText(`SPEED ${Math.floor(this.playerKart.speed / 2)} MPH`, 400, 28, { size: 16, color: "#63e66d" });
     
-    // Minimap
-    const mmSize = 150;
-    const mmX = w - mmSize - 20;
-    const mmY = 20;
-    renderer.drawRect(mmX, mmY, mmSize, mmSize, "rgba(0,0,0,0.5)", true);
+    // Minimap Radar Box
+    const mmSize = 130;
+    const mmX = w - mmSize - 16;
+    const mmY = 56;
+    renderer.drawRect(mmX, mmY, mmSize, mmSize, "rgba(15, 23, 42, 0.8)", true);
+    renderer.drawRect(mmX, mmY, mmSize, mmSize, "#ffd84d", false);
     for (const kart of this.karts) {
-      // Map world coords (0-1000 roughly) to minimap (0-150)
       const mx = mmX + (kart.x / 1000) * mmSize;
       const my = mmY + (kart.y / 1000) * mmSize;
       renderer.drawCircle(mx, my, 4, kart.color, true);
     }
     
     if (this.gameOver) {
-      renderer.drawText("YOU WIN!", w/2, h/2, { size: 40, color: "#FFFF00", align: "center" });
+      renderer.drawRect(0, 0, w, h, "rgba(0,0,0,0.85)", true);
+      renderer.drawText("FINISH! 🏁", w/2, h/2 - 10, { size: 48, color: "#ffd84d", align: "center" });
+      renderer.drawText(`FINAL TIME: ${timeSec} SECONDS`, w/2, h/2 + 34, { size: 18, color: "#ffffff", align: "center" });
     }
   }
 }

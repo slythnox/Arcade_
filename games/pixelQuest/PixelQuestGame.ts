@@ -136,6 +136,7 @@ export class PixelQuestGame implements GameInstance {
   private ctx!: GameContext;
   private currentLevel: number = 0;
   private score: number = 0;
+  private coinsCollected: number = 0;
   private lives: number = 3;
   private state: "playing" | "paused" | "gameover" | "victory" | "level_transition" = "playing";
 
@@ -623,18 +624,30 @@ export class PixelQuestGame implements GameInstance {
       }
     }
 
-    // Player
+    // Player (Mario-inspired NES 8-bit sprite)
     const pWalkOffset = (this.inputX !== 0 && this.grounded) ? Math.sin(this.timeAlive * 15) * 2 : 0;
-    
-    // Body
-    pr.drawPixelRect(this.player.x, this.player.y, this.player.w, this.player.h, "#ffffff", "#ffffff", "#cccccc");
-    // Eyes
     const faceDir = this.player.vx >= 0 ? 1 : -1;
-    const eyeX = faceDir > 0 ? this.player.x + 12 : this.player.x + 4;
-    pr.drawRect(eyeX, this.player.y + 4, 4, 4, "#000000");
-    // Feet
-    pr.drawRect(this.player.x + 2, this.player.y + this.player.h - 4 + pWalkOffset, 6, 4, "#888888");
-    pr.drawRect(this.player.x + this.player.w - 8, this.player.y + this.player.h - 4 - pWalkOffset, 6, 4, "#888888");
+    
+    // Cap (Red)
+    pr.drawPixelRect(this.player.x, this.player.y, this.player.w, 8, "#d82800", "#fc9838", "#a81000");
+    if (faceDir > 0) {
+      pr.drawRect(this.player.x + 8, this.player.y + 4, this.player.w - 4, 4, "#d82800");
+    } else {
+      pr.drawRect(this.player.x - 4, this.player.y + 4, this.player.w - 4, 4, "#d82800");
+    }
+    // Face (Skin tone)
+    pr.drawPixelRect(this.player.x + 2, this.player.y + 6, this.player.w - 4, 10, "#fce0a8", "#ffffff", "#c89860");
+    // Eyes & Moustache
+    const eyeX = faceDir > 0 ? this.player.x + 14 : this.player.x + 4;
+    pr.drawRect(eyeX, this.player.y + 8, 3, 3, "#000000");
+    pr.drawRect(eyeX - 2, this.player.y + 12, 8, 3, "#402000");
+    // Shirt & Overalls (Red & Blue)
+    pr.drawPixelRect(this.player.x + 2, this.player.y + 16, this.player.w - 4, 10, "#002870", "#4070d8", "#001040");
+    pr.drawRect(this.player.x + 4, this.player.y + 16, 4, 6, "#d82800");
+    pr.drawRect(this.player.x + 14, this.player.y + 16, 4, 6, "#d82800");
+    // Boots
+    pr.drawRect(this.player.x + 2, this.player.y + 26 + pWalkOffset, 7, 6, "#704000");
+    pr.drawRect(this.player.x + 13, this.player.y + 26 - pWalkOffset, 7, 6, "#704000");
 
     pr.restore();
     
@@ -642,24 +655,38 @@ export class PixelQuestGame implements GameInstance {
   }
 
   private renderUI(renderer: Renderer) {
-    renderer.drawText(`SCORE: ${this.score}`, 10, 20, { color: "#ffffff", size: 16 });
-    renderer.drawText(`LEVEL: ${this.currentLevel + 1}`, renderer.getWidth() / 2, 20, { color: "#ffffff", size: 16, align: "center" });
-    renderer.drawText(`LIVES: ${this.lives}`, renderer.getWidth() - 10, 20, { color: "#ffffff", size: 16, align: "right" });
+    const timeRemaining = Math.max(0, Math.floor(400 - this.timeAlive));
+    const padScore = String(this.score).padStart(6, '0');
+    const padCoins = String(this.coinsCollected).padStart(2, '0');
+
+    // NES Header Bar
+    renderer.drawText(`MARIO`, 24, 16, { color: "#ffffff", size: 14 });
+    renderer.drawText(`${padScore}`, 24, 32, { color: "#ffffff", size: 14 });
+
+    renderer.drawText(`WORLD`, 200, 16, { color: "#ffffff", size: 14 });
+    renderer.drawText(`1-${this.currentLevel + 1}`, 204, 32, { color: "#ffffff", size: 14 });
+
+    renderer.drawText(`🪙x${padCoins}`, 340, 32, { color: "#ffd84d", size: 14 });
+
+    renderer.drawText(`TIME`, 480, 16, { color: "#ffffff", size: 14 });
+    renderer.drawText(`${timeRemaining}`, 484, 32, { color: "#ffffff", size: 14 });
+
+    renderer.drawText(`LIVES x${this.lives}`, renderer.getWidth() - 20, 32, { color: "#ff5c8a", size: 14, align: "right" });
     
     if (this.state === "paused") {
       renderer.drawRect(0, 0, renderer.getWidth(), renderer.getHeight(), "rgba(0,0,0,0.5)");
       renderer.drawText("PAUSED", renderer.getWidth() / 2, renderer.getHeight() / 2, { color: "#ffffff", size: 40, align: "center" });
     } else if (this.state === "gameover") {
-      renderer.drawRect(0, 0, renderer.getWidth(), renderer.getHeight(), "rgba(0,0,0,0.8)");
-      renderer.drawText("GAME OVER", renderer.getWidth() / 2, renderer.getHeight() / 2, { color: "#ff0000", size: 50, align: "center" });
-      renderer.drawText("Press R to Restart", renderer.getWidth() / 2, renderer.getHeight() / 2 + 50, { color: "#ffffff", size: 20, align: "center" });
+      renderer.drawRect(0, 0, renderer.getWidth(), renderer.getHeight(), "rgba(0,0,0,0.85)");
+      renderer.drawText("GAME OVER", renderer.getWidth() / 2, renderer.getHeight() / 2 - 20, { color: "#ff5c8a", size: 44, align: "center" });
+      renderer.drawText("Press R to Restart", renderer.getWidth() / 2, renderer.getHeight() / 2 + 30, { color: "#ffffff", size: 16, align: "center" });
     } else if (this.state === "victory") {
-      renderer.drawRect(0, 0, renderer.getWidth(), renderer.getHeight(), "rgba(0,0,0,0.8)");
-      renderer.drawText("YOU WIN!", renderer.getWidth() / 2, renderer.getHeight() / 2, { color: "#00ff00", size: 50, align: "center" });
-      renderer.drawText(`FINAL SCORE: ${this.score}`, renderer.getWidth() / 2, renderer.getHeight() / 2 + 50, { color: "#ffffff", size: 20, align: "center" });
+      renderer.drawRect(0, 0, renderer.getWidth(), renderer.getHeight(), "rgba(0,0,0,0.85)");
+      renderer.drawText("COURSE CLEAR!", renderer.getWidth() / 2, renderer.getHeight() / 2 - 20, { color: "#63e66d", size: 40, align: "center" });
+      renderer.drawText(`FINAL SCORE: ${this.score}`, renderer.getWidth() / 2, renderer.getHeight() / 2 + 30, { color: "#ffd84d", size: 18, align: "center" });
     } else if (this.state === "level_transition") {
       renderer.drawRect(0, 0, renderer.getWidth(), renderer.getHeight(), "rgba(0,0,0,1)");
-      renderer.drawText(`LEVEL ${this.currentLevel + 1}`, renderer.getWidth() / 2, renderer.getHeight() / 2, { color: "#ffffff", size: 40, align: "center" });
+      renderer.drawText(`WORLD 1-${this.currentLevel + 1}`, renderer.getWidth() / 2, renderer.getHeight() / 2, { color: "#ffffff", size: 36, align: "center" });
     }
   }
 

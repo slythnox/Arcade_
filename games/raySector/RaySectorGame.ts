@@ -53,6 +53,7 @@ export class RaySectorGame implements GameInstance {
   private level: number = 1;
   private score: number = 0;
   private lives: number = 3;
+  private playerHp: number = 100;
   private paused: boolean = false;
   
   public init(ctx: GameContext): void {
@@ -271,14 +272,53 @@ export class RaySectorGame implements GameInstance {
       if (transformY > 0) {
         for (let stripe = Math.floor(drawStartX); stripe < drawEndX; stripe++) {
           if (transformY < zBuffer[stripe]) {
-            renderer.drawRect(stripe, drawStartY, 1, drawEndY - drawStartY, "#FF0000", true);
+            renderer.drawRect(stripe, drawStartY, 1, drawEndY - drawStartY, "#FF2200", true);
           }
         }
       }
     }
     
-    renderer.drawRect(w/2 - 20, h - 60, 40, 60, "#888888", true);
-    renderer.drawText(`Score: ${this.score}`, 10, 20);
+    // Gun Barrel Sprite in bottom center
+    const gunX = w / 2 - 16;
+    const gunY = h - 100;
+    renderer.drawRect(gunX + 12, gunY, 8, 30, "#555555", true);
+    renderer.drawRect(gunX + 10, gunY + 20, 12, 35, "#222222", true);
+    renderer.drawRect(gunX + 6, gunY + 45, 20, 25, "#885522", true);
+
+    // Crosshair in Viewport
+    renderer.drawRect(w / 2 - 6, h / 2 - 1, 12, 2, "#00FF00", true);
+    renderer.drawRect(w / 2 - 1, h / 2 - 6, 2, 12, "#00FF00", true);
+
+    // Wolfenstein 3D Bottom Status Bar HUD
+    const hudY = h - 48;
+    renderer.drawRect(0, hudY, w, 48, "#0000a8", true);
+    renderer.drawRect(0, hudY, w, 3, "#5555ff", true);
+    
+    // Status Bar Labels & Stats
+    renderer.drawText(`LEVEL`, 20, hudY + 14, { color: "#aaaaaa", size: 10 });
+    renderer.drawText(`${this.level}`, 20, hudY + 34, { color: "#ffffff", size: 16 });
+
+    renderer.drawText(`SCORE`, 80, hudY + 14, { color: "#aaaaaa", size: 10 });
+    renderer.drawText(`${String(this.score).padStart(6, '0')}`, 80, hudY + 34, { color: "#ffd84d", size: 16 });
+
+    // BJ Blazkowicz Face Box (Center HUD)
+    const faceBoxX = w / 2 - 20;
+    renderer.drawRect(faceBoxX, hudY + 6, 40, 36, "#000055", true);
+    renderer.drawRect(faceBoxX, hudY + 6, 40, 36, "#5555ff", false);
+    // Face skin + eyes + hair
+    renderer.drawRect(faceBoxX + 10, hudY + 12, 20, 22, "#ffccaa", true);
+    renderer.drawRect(faceBoxX + 8, hudY + 10, 24, 6, "#cc9933", true); // Blonde hair
+    const lookOffset = Math.floor(Math.sin(this.posX * 2) * 2);
+    renderer.drawRect(faceBoxX + 13 + lookOffset, hudY + 18, 3, 3, "#0000ff", true); // Left eye
+    renderer.drawRect(faceBoxX + 23 + lookOffset, hudY + 18, 3, 3, "#0000ff", true); // Right eye
+    renderer.drawRect(faceBoxX + 16, hudY + 26, 8, 2, "#aa3333", true); // Mouth
+
+    renderer.drawText(`HEALTH`, w - 160, hudY + 14, { color: "#aaaaaa", size: 10 });
+    const hpColor = this.playerHp > 50 ? "#63e66d" : (this.playerHp > 25 ? "#ffd84d" : "#ff5c8a");
+    renderer.drawText(`${this.playerHp}%`, w - 160, hudY + 34, { color: hpColor, size: 16 });
+
+    renderer.drawText(`AMMO`, w - 70, hudY + 14, { color: "#aaaaaa", size: 10 });
+    renderer.drawText(`99`, w - 70, hudY + 34, { color: "#ffffff", size: 16 });
   }
   
   public pause(): void { this.paused = true; }

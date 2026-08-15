@@ -89,21 +89,7 @@ import { liquidCellsDefinition } from "./definitions/liquidCells";
 import { circlePackingLabDefinition } from "./definitions/circlePackingLab";
 import { omegaRunDefinition } from "./definitions/omegaRun";
 
-// Tier 8 — New Mathematical Systems
-import { sandWorldDefinition } from "./definitions/sandWorld";
-import { mirrorMazeDefinition } from "./definitions/mirrorMaze";
-import { fractalExplorerDefinition } from "./definitions/fractalExplorer";
-import { predatorPreyDefinition } from "./definitions/predatorPrey";
-import { evolutionLabDefinition } from "./definitions/evolutionLab";
-import { sokobanDefinition } from "./definitions/sokoban";
-import { algorithmDungeonDefinition } from "./definitions/algorithmDungeon";
-import { springMassDefinition } from "./definitions/springMass";
-import { logicGatesDefinition } from "./definitions/logicGates";
-import { caveGeneratorDefinition } from "./definitions/caveGenerator";
-import { voronoiGardenDefinition } from "./definitions/voronoiGarden";
-import { dungeonGeneratorDefinition } from "./definitions/dungeonGenerator";
-
-// Nostalgia Classics — New Additions
+// Nostalgia Classics — Pure Retro Arcade Additions
 import { mazeChaserDefinition } from "./definitions/mazeChaserDefinition";
 import { roadHopperDefinition } from "./definitions/roadHopperDefinition";
 import { starFormationDefinition } from "./definitions/starFormationDefinition";
@@ -111,26 +97,22 @@ import { bombGridDefinition } from "./definitions/bombGridDefinition";
 import { pegBlastDefinition } from "./definitions/pegBlastDefinition";
 import { caveHunterDefinition } from "./definitions/caveHunterDefinition";
 import { donkeyClimbDefinition } from "./definitions/donkeyClimbDefinition";
-
-// Nostalgia Classics — Phase 3B Additions
 import { marbleRushDefinition } from "./definitions/marbleRushDefinition";
 import { velocityRushDefinition } from "./definitions/velocityRushDefinition";
-import { lineRiderLabDefinition } from "./definitions/lineRiderLabDefinition";
-import { gardenDefenseDefinition } from "./definitions/gardenDefenseDefinition";
-import { coasterLabDefinition } from "./definitions/coasterLabDefinition";
-
-// Nostalgia Classics — Phase 3C Additions (high complexity)
 import { pixelQuestDefinition } from "./definitions/pixelQuestDefinition";
 import { raySectorDefinition } from "./definitions/raySectorDefinition";
 import { pixelBrawlDefinition } from "./definitions/pixelBrawlDefinition";
-
-// Nostalgia Classics — Phase 3D Additions (largest)
-import { monsterArenaDefinition } from "./definitions/monsterArenaDefinition";
 import { pixelCircuitDefinition } from "./definitions/pixelCircuitDefinition";
 import { dungeonQuestDefinition } from "./definitions/dungeonQuestDefinition";
+import { sokobanDefinition } from "./definitions/sokoban";
+import { algorithmDungeonDefinition } from "./definitions/algorithmDungeon";
+import { logicGatesDefinition } from "./definitions/logicGates";
+import { caveGeneratorDefinition } from "./definitions/caveGenerator";
+import { voronoiGardenDefinition } from "./definitions/voronoiGarden";
+import { dungeonGeneratorDefinition } from "./definitions/dungeonGenerator";
 
 /**
- * Single source of truth for all 60 game cartridges in ARCADE_.
+ * Single source of truth for all game cartridges in ARCADE_.
  */
 export const gameRegistry: readonly GameDefinition[] = [
   // Tier 1 — Core Arcade Classics (1-10)
@@ -145,7 +127,7 @@ export const gameRegistry: readonly GameDefinition[] = [
   brickStackDefinition,
   laserGridDefinition,
 
-  // Nostalgia Classics — Phase 3A Additions
+  // Iconic Retro Additions
   mazeChaserDefinition,
   roadHopperDefinition,
   starFormationDefinition,
@@ -153,25 +135,15 @@ export const gameRegistry: readonly GameDefinition[] = [
   pegBlastDefinition,
   caveHunterDefinition,
   donkeyClimbDefinition,
-
-  // Nostalgia Classics — Phase 3B Additions
   marbleRushDefinition,
   velocityRushDefinition,
-  lineRiderLabDefinition,
-  gardenDefenseDefinition,
-  coasterLabDefinition,
-
-  // Nostalgia Classics — Phase 3C Additions (high complexity)
   pixelQuestDefinition,
   raySectorDefinition,
   pixelBrawlDefinition,
-
-  // Nostalgia Classics — Phase 3D Additions (largest games)
-  monsterArenaDefinition,
   pixelCircuitDefinition,
   dungeonQuestDefinition,
 
-  // Tier 2 — Puzzle Games (11-22)
+  // Tier 2 — Puzzle Games
   twentyFortyEightDefinition,
   lightsOutDefinition,
   floodFillDefinition,
@@ -185,7 +157,7 @@ export const gameRegistry: readonly GameDefinition[] = [
   twentyFortyEightHexDefinition,
   numberMergeDefinition,
 
-  // Tier 3 — Physics & Reflex (23-32)
+  // Tier 3 — Physics & Reflex
   orbitalDefinition,
   gravityFlipDefinition,
   ballDropDefinition,
@@ -197,7 +169,7 @@ export const gameRegistry: readonly GameDefinition[] = [
   pendulumDefinition,
   cannonballDefinition,
 
-  // Tier 4 — Shooters & Bullet Hell (33-40)
+  // Tier 4 — Shooters & Bullet Hell
   twinStickArenaDefinition,
   bulletGardenDefinition,
   meteorRushDefinition,
@@ -207,7 +179,7 @@ export const gameRegistry: readonly GameDefinition[] = [
   targetRangeDefinition,
   missileCommandDefinition,
 
-  // Tier 5 — Platformers & Movement (41-48)
+  // Tier 5 — Platformers & Movement
   pixelJumperDefinition,
   wallRunnerDefinition,
   dashRunnerDefinition,
@@ -217,7 +189,7 @@ export const gameRegistry: readonly GameDefinition[] = [
   shadowRunnerDefinition,
   gravityMazeDefinition,
 
-  // Tier 6 — Strategy & Board Games (49-56)
+  // Tier 6 — Strategy & Board Games
   connectFourDefinition,
   ticTacToePlusDefinition,
   checkersDefinition,
@@ -227,13 +199,13 @@ export const gameRegistry: readonly GameDefinition[] = [
   kingdomGridDefinition,
   resourceMinerDefinition,
 
-  // Tier 7 — Experimental & Math Simulation (57-60)
+  // Tier 7 — Experimental & Math Simulation
   fractalGardenDefinition,
   cellColonyDefinition,
   gravityWellDefinition,
   neonCircuitDefinition,
 
-  // Tier 9 — Advanced Systems (73-84)
+  // Advanced Systems
   antColonyDefinition,
   orbitalMechanicsDefinition,
   poolSimulatorDefinition,
@@ -246,16 +218,8 @@ export const gameRegistry: readonly GameDefinition[] = [
   liquidCellsDefinition,
   circlePackingLabDefinition,
   omegaRunDefinition,
-
-  // Tier 8 — New Mathematical Systems (61-72)
-  sandWorldDefinition,
-  mirrorMazeDefinition,
-  fractalExplorerDefinition,
-  predatorPreyDefinition,
-  evolutionLabDefinition,
   sokobanDefinition,
   algorithmDungeonDefinition,
-  springMassDefinition,
   logicGatesDefinition,
   caveGeneratorDefinition,
   voronoiGardenDefinition,
