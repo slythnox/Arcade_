@@ -82,4 +82,48 @@ describe("Diamond Run Cartridge — 2000s Java Mobile Action-Platformer", () => 
     expect(() => instance.reset(1337)).not.toThrow();
     expect(() => instance.destroy()).not.toThrow();
   });
+
+  it("World/Level selection menu navigation and Level 1 -> Level 2 progression work seamlessly", async () => {
+    const instance = (await diamondRunDefinition.createGame()) as DiamondRunGame;
+    const ctx = createMockContext();
+
+    instance.init(ctx);
+    // Boot -> Menu
+    for (let i = 0; i < 60; i++) instance.update(1 / 60);
+
+    // Menu -> World Select
+    instance.handleInput("CONFIRM", true);
+
+    // World Select navigation
+    instance.handleInput("MOVE_DOWN", true);
+    expect((instance as any).currentWorld).toBe(2);
+
+    instance.handleInput("MOVE_UP", true);
+    expect((instance as any).currentWorld).toBe(1);
+
+    // Confirm World -> Level Select
+    instance.handleInput("CONFIRM", true);
+    expect((instance as any).gameState).toBe("LEVEL_SELECT");
+
+    // Level Select navigation
+    instance.handleInput("MOVE_DOWN", true);
+    expect((instance as any).currentLevelIdx).toBe(1);
+
+    instance.handleInput("MOVE_UP", true);
+    expect((instance as any).currentLevelIdx).toBe(0);
+
+    // Confirm Level -> Playing Level 1
+    instance.handleInput("CONFIRM", true);
+    expect((instance as any).gameState).toBe("PLAYING");
+    expect(ctx.session.setStatus).toHaveBeenCalledWith("running");
+
+    // Simulate level 1 completion (reach exit)
+    (instance as any).gameState = "LEVEL_COMPLETE";
+    instance.handleInput("CONFIRM", true);
+
+    // Should transition to Level 2 (index 1) and status running
+    expect((instance as any).currentLevelIdx).toBe(1);
+    expect((instance as any).gameState).toBe("PLAYING");
+    expect(ctx.session.setStatus).toHaveBeenCalledWith("running");
+  });
 });

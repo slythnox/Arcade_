@@ -130,6 +130,10 @@ export class DiamondRunGame implements GameInstance {
     // Center camera
     this.cameraX = this.player.x - LOGICAL_WIDTH / 2;
     this.cameraY = this.player.y - LOGICAL_HEIGHT / 2;
+
+    if (this.ctx?.session) {
+      this.ctx.session.setStatus("running");
+    }
   }
 
   private triggerRespawn(): void {
@@ -145,6 +149,9 @@ export class DiamondRunGame implements GameInstance {
     }
     this.player.invulnerabilityTimer = INVULNERABILITY_MAX;
     this.gameState = "PLAYING";
+    if (this.ctx?.session) {
+      this.ctx.session.setStatus("running");
+    }
   }
 
   public update(dt: number): void {
@@ -394,45 +401,90 @@ export class DiamondRunGame implements GameInstance {
   }
 
   public handleInput(action: GameAction, isPressed: boolean): void {
-    if (action === "MOVE_LEFT") this.moveLeft = isPressed;
-    if (action === "MOVE_RIGHT") this.moveRight = isPressed;
-    if (action === "MOVE_UP") this.climbUp = isPressed;
-    if (action === "MOVE_DOWN") this.climbDown = isPressed;
+    if (action === "RESTART" && isPressed) {
+      this.reset();
+      return;
+    }
 
-    if ((action === "ACTION_PRIMARY" || action === "ROTATE") && isPressed) {
-      if (this.gameState === "MENU") {
+    const isConfirm = action === "CONFIRM" || action === "ACTION_PRIMARY" || action === "ROTATE";
+
+    if (this.gameState === "MENU") {
+      if (isConfirm && isPressed) {
         this.gameState = "WORLD_SELECT";
         this.ctx.audio.playMove();
-        return;
       }
-      if (this.gameState === "WORLD_SELECT") {
+      return;
+    }
+
+    if (this.gameState === "WORLD_SELECT") {
+      if (!isPressed) return;
+      if (action === "MOVE_UP" || action === "MOVE_LEFT") {
+        this.currentWorld = Math.max(1, this.currentWorld - 1);
+        this.ctx.audio.playMove();
+      } else if (action === "MOVE_DOWN" || action === "MOVE_RIGHT") {
+        this.currentWorld = Math.min(5, this.currentWorld + 1);
+        this.ctx.audio.playMove();
+      } else if (isConfirm) {
+        this.currentLevelIdx = (this.currentWorld - 1) * 5;
         this.gameState = "LEVEL_SELECT";
         this.ctx.audio.playMove();
-        return;
       }
-      if (this.gameState === "LEVEL_SELECT") {
-        this.gameState = "PLAYING";
+      return;
+    }
+
+    if (this.gameState === "LEVEL_SELECT") {
+      if (!isPressed) return;
+      const startIdx = (this.currentWorld - 1) * 5;
+      const endIdx = startIdx + 4;
+      if (action === "MOVE_UP" || action === "MOVE_LEFT") {
+        this.currentLevelIdx = Math.max(startIdx, this.currentLevelIdx - 1);
         this.ctx.audio.playMove();
-        return;
+      } else if (action === "MOVE_DOWN" || action === "MOVE_RIGHT") {
+        this.currentLevelIdx = Math.min(endIdx, this.currentLevelIdx + 1);
+        this.ctx.audio.playMove();
+      } else if (isConfirm) {
+        if (this.unlockedLevels[this.currentLevelIdx]) {
+          this.loadLevel(this.currentLevelIdx);
+          this.gameState = "PLAYING";
+          this.ctx.session.setStatus("running");
+          this.ctx.audio.playMove();
+        } else {
+          this.ctx.audio.playHit();
+        }
       }
-      if (this.gameState === "PLAYING") {
-        this.jumpPressed = true;
-        return;
-      }
-      if (this.gameState === "LEVEL_COMPLETE") {
+      return;
+    }
+
+    if (this.gameState === "LEVEL_COMPLETE") {
+      if (isConfirm && isPressed) {
         if (this.currentLevelIdx + 1 < LEVELS.length) {
           this.loadLevel(this.currentLevelIdx + 1);
           this.gameState = "PLAYING";
+          this.ctx.session.setStatus("running");
         } else {
           this.gameState = "GAME_COMPLETE";
         }
         this.ctx.audio.playMove();
-        return;
       }
+      return;
     }
 
-    if (action === "RESTART" && isPressed) {
-      this.reset();
+    if (this.gameState === "GAME_COMPLETE") {
+      if (isConfirm && isPressed) {
+        this.reset();
+      }
+      return;
+    }
+
+    if (this.gameState === "PLAYING") {
+      if (action === "MOVE_LEFT") this.moveLeft = isPressed;
+      if (action === "MOVE_RIGHT") this.moveRight = isPressed;
+      if (action === "MOVE_UP") this.climbUp = isPressed;
+      if (action === "MOVE_DOWN") this.climbDown = isPressed;
+
+      if ((isConfirm || action === "MOVE_UP") && isPressed) {
+        this.jumpPressed = true;
+      }
     }
   }
 
