@@ -298,7 +298,7 @@ export default function AboutPage() {
           }}>
             <ul style={{ listStyleType: "none", padding: 0, margin: 0, lineHeight: 2 }}>
               <li><span style={{ color: "var(--arcade-yellow, #FFD84D)" }}>[ FPS ]</span> 60fps stable on Chrome / Firefox / Safari (M1 & Intel).</li>
-              <li><span style={{ color: "var(--arcade-cyan, #4DE8E8)" }}>[ BUNDLE SIZE ]</span> {'<'}2MB total payload across all 59 cartridges.</li>
+              <li><span style={{ color: "var(--arcade-cyan, #4DE8E8)" }}>[ BUNDLE SIZE ]</span> {'<'}2MB total payload across all 60 cartridges.</li>
               <li><span style={{ color: "var(--arcade-pink, #FF5C8A)" }}>[ NETWORK ]</span> Zero network requests during gameplay. Fully local simulation.</li>
               <li><span style={{ color: "var(--arcade-purple, #A879FF)" }}>[ GC PAUSES ]</span> Mitigated entirely via strict Object Pooling for ephemeral entities.</li>
             </ul>

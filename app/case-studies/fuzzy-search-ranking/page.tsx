@@ -79,7 +79,7 @@ export default function FuzzySearchRankingStudy() {
               1. Space-Optimized Levenshtein Distance ($O(N)$ Memory)
             </h2>
             <p style={{ color: "var(--color-text-dim)", marginBottom: "14px" }}>
-              Standard 2D Levenshtein algorithms allocate an $(M + 1) \times (N + 1)$ matrix. When searching 59+ cartridges on every keystroke, continuous heap allocations trigger browser garbage collection stutter. We reduce memory complexity to $O(N)$ by maintaining only two alternating 1D rows:
+              Standard 2D Levenshtein algorithms allocate an $(M + 1) \times (N + 1)$ matrix. When searching 60+ cartridges on every keystroke, continuous heap allocations trigger browser garbage collection stutter. We reduce memory complexity to $O(N)$ by maintaining only two alternating 1D rows:
             </p>
             <div style={{ backgroundColor: "#070b14", border: "1px solid rgba(255, 92, 138, 0.3)", borderRadius: "6px", padding: "16px 20px", overflowX: "auto" }}>
               <pre style={{ margin: 0, fontFamily: "var(--font-mono)", fontSize: "13px", color: "var(--arcade-pink)", lineHeight: 1.55 }}>
