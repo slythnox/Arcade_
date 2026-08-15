@@ -128,31 +128,7 @@ export const SiteHeader: React.FC = () => {
               }}
             >
               <Gamepad2 size={14} color="#ffd84d" />
-              GAMES
-            </Link>
-
-            <Link
-              href="/labs"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "6px",
-                padding: "7px 14px",
-                fontSize: "12px",
-                fontFamily: "var(--font-mono)",
-                fontWeight: 800,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                textDecoration: "none",
-                borderRadius: "6px",
-                border: "1px solid rgba(168,121,255,0.2)",
-                backgroundColor: "rgba(168,121,255,0.06)",
-                color: "#a879ff",
-                transition: "all 0.15s ease",
-              }}
-            >
-              <FlaskConical size={14} color="#a879ff" />
-              LABS
+              GAMES (60)
             </Link>
           </div>
 

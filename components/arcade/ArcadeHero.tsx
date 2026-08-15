@@ -164,12 +164,10 @@ export const ArcadeHero: React.FC<ArcadeHeroProps> = ({
   onSearchChange,
   selectedPlatform,
   onPlatformChange,
-  variant = "arcade",
 }) => {
-  const isLabs = variant === "labs";
-  const accent = isLabs ? "#a879ff" : "#ffd84d";
-  const accentDim = isLabs ? "rgba(168,121,255,0.35)" : "rgba(255,216,77,0.35)";
-  const accentGlow = isLabs ? "rgba(168,121,255,0.6)" : "rgba(255,216,77,0.6)";
+  const accent = "#ffd84d";
+  const accentDim = "rgba(255,216,77,0.35)";
+  const accentGlow = "rgba(255,216,77,0.6)";
   return (
     <section
       style={{
@@ -179,9 +177,7 @@ export const ArcadeHero: React.FC<ArcadeHeroProps> = ({
         textAlign: "center",
         overflow: "hidden",
         /* Deep navy space — matching Google Arcade */
-        background: isLabs
-          ? "radial-gradient(ellipse 120% 80% at 50% 60%, #130a2a 0%, #0d0820 45%, #060e1c 100%)"
-          : "radial-gradient(ellipse 120% 80% at 50% 60%, #0d1b3e 0%, #0a1628 45%, #060e1c 100%)",
+        background: "radial-gradient(ellipse 120% 80% at 50% 60%, #0d1b3e 0%, #0a1628 45%, #060e1c 100%)",
         marginLeft: "calc(-1 * var(--space-6))",
         marginRight: "calc(-1 * var(--space-6))",
         paddingLeft: "var(--space-6)",
@@ -298,15 +294,11 @@ export const ArcadeHero: React.FC<ArcadeHeroProps> = ({
               margin: 0,
             }}
           >
-            {isLabs ? (
-              <>ARCADE<span style={{ color: "#4de8e8" }}>_</span>LABS</>
-            ) : (
-              <>THE ARCADE<span style={{ color: "#ff5c8a" }}>_</span></>
-            )}
+            THE ARCADE<span style={{ color: "#ff5c8a" }}>_</span>
           </h1>
         </div>
 
-        {/* Subtitle — clean white sans-serif like Google Cloud */}
+        {/* Subtitle — clean white sans-serif */}
         <div
           style={{
             fontFamily: "var(--font-sans)",
@@ -317,9 +309,7 @@ export const ArcadeHero: React.FC<ArcadeHeroProps> = ({
             marginBottom: "32px",
           }}
         >
-          {isLabs
-            ? "14 mathematical experiments · physics · fractals · algorithms · emergence"
-            : "59 deterministic cartridges · zero ROMs · pure TypeScript mathematics"}
+          60 deterministic cartridges · zero ROMs · pure TypeScript mathematics
         </div>
 
         {/* Search bar */}
@@ -337,13 +327,13 @@ export const ArcadeHero: React.FC<ArcadeHeroProps> = ({
               left: "18px",
               top: "50%",
               transform: "translateY(-50%)",
-              color: isLabs ? "#a879ff" : "#4de8e8",
+              color: "#4de8e8",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               pointerEvents: "none",
               zIndex: 2,
-              filter: isLabs ? "drop-shadow(0 0 6px rgba(168,121,255,0.6))" : "drop-shadow(0 0 6px rgba(77, 232, 232, 0.6))",
+              filter: "drop-shadow(0 0 6px rgba(77, 232, 232, 0.6))",
             }}
           >
             <Search size={20} strokeWidth={2.5} />
@@ -353,9 +343,7 @@ export const ArcadeHero: React.FC<ArcadeHeroProps> = ({
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder={isLabs
-              ? "Search experiments — fractals, gravity, cellular..."
-              : "Search 59 cartridges — tetris, physics, retro, 1989..."}
+            placeholder="Search 60 cartridges — tetris, physics, retro, diamond run..."
             style={{
               width: "100%",
               padding: "16px 20px 16px 52px",
@@ -364,7 +352,7 @@ export const ArcadeHero: React.FC<ArcadeHeroProps> = ({
               fontWeight: 600,
               backgroundColor: "rgba(10, 18, 36, 0.8)",
               color: "#ffffff",
-              border: isLabs ? "1px solid rgba(168, 121, 255, 0.35)" : "1px solid rgba(77, 232, 232, 0.35)",
+              border: "1px solid rgba(77, 232, 232, 0.35)",
               borderRadius: "8px",
               backdropFilter: "blur(12px)",
               boxShadow: "0 8px 32px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1)",

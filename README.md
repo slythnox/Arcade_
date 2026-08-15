@@ -1,16 +1,13 @@
 # ARCADE_
 
-> 60 original browser game cartridges + 14 mathematical lab experiments.  
+> 60 original deterministic retro arcade game cartridges.  
 > Pure TypeScript architecture with zero third-party game engine dependencies.
 
 ## What is ARCADE_
 
 ARCADE_ is a deterministic, framework-free retro arcade engine and game library built from scratch in TypeScript, running on HTML5 Canvas 2D and synthesized Web Audio API.
 
-The system includes 60 arcade cartridges (including *Diamond Run*, *Pixel Quest*, *Ray Sector*, *Pixel Circuit*, *Dungeon Quest*, and *Tetris*) spanning various genres, from logic puzzles to platformers. They all run on the same deterministic engine loop. View the full list at [/games](/games).
-
-## Labs  
-Beyond standard games, ARCADE_ features 14 mathematical and physics experiments, exploring algorithms, cellular automata, and procedural generation. Explore them at [/labs](/labs).
+The system includes 60 arcade cartridges (including *Diamond Run*, *Pixel Quest*, *Ray Sector*, *Pixel Circuit*, *Dungeon Quest*, *Tetris*, *Snake*, *Sokoban*, and *Logic Gates*) spanning 7 distinct genres. They all run on the same deterministic engine loop. View the full list at [/games](/games).
 
 ## Architecture
 ARCADE_ is built on a custom architecture ensuring deterministic simulation and high performance without external game frameworks.
@@ -23,7 +20,7 @@ ARCADE_ is built on a custom architecture ensuring deterministic simulation and 
 The platform leverages Next.js dynamic `import()` for code splitting. This ensures that game logic is loaded on-demand when a cartridge is launched, avoiding a massive initial JavaScript bundle, though exact chunk boundaries are determined by Turbopack's optimization heuristics.
 
 ## Testing
-102 smoke tests (one per cartridge) + 61 unit/integration tests = 163 total tests.
+60 smoke tests (one per cartridge) + unit & integration tests = 218 total passed tests.
 
 ## Development
 

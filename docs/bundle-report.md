@@ -6,8 +6,8 @@ Generated: 2026-08-15 via `npm run analyze` (Turbopack build)
 
 | Metric | Value |
 |--------|-------|
-| Total static pages | 136 |
-| Total routes | `/`, `/games/[slug]` (88), `/labs/[slug]` (14), `/labs`, plus case studies, about, FAQ, etc. |
+| Total static pages | 82 |
+| Total routes | `/`, `/games/[slug]` (60), plus case studies, about, FAQ, etc. |
 | Build tool | Next.js 16.3.1 + Turbopack |
 | TypeScript errors | 0 |
 

@@ -494,7 +494,116 @@ export class DiamondRunGame implements GameInstance {
   public getScore(): number { return this.score; }
   public getLevel(): number { return this.currentLevelIdx + 1; }
 
+  private canvasAttached: boolean = false;
+
+  private attachCanvasListeners(renderer: Renderer): void {
+    if (this.canvasAttached) return;
+    const canvas = (renderer as any).getContext?.()?.canvas as HTMLCanvasElement | undefined;
+    if (!canvas) return;
+    this.canvasAttached = true;
+
+    const handlePointer = (e: MouseEvent | TouchEvent, isClick: boolean) => {
+      let clientX = 0;
+      let clientY = 0;
+
+      if ("touches" in e && e.touches.length > 0) {
+        clientX = e.touches[0].clientX;
+        clientY = e.touches[0].clientY;
+      } else if ("clientX" in e) {
+        clientX = (e as MouseEvent).clientX;
+        clientY = (e as MouseEvent).clientY;
+      } else {
+        return;
+      }
+
+      const rect = canvas.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+
+      const canvasW = renderer.getWidth();
+      const canvasH = renderer.getHeight();
+
+      const mouseX = ((clientX - rect.left) / rect.width) * canvasW;
+      const mouseY = ((clientY - rect.top) / rect.height) * canvasH;
+
+      const scale = Math.min(canvasW / LOGICAL_WIDTH, canvasH / LOGICAL_HEIGHT);
+      const stageOffsetX = Math.floor((canvasW - LOGICAL_WIDTH * scale) / 2);
+      const stageOffsetY = Math.floor((canvasH - LOGICAL_HEIGHT * scale) / 2);
+
+      const lx = (mouseX - stageOffsetX) / scale;
+      const ly = (mouseY - stageOffsetY) / scale;
+
+      if (this.gameState === "MENU" && isClick) {
+        this.gameState = "WORLD_SELECT";
+        this.ctx.audio.playMove();
+        return;
+      }
+
+      if (this.gameState === "WORLD_SELECT") {
+        for (let idx = 0; idx < 5; idx++) {
+          const y = 42 + idx * 22;
+          if (lx >= 40 && lx <= 280 && ly >= y - 10 && ly <= y + 10) {
+            this.currentWorld = idx + 1;
+            if (isClick) {
+              this.currentLevelIdx = (this.currentWorld - 1) * 5;
+              this.gameState = "LEVEL_SELECT";
+              this.ctx.audio.playMove();
+            }
+          }
+        }
+        return;
+      }
+
+      if (this.gameState === "LEVEL_SELECT") {
+        const startIdx = (this.currentWorld - 1) * 5;
+        for (let i = 0; i < 5; i++) {
+          const lvlIdx = startIdx + i;
+          const y = 42 + i * 22;
+          if (lx >= 40 && lx <= 280 && ly >= y - 10 && ly <= y + 10) {
+            this.currentLevelIdx = lvlIdx;
+            if (isClick) {
+              if (this.unlockedLevels[lvlIdx]) {
+                this.loadLevel(lvlIdx);
+                this.gameState = "PLAYING";
+                if (this.ctx?.session) {
+                  this.ctx.session.setStatus("running");
+                }
+                this.ctx.audio.playMove();
+              } else {
+                this.ctx.audio.playHit();
+              }
+            }
+          }
+        }
+        return;
+      }
+
+      if (this.gameState === "LEVEL_COMPLETE" && isClick) {
+        if (this.currentLevelIdx + 1 < LEVELS.length) {
+          this.loadLevel(this.currentLevelIdx + 1);
+          this.gameState = "PLAYING";
+          if (this.ctx?.session) {
+            this.ctx.session.setStatus("running");
+          }
+        } else {
+          this.gameState = "GAME_COMPLETE";
+        }
+        this.ctx.audio.playMove();
+        return;
+      }
+
+      if (this.gameState === "GAME_COMPLETE" && isClick) {
+        this.reset();
+      }
+    };
+
+    canvas.addEventListener("pointerdown", (e) => handlePointer(e, true));
+    canvas.addEventListener("pointermove", (e) => handlePointer(e, false));
+    canvas.addEventListener("touchstart", (e) => handlePointer(e, true), { passive: true });
+  }
+
   public render(renderer: Renderer): void {
+    this.attachCanvasListeners(renderer);
+
     const canvasW = renderer.getWidth();
     const canvasH = renderer.getHeight();
 

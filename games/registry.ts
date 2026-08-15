@@ -160,22 +160,18 @@ export const gameRegistry: readonly GameDefinition[] = [
   diamondRunDefinition,
 ];
 
-/** Games visible in the main ARCADE_ game library. */
-export const arcadeRegistry: readonly GameDefinition[] = gameRegistry.filter(
-  (g) => g.category === "arcade"
-);
+/** Games visible in the main ARCADE_ game library (60 cartridges). */
+export const arcadeRegistry: readonly GameDefinition[] = gameRegistry;
 
-/** Mathematical experiments and simulations in the Labs section. */
-export const labsRegistry: readonly GameDefinition[] = gameRegistry.filter(
-  (g) => g.category === "labs"
-);
+/** Legacy labs registry fallback. */
+export const labsRegistry: readonly GameDefinition[] = [];
 
 export function getArcadeGames(): readonly GameDefinition[] {
   return arcadeRegistry;
 }
 
 export function getLabsGames(): readonly GameDefinition[] {
-  return labsRegistry;
+  return [];
 }
 
 export function getAllGames(): readonly GameDefinition[] {
