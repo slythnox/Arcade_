@@ -2,7 +2,7 @@ import type { GameDefinition } from "../types";
 
 export const roadHopperDefinition: GameDefinition = {
   id: "roadHopper",
-  slug: "roadHopper",
+  slug: "road-hopper",
   name: "Road Hopper",
   platform: "arcade",
   genre: "action",

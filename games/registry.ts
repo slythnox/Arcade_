@@ -285,7 +285,12 @@ export function getAllGames(): readonly GameDefinition[] {
 }
 
 export function getGameBySlug(slug: string): GameDefinition | undefined {
-  return gameRegistry.find((g) => g.slug === slug || g.id === slug);
+  if (!slug) return undefined;
+  const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+  const target = norm(slug);
+  return gameRegistry.find(
+    (g) => g.slug === slug || g.id === slug || norm(g.slug) === target || norm(g.id) === target
+  );
 }
 
 export async function createGameInstance(idOrSlug: string): Promise<GameInstance | null> {

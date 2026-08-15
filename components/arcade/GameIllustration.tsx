@@ -187,6 +187,44 @@ export const GAME_THEMES: Record<string, GameTheme> = {
   circlePackingLab: { primary: "#ffd84d", secondary: "#ff5c8a", accent: "#4de8e8", glow: "rgba(255, 216, 77, 0.4)" },
   "omega-run": { primary: "#ff5c8a", secondary: "#4de8e8", accent: "#ffd84d", glow: "rgba(255, 92, 138, 0.4)" },
   omegaRun: { primary: "#ff5c8a", secondary: "#4de8e8", accent: "#ffd84d", glow: "rgba(255, 92, 138, 0.4)" },
+
+  // Phase 3 — Nostalgia Classics Expansion
+  "maze-chaser": { primary: "#ffd84d", secondary: "#ff5c8a", accent: "#4de8e8", glow: "rgba(255, 216, 77, 0.4)" },
+  mazeChaser: { primary: "#ffd84d", secondary: "#ff5c8a", accent: "#4de8e8", glow: "rgba(255, 216, 77, 0.4)" },
+  "road-hopper": { primary: "#63e66d", secondary: "#ff9f43", accent: "#ffd84d", glow: "rgba(99, 230, 109, 0.4)" },
+  roadHopper: { primary: "#63e66d", secondary: "#ff9f43", accent: "#ffd84d", glow: "rgba(99, 230, 109, 0.4)" },
+  "star-formation": { primary: "#ff5c8a", secondary: "#4de8e8", accent: "#ffd84d", glow: "rgba(255, 92, 138, 0.4)" },
+  starFormation: { primary: "#ff5c8a", secondary: "#4de8e8", accent: "#ffd84d", glow: "rgba(255, 92, 138, 0.4)" },
+  "bomb-grid": { primary: "#ff9f43", secondary: "#ff5c8a", accent: "#ffd84d", glow: "rgba(255, 159, 67, 0.4)" },
+  bombGrid: { primary: "#ff9f43", secondary: "#ff5c8a", accent: "#ffd84d", glow: "rgba(255, 159, 67, 0.4)" },
+  "peg-blast": { primary: "#a879ff", secondary: "#ff9f43", accent: "#4de8e8", glow: "rgba(168, 121, 255, 0.4)" },
+  pegBlast: { primary: "#a879ff", secondary: "#ff9f43", accent: "#4de8e8", glow: "rgba(168, 121, 255, 0.4)" },
+  "cave-hunter": { primary: "#ff9f43", secondary: "#63e66d", accent: "#ffd84d", glow: "rgba(255, 159, 67, 0.4)" },
+  caveHunter: { primary: "#ff9f43", secondary: "#63e66d", accent: "#ffd84d", glow: "rgba(255, 159, 67, 0.4)" },
+  "donkey-climb": { primary: "#ffd84d", secondary: "#ff5c8a", accent: "#ff9f43", glow: "rgba(255, 216, 77, 0.4)" },
+  donkeyClimb: { primary: "#ffd84d", secondary: "#ff5c8a", accent: "#ff9f43", glow: "rgba(255, 216, 77, 0.4)" },
+  "marble-rush": { primary: "#4de8e8", secondary: "#a879ff", accent: "#ffd84d", glow: "rgba(77, 232, 232, 0.4)" },
+  marbleRush: { primary: "#4de8e8", secondary: "#a879ff", accent: "#ffd84d", glow: "rgba(77, 232, 232, 0.4)" },
+  "velocity-rush": { primary: "#4da3ff", secondary: "#ff5c8a", accent: "#ffd84d", glow: "rgba(77, 163, 255, 0.4)" },
+  velocityRush: { primary: "#4da3ff", secondary: "#ff5c8a", accent: "#ffd84d", glow: "rgba(77, 163, 255, 0.4)" },
+  "line-rider-lab": { primary: "#a879ff", secondary: "#4de8e8", accent: "#ffffff", glow: "rgba(168, 121, 255, 0.4)" },
+  lineRiderLab: { primary: "#a879ff", secondary: "#4de8e8", accent: "#ffffff", glow: "rgba(168, 121, 255, 0.4)" },
+  "garden-defense": { primary: "#63e66d", secondary: "#ff9f43", accent: "#ffd84d", glow: "rgba(99, 230, 109, 0.4)" },
+  gardenDefense: { primary: "#63e66d", secondary: "#ff9f43", accent: "#ffd84d", glow: "rgba(99, 230, 109, 0.4)" },
+  "coaster-lab": { primary: "#ffd84d", secondary: "#a879ff", accent: "#ff5c8a", glow: "rgba(255, 216, 77, 0.4)" },
+  coasterLab: { primary: "#ffd84d", secondary: "#a879ff", accent: "#ff5c8a", glow: "rgba(255, 216, 77, 0.4)" },
+  "pixel-quest": { primary: "#ff5c8a", secondary: "#ffd84d", accent: "#63e66d", glow: "rgba(255, 92, 138, 0.4)" },
+  pixelQuest: { primary: "#ff5c8a", secondary: "#ffd84d", accent: "#63e66d", glow: "rgba(255, 92, 138, 0.4)" },
+  "ray-sector": { primary: "#4de8e8", secondary: "#ff9f43", accent: "#ff5c8a", glow: "rgba(77, 232, 232, 0.4)" },
+  raySector: { primary: "#4de8e8", secondary: "#ff9f43", accent: "#ff5c8a", glow: "rgba(77, 232, 232, 0.4)" },
+  "pixel-brawl": { primary: "#ff5c8a", secondary: "#ffd84d", accent: "#4da3ff", glow: "rgba(255, 92, 138, 0.4)" },
+  pixelBrawl: { primary: "#ff5c8a", secondary: "#ffd84d", accent: "#4da3ff", glow: "rgba(255, 92, 138, 0.4)" },
+  "monster-arena": { primary: "#ff5c8a", secondary: "#ffffff", accent: "#ffd84d", glow: "rgba(255, 92, 138, 0.4)" },
+  monsterArena: { primary: "#ff5c8a", secondary: "#ffffff", accent: "#ffd84d", glow: "rgba(255, 92, 138, 0.4)" },
+  "pixel-circuit": { primary: "#ffd84d", secondary: "#ff5c8a", accent: "#63e66d", glow: "rgba(255, 216, 77, 0.4)" },
+  pixelCircuit: { primary: "#ffd84d", secondary: "#ff5c8a", accent: "#63e66d", glow: "rgba(255, 216, 77, 0.4)" },
+  "dungeon-quest": { primary: "#63e66d", secondary: "#ffd84d", accent: "#4da3ff", glow: "rgba(99, 230, 109, 0.4)" },
+  dungeonQuest: { primary: "#63e66d", secondary: "#ffd84d", accent: "#4da3ff", glow: "rgba(99, 230, 109, 0.4)" },
 };
 
 export function getGameTheme(game: GameDefinition): GameTheme {
@@ -1092,6 +1130,207 @@ export const GameIllustration: React.FC<GameIllustrationProps> = ({ game, size =
             <line x1="15" y1="4" x2="15" y2="26" stroke="#4de8e8" strokeWidth="1" strokeDasharray="2,2" />
             <line x1="22" y1="4" x2="27" y2="26" stroke="#4de8e8" strokeWidth="1.5" />
             <rect x="13" y="14" width="4" height="6" fill="#ffd84d" rx="1" />
+          </>
+        );
+
+      // === PHASE 3: NOSTALGIA CLASSICS EXPANSION ===
+      case "maze-chaser":
+      case "mazeChaser":
+        return (
+          <>
+            <path d="M 12 15 L 21 8 A 9 9 0 1 0 21 22 Z" fill="#ffd84d" />
+            <circle cx="24" cy="15" r="2" fill="#ffffff" />
+            <rect x="3" y="10" width="6" height="8" fill="#ff5c8a" rx="3" />
+            <circle cx="5" cy="13" r="1" fill="#ffffff" />
+            <circle cx="7" cy="13" r="1" fill="#ffffff" />
+          </>
+        );
+
+      case "road-hopper":
+      case "roadHopper":
+        return (
+          <>
+            <rect x="2" y="14" width="26" height="2" fill="#ffd84d" strokeDasharray="4,4" />
+            <rect x="10" y="8" width="10" height="10" fill="#63e66d" rx="3" />
+            <circle cx="12" cy="7" r="2.5" fill="#ffffff" />
+            <circle cx="18" cy="7" r="2.5" fill="#ffffff" />
+            <circle cx="12" cy="7" r="1" fill="#000000" />
+            <circle cx="18" cy="7" r="1" fill="#000000" />
+            <rect x="6" y="12" width="3" height="4" fill="#63e66d" />
+            <rect x="21" y="12" width="3" height="4" fill="#63e66d" />
+          </>
+        );
+
+      case "star-formation":
+      case "starFormation":
+        return (
+          <>
+            <polygon points="15,4 8,24 22,24" fill="#ff5c8a" />
+            <polygon points="15,8 11,22 19,22" fill="#4de8e8" />
+            <rect x="14" y="2" width="2" height="6" fill="#ffd84d" />
+            <rect x="6" y="22" width="4" height="4" fill="#ff5c8a" />
+            <rect x="20" y="22" width="4" height="4" fill="#ff5c8a" />
+          </>
+        );
+
+      case "bomb-grid":
+      case "bombGrid":
+        return (
+          <>
+            <circle cx="15" cy="17" r="8" fill="#1e293b" stroke="#ff9f43" strokeWidth="1.5" />
+            <rect x="13" y="6" width="4" height="4" fill="#64748b" />
+            <path d="M 15 6 Q 18 2 22 4" stroke="#ffd84d" strokeWidth="2" fill="none" />
+            <circle cx="22" cy="4" r="2" fill="#ff5c8a" />
+          </>
+        );
+
+      case "peg-blast":
+      case "pegBlast":
+        return (
+          <>
+            <circle cx="8" cy="10" r="3" fill="#ff9f43" />
+            <circle cx="22" cy="10" r="3" fill="#4de8e8" />
+            <circle cx="15" cy="18" r="3" fill="#ff5c8a" />
+            <circle cx="8" cy="24" r="3" fill="#a879ff" />
+            <circle cx="22" cy="24" r="3" fill="#ffd84d" />
+            <circle cx="15" cy="6" r="2.5" fill="#ffffff" />
+          </>
+        );
+
+      case "cave-hunter":
+      case "caveHunter":
+        return (
+          <>
+            <rect x="4" y="4" width="22" height="6" fill="#78350f" />
+            <rect x="4" y="10" width="22" height="16" fill="#451a03" />
+            <rect x="8" y="14" width="6" height="8" fill="#ff9f43" rx="1" />
+            <circle cx="20" cy="18" r="4" fill="#ff5c8a" />
+          </>
+        );
+
+      case "donkey-climb":
+      case "donkeyClimb":
+        return (
+          <>
+            <line x1="3" y1="22" x2="27" y2="18" stroke="#ff5c8a" strokeWidth="3" />
+            <line x1="3" y1="12" x2="27" y2="8" stroke="#ff5c8a" strokeWidth="3" />
+            <circle cx="18" cy="12" r="4" fill="#ff9f43" stroke="#78350f" strokeWidth="1.5" />
+            <rect x="7" y="16" width="4" height="6" fill="#ffd84d" />
+          </>
+        );
+
+      case "marble-rush":
+      case "marbleRush":
+        return (
+          <>
+            <path d="M 4 24 Q 15 4 26 24" fill="none" stroke="#334155" strokeWidth="3" />
+            <circle cx="8" cy="18" r="3" fill="#4de8e8" />
+            <circle cx="15" cy="10" r="3" fill="#a879ff" />
+            <circle cx="22" cy="18" r="3" fill="#ffd84d" />
+            <circle cx="15" cy="22" r="3" fill="#ff5c8a" />
+          </>
+        );
+
+      case "velocity-rush":
+      case "velocityRush":
+        return (
+          <>
+            <path d="M 4 22 C 12 22 12 6 20 6 C 26 6 26 22 15 22" fill="none" stroke="#4da3ff" strokeWidth="3" />
+            <circle cx="20" cy="10" r="3" fill="#ff5c8a" />
+            <circle cx="12" cy="18" r="2" fill="#ffd84d" />
+          </>
+        );
+
+      case "line-rider-lab":
+      case "lineRiderLab":
+        return (
+          <>
+            <path d="M 4 8 Q 12 26 26 18" fill="none" stroke="#a879ff" strokeWidth="2.5" />
+            <polygon points="12,14 16,11 18,17" fill="#4de8e8" />
+            <circle cx="15" cy="11" r="2" fill="#ffffff" />
+          </>
+        );
+
+      case "garden-defense":
+      case "gardenDefense":
+        return (
+          <>
+            <rect x="4" y="6" width="22" height="18" fill="#15803d" rx="2" />
+            <circle cx="10" cy="15" r="4" fill="#63e66d" />
+            <rect x="12" y="13" width="5" height="4" fill="#22c55e" rx="1" />
+            <circle cx="21" cy="15" r="2" fill="#ffd84d" />
+          </>
+        );
+
+      case "coaster-lab":
+      case "coasterLab":
+        return (
+          <>
+            <path d="M 4 24 Q 12 4 20 16 T 28 8" fill="none" stroke="#ffd84d" strokeWidth="2" />
+            <rect x="10" y="8" width="6" height="4" fill="#ff5c8a" rx="1" transform="rotate(-30 13 10)" />
+            <line x1="8" y1="24" x2="8" y2="16" stroke="#475569" strokeWidth="1" />
+            <line x1="16" y1="24" x2="16" y2="12" stroke="#475569" strokeWidth="1" />
+          </>
+        );
+
+      case "pixel-quest":
+      case "pixelQuest":
+        return (
+          <>
+            <rect x="8" y="10" width="14" height="14" fill="#ff9f43" rx="2" stroke="#ffd84d" strokeWidth="1.5" />
+            <text x="12" y="22" fontFamily="monospace" fontSize="12" fontWeight="900" fill="#ffffff">?</text>
+            <circle cx="22" cy="7" r="3" fill="#ff5c8a" />
+          </>
+        );
+
+      case "ray-sector":
+      case "raySector":
+        return (
+          <>
+            <polygon points="4,4 12,9 12,21 4,26" fill="#1e293b" stroke="#4de8e8" strokeWidth="1" />
+            <polygon points="26,4 18,9 18,21 26,26" fill="#1e293b" stroke="#4de8e8" strokeWidth="1" />
+            <rect x="12" y="9" width="6" height="12" fill="#0f172a" stroke="#ff9f43" strokeWidth="1" />
+          </>
+        );
+
+      case "pixel-brawl":
+      case "pixelBrawl":
+        return (
+          <>
+            <rect x="6" y="10" width="7" height="12" fill="#ff5c8a" rx="1" />
+            <rect x="17" y="10" width="7" height="12" fill="#4da3ff" rx="1" />
+            <circle cx="15" cy="15" r="3" fill="#ffd84d" />
+          </>
+        );
+
+      case "monster-arena":
+      case "monsterArena":
+        return (
+          <>
+            <circle cx="15" cy="15" r="10" fill="#ffffff" stroke="#1e293b" strokeWidth="2" />
+            <path d="M 5 15 A 10 10 0 0 1 25 15 Z" fill="#ff5c8a" />
+            <line x1="5" y1="15" x2="25" y2="15" stroke="#1e293b" strokeWidth="2" />
+            <circle cx="15" cy="15" r="3" fill="#ffffff" stroke="#1e293b" strokeWidth="1.5" />
+          </>
+        );
+
+      case "pixel-circuit":
+      case "pixelCircuit":
+        return (
+          <>
+            <path d="M 6 6 L 24 6 L 24 24 L 6 24 Z" fill="none" stroke="#475569" strokeWidth="5" />
+            <rect x="18" y="4" width="5" height="8" fill="#ff5c8a" rx="1" />
+            <circle cx="20" cy="8" r="1.5" fill="#ffd84d" />
+          </>
+        );
+
+      case "dungeon-quest":
+      case "dungeonQuest":
+        return (
+          <>
+            <polygon points="15,4 7,16 15,14 23,16" fill="#63e66d" />
+            <line x1="15" y1="4" x2="15" y2="26" stroke="#ffd84d" strokeWidth="2" />
+            <line x1="10" y1="20" x2="20" y2="20" stroke="#4da3ff" strokeWidth="2" />
           </>
         );
 

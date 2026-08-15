@@ -2,7 +2,7 @@ import type { GameDefinition } from "../types";
 
 export const starFormationDefinition: GameDefinition = {
   id: "starFormation",
-  slug: "starFormation",
+  slug: "star-formation",
   name: "Star Formation",
   platform: "arcade",
   genre: "shooter",

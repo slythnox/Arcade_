@@ -2,7 +2,7 @@ import type { GameDefinition } from "../types";
 
 export const bombGridDefinition: GameDefinition = {
   id: "bombGrid",
-  slug: "bombGrid",
+  slug: "bomb-grid",
   name: "Bomb Grid",
   platform: "nes",
   genre: "action",

@@ -2,7 +2,7 @@ import type { GameDefinition } from "../types";
 
 export const mazeChaserDefinition: GameDefinition = {
   id: "mazeChaser",
-  slug: "mazeChaser",
+  slug: "maze-chaser",
   name: "Maze Chaser",
   platform: "arcade",
   genre: "action",
