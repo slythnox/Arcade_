@@ -209,7 +209,7 @@ export const SiteHeader: React.FC = () => {
                       🎮 Games
                     </div>
                     <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginTop: "2px" }}>
-                      88 arcade cartridges
+                      59 arcade cartridges
                     </div>
                   </div>
                 </Link>

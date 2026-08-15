@@ -36,7 +36,7 @@ export default function TermsPage() {
           <section style={cardStyle('var(--arcade-green, #63E66D)')}>
             <h2 style={titleStyle('var(--arcade-green, #63E66D)')}>2. Original Implementations</h2>
             <p>
-              All 60 deterministic cartridges available on this platform are original, from-scratch TypeScript implementations. We do not host, distribute, or run emulated ROMs of copyrighted classic arcade titles. Every line of game logic has been freshly synthesized for the modern web.
+              All 59 deterministic cartridges available on this platform are original, from-scratch TypeScript implementations. We do not host, distribute, or run emulated ROMs of copyrighted classic arcade titles. Every line of game logic has been freshly synthesized for the modern web.
             </p>
           </section>
 

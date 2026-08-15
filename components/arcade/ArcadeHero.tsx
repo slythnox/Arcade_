@@ -319,7 +319,7 @@ export const ArcadeHero: React.FC<ArcadeHeroProps> = ({
         >
           {isLabs
             ? "14 mathematical experiments · physics · fractals · algorithms · emergence"
-            : "102 deterministic cartridges · zero ROMs · pure TypeScript mathematics"}
+            : "59 deterministic cartridges · zero ROMs · pure TypeScript mathematics"}
         </div>
 
         {/* Search bar */}
@@ -355,7 +355,7 @@ export const ArcadeHero: React.FC<ArcadeHeroProps> = ({
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder={isLabs
               ? "Search experiments — fractals, gravity, cellular..."
-              : "Search 102 cartridges — tetris, physics, orbital, 1989..."}
+              : "Search 59 cartridges — tetris, physics, retro, 1989..."}
             style={{
               width: "100%",
               padding: "16px 20px 16px 52px",

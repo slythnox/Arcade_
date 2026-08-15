@@ -1,13 +1,13 @@
 # ARCADE_
 
-> 88 original browser game cartridges + 14 mathematical lab experiments.  
-> A custom TypeScript 2D engine. Zero ROM files. Zero external game assets.
+> 59 original browser game cartridges + 14 mathematical lab experiments.  
+> Pure TypeScript architecture with zero third-party game engine dependencies.
 
-## What is ARCADE_?
-ARCADE_ is a collection of original implementations inspired by arcade classics, built from scratch using mathematical first principles. These are not ROM ports or direct recreations, but rather completely new codebases capturing the spirit and mechanics of classic games. 
+## What is ARCADE_
 
-## Games
-The system includes 88 arcade cartridges spanning various genres, from logic puzzles to platformers. They all run on the same deterministic engine loop. View the full list at [/games](/games).
+ARCADE_ is a deterministic, framework-free retro arcade engine and game library built from scratch in TypeScript, running on HTML5 Canvas 2D and synthesized Web Audio API.
+
+The system includes 59 arcade cartridges spanning various genres, from logic puzzles to platformers. They all run on the same deterministic engine loop. View the full list at [/games](/games).
 
 ## Labs  
 Beyond standard games, ARCADE_ features 14 mathematical and physics experiments, exploring algorithms, cellular automata, and procedural generation. Explore them at [/labs](/labs).

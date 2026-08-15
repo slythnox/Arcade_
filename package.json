@@ -1,7 +1,7 @@
 {
   "name": "arcade_",
   "version": "1.0.0",
-  "description": "A mathematical, zero-dependency retro arcade platform and 2D game engine built from scratch in pure TypeScript with 84 deterministic cartridges, real-time procedural Web Audio sound synthesis, and HTML5 Canvas rendering.",
+  "description": "A mathematical, zero-dependency retro arcade platform and 2D game engine built from scratch in pure TypeScript with 59 deterministic cartridges, real-time procedural Web Audio sound synthesis, and HTML5 Canvas rendering.",
   "type": "module",
   "homepage": "https://github.com/slythnox/Arcade_#readme",
   "repository": {

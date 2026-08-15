@@ -71,7 +71,7 @@ export const SiteFooter: React.FC = () => {
                 maxWidth: "340px",
               }}
             >
-              A mathematical browser arcade platform built from scratch in TypeScript with 84 deterministic game cartridges, procedural shaders, and zero third-party game frameworks.
+              A mathematical browser arcade platform built from scratch in TypeScript with 59 deterministic game cartridges, procedural shaders, and zero third-party game frameworks.
             </p>
           </div>
 
