@@ -4,7 +4,7 @@ import type { GameDefinition } from "../../games/types";
 const SITE_NAME = "ARCADE_";
 const SITE_URL = "https://arcade.games";
 const DEFAULT_DESCRIPTION =
-  "A mathematical, zero-dependency retro arcade platform with 59 deterministic cartridges, custom 60Hz physics engine, and procedural sound synthesis.";
+  "A mathematical, zero-dependency retro arcade platform with 60 deterministic cartridges, custom 60Hz physics engine, and procedural sound synthesis.";
 
 export function constructSiteMetadata({
   title,
