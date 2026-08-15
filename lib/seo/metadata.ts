@@ -4,7 +4,7 @@ import { GameDefinition } from "../../games/types";
 const SITE_NAME = "ARCADE_";
 const SITE_URL = "https://arcade.games";
 const DEFAULT_DESCRIPTION =
-  "A math-driven, black/green, overgrown retro arcade for browser games — built from scratch with a custom 2D game engine, deterministic simulations, and procedural environments.";
+  "A mathematical, zero-dependency retro arcade platform with 84 deterministic cartridges, custom 60Hz physics engine, and procedural sound synthesis.";
 
 export function constructSiteMetadata({
   title,

@@ -416,8 +416,8 @@ TIER 3: Physics & Reflex (10)     TIER 6: Strategy & Board Games (8)  TIER 9: Ad
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-username/arcade.git
-cd arcade
+git clone https://github.com/slythnox/Arcade_.git
+cd Arcade_
 
 # 2. Install dependencies
 npm install
@@ -427,6 +427,27 @@ npm run dev
 ```
 
 Navigate to `http://localhost:3000` in your web browser.
+
+---
+
+## 🚀 Deploying to Vercel
+
+ARCADE_ is built on Next.js 16 and is fully optimized for **instant zero-configuration deployment to Vercel**:
+
+### Option 1: One-Click Vercel Web Import (Recommended)
+1. Go to [vercel.com/new](https://vercel.com/new).
+2. Connect your GitHub account and import the repository: **`slythnox/Arcade_`**.
+3. Keep default settings (Framework: Next.js, Build Command: `npm run build`, Output Directory: `.next`).
+4. Click **Deploy**. Your custom arcade will be live on `https://<your-project>.vercel.app` in under 60 seconds!
+
+### Option 2: Deploy via Vercel CLI
+```bash
+# Install Vercel CLI globally
+npm i -g vercel
+
+# Deploy directly from repository root
+vercel
+```
 
 ---
 

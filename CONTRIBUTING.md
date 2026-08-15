@@ -8,8 +8,8 @@ Thanks for your interest in contributing to ARCADE_! We welcome contributions to
 
 1. **Fork and clone the repository**:
    ```bash
-   git clone https://github.com/your-username/arcade_.git
-   cd arcade_
+   git clone https://github.com/slythnox/Arcade_.git
+   cd Arcade_
    ```
 
 2. **Install dependencies**:
