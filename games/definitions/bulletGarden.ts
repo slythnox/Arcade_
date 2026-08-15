@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { BulletGardenGame } from "../bulletGarden/BulletGardenGame";
-
 export const bulletGardenDefinition: GameDefinition = {
   id: "bullet-garden",
   slug: "bullet-garden",
@@ -15,6 +13,8 @@ export const bulletGardenDefinition: GameDefinition = {
     "Weave through logarithmic spiral projectile formations and geometric Danmaku blossoms with 4-pixel micro-hitbox precision.",
   difficulty: "hard",
   players: "single",
+  category: "arcade",
+  subcategory: "shooter",
   estimatedPlayTime: "3-8 min",
   thumbnail: {
     src: "/assets/thumbnails/bullet-garden.png",
@@ -43,5 +43,8 @@ export const bulletGardenDefinition: GameDefinition = {
       { name: "Micro-Hitbox Graze", description: "\\text{Collision radius } r_{\\text{hitbox}} \\ll r_{\\text{sprite}}." },
     ],
   },
-  createGame: () => new BulletGardenGame(),
+  createGame: async () => {
+    const { BulletGardenGame } = await import("../bulletGarden/BulletGardenGame");
+    return new BulletGardenGame();
+  },
 };

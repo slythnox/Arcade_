@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { NonogramGame } from "../nonogram/NonogramGame";
-
 export const nonogramDefinition: GameDefinition = {
   id: "nonogram",
   slug: "nonogram",
@@ -15,6 +13,8 @@ export const nonogramDefinition: GameDefinition = {
     "Deduce binary pixel image solutions through intersecting orthogonal run-length constraints.",
   difficulty: "medium",
   players: "single",
+  category: "arcade",
+  subcategory: "puzzle",
   estimatedPlayTime: "5-12 min",
   thumbnail: {
     src: "/assets/thumbnails/nonogram.png",
@@ -44,5 +44,8 @@ export const nonogramDefinition: GameDefinition = {
       { name: "Overlap Intersection", description: "\\text{If minimum span exceeds remaining width, overlaps are guaranteed 1s}." },
     ],
   },
-  createGame: () => new NonogramGame(),
+  createGame: async () => {
+    const { NonogramGame } = await import("../nonogram/NonogramGame");
+    return new NonogramGame();
+  },
 };

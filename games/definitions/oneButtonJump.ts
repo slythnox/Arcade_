@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { OneButtonJumpGame } from "../oneButtonJump/OneButtonJumpGame";
-
 export const oneButtonJumpDefinition: GameDefinition = {
   id: "one-button-jump",
   slug: "one-button-jump",
@@ -15,6 +13,8 @@ export const oneButtonJumpDefinition: GameDefinition = {
     "Test pure reflex timing with a minimalist single-button obstacle jumper running across hazard terrain.",
   difficulty: "medium",
   players: "single",
+  category: "labs",
+  subcategory: "experimental",
   estimatedPlayTime: "2-5 min",
   thumbnail: {
     src: "/assets/thumbnails/one-button-jump.png",
@@ -42,5 +42,8 @@ export const oneButtonJumpDefinition: GameDefinition = {
       { name: "Jump Timing Tolerance", description: "\\text{Human reaction window } \\Delta t \\approx 180\\text{ms}." },
     ],
   },
-  createGame: () => new OneButtonJumpGame(),
+  createGame: async () => {
+    const { OneButtonJumpGame } = await import("../oneButtonJump/OneButtonJumpGame");
+    return new OneButtonJumpGame();
+  },
 };

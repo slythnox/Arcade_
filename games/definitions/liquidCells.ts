@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { LiquidCellsGame } from "../liquidCells/LiquidCellsGame";
-
 export const liquidCellsDefinition: GameDefinition = {
   id: "liquidCells",
   slug: "liquid-cells",
@@ -14,6 +12,8 @@ export const liquidCellsDefinition: GameDefinition = {
   description: "Water flows, fills containers, creates waves. Pour, block, watch physics emerge.",
   difficulty: "easy",
   players: "single",
+  category: "arcade",
+  subcategory: "simulation",
   estimatedPlayTime: "10-20 min",
   thumbnail: { src: "/games/liquidCells/thumb.png", alt: "Liquid Cells" },
   controls: {
@@ -36,5 +36,8 @@ export const liquidCellsDefinition: GameDefinition = {
       { name: "Pressure-based flow", description: "Mass exchange between cells" }
     ]
   },
-  createGame: () => new LiquidCellsGame(),
+  createGame: async () => {
+    const { LiquidCellsGame } = await import("../liquidCells/LiquidCellsGame");
+    return new LiquidCellsGame();
+  },
 };

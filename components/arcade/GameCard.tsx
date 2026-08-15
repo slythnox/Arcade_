@@ -8,9 +8,11 @@ import { GameIllustration, getGameTheme } from "./GameIllustration";
 export interface GameCardProps {
   game: GameDefinition;
   isFeatured?: boolean;
+  /** Route prefix for the play link. Defaults to '/games'. Set to '/labs' for Labs cartridges. */
+  basePath?: string;
 }
 
-export const GameCard: React.FC<GameCardProps> = ({ game }) => {
+export const GameCard: React.FC<GameCardProps> = ({ game, basePath = "/games" }) => {
   const theme = getGameTheme(game);
 
   return (
@@ -105,7 +107,7 @@ export const GameCard: React.FC<GameCardProps> = ({ game }) => {
       {/* Saturated Hot Pink Capsule START! Button */}
       <div>
         <Link
-          href={`/games/${game.slug}`}
+          href={`${basePath}/${game.slug}`}
           style={{
             display: "flex",
             alignItems: "center",

@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { SudokuGame } from "../sudoku/SudokuGame";
-
 export const sudokuDefinition: GameDefinition = {
   id: "sudoku",
   slug: "sudoku",
@@ -15,6 +13,8 @@ export const sudokuDefinition: GameDefinition = {
     "Solve the classic Japanese number placement puzzle where every row, column, and 3x3 block contains digits 1-9.",
   difficulty: "medium",
   players: "single",
+  category: "arcade",
+  subcategory: "puzzle",
   estimatedPlayTime: "10-20 min",
   thumbnail: {
     src: "/assets/thumbnails/sudoku.png",
@@ -44,5 +44,8 @@ export const sudokuDefinition: GameDefinition = {
       { name: "Backtracking Algorithm", description: "\\text{Knuth's Algorithm X for exact cover matrix elimination}." },
     ],
   },
-  createGame: () => new SudokuGame(),
+  createGame: async () => {
+    const { SudokuGame } = await import("../sudoku/SudokuGame");
+    return new SudokuGame();
+  },
 };

@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { SpringMassGame } from "../springMass/SpringMassGame";
-
 export const springMassDefinition: GameDefinition = {
   id: "springMass",
   slug: "spring-mass",
@@ -14,6 +12,8 @@ export const springMassDefinition: GameDefinition = {
   description: "Connect masses with springs and watch them simulate soft body dynamics.",
   difficulty: "easy",
   players: "single",
+  category: "arcade",
+  subcategory: "physics",
   estimatedPlayTime: "5 min",
   thumbnail: { src: "/games/springMass/thumb.png", alt: "Spring Mass System" },
   controls: {
@@ -38,5 +38,8 @@ export const springMassDefinition: GameDefinition = {
       },
     ],
   },
-  createGame: () => new SpringMassGame(),
+  createGame: async () => {
+    const { SpringMassGame } = await import("../springMass/SpringMassGame");
+    return new SpringMassGame();
+  },
 };

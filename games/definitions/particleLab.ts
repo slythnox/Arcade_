@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { ParticleLabGame } from "../particleLab/ParticleLabGame";
-
 export const particleLabDefinition: GameDefinition = {
   id: "particle-lab",
   slug: "particle-lab",
@@ -15,6 +13,8 @@ export const particleLabDefinition: GameDefinition = {
     "Control particle emitters and polarity force wells to sculpt kinetic orbital particle swarms.",
   difficulty: "easy",
   players: "single",
+  category: "arcade",
+  subcategory: "physics",
   estimatedPlayTime: "5-15 min",
   thumbnail: {
     src: "/assets/thumbnails/particle-lab.png",
@@ -45,5 +45,8 @@ export const particleLabDefinition: GameDefinition = {
       { name: "Boundary Reflection", description: "v_x' = -e \\cdot v_x, v_y' = -e \\cdot v_y." },
     ],
   },
-  createGame: () => new ParticleLabGame(),
+  createGame: async () => {
+    const { ParticleLabGame } = await import("../particleLab/ParticleLabGame");
+    return new ParticleLabGame();
+  },
 };

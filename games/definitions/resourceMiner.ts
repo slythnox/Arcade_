@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { ResourceMinerGame } from "../resourceMiner/ResourceMinerGame";
-
 export const resourceMinerDefinition: GameDefinition = {
   id: "resource-miner",
   slug: "resource-miner",
@@ -15,6 +13,8 @@ export const resourceMinerDefinition: GameDefinition = {
     "Build an automated industrial grid network optimizing resource extraction, smelting, and circuit assembly chains.",
   difficulty: "medium",
   players: "single",
+  category: "labs",
+  subcategory: "experimental",
   estimatedPlayTime: "5-15 min",
   thumbnail: {
     src: "/assets/thumbnails/resource-miner.png",
@@ -43,5 +43,8 @@ export const resourceMinerDefinition: GameDefinition = {
       { name: "Production Graph Conservation", description: "\\sum \\text{Inputs} = \\sum \\text{Outputs} + \\text{Accumulation}." },
     ],
   },
-  createGame: () => new ResourceMinerGame(),
+  createGame: async () => {
+    const { ResourceMinerGame } = await import("../resourceMiner/ResourceMinerGame");
+    return new ResourceMinerGame();
+  },
 };

@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { BossReactorGame } from "../bossReactor/BossReactorGame";
-
 export const bossReactorDefinition: GameDefinition = {
   id: "boss-reactor",
   slug: "boss-reactor",
@@ -15,6 +13,8 @@ export const bossReactorDefinition: GameDefinition = {
     "Battle an escalating multi-phase dreadnought boss core with oscillating attack spreads and enrage transitions.",
   difficulty: "hard",
   players: "single",
+  category: "arcade",
+  subcategory: "shooter",
   estimatedPlayTime: "5-10 min",
   thumbnail: {
     src: "/assets/thumbnails/boss-reactor.png",
@@ -43,5 +43,8 @@ export const bossReactorDefinition: GameDefinition = {
       { name: "Phase State Machine", description: "H \\le 50\\% \\implies \\text{Transition to Enraged Phase 2}." },
     ],
   },
-  createGame: () => new BossReactorGame(),
+  createGame: async () => {
+    const { BossReactorGame } = await import("../bossReactor/BossReactorGame");
+    return new BossReactorGame();
+  },
 };

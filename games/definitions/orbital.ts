@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { OrbitalGame } from "../orbital/OrbitalGame";
-
 export const orbitalDefinition: GameDefinition = {
   id: "orbital",
   slug: "orbital",
@@ -15,6 +13,8 @@ export const orbitalDefinition: GameDefinition = {
     "Master gravitational slingshots and orbital velocity vectors by launching satellites around a massive planetary body.",
   difficulty: "hard",
   players: "single",
+  category: "arcade",
+  subcategory: "physics",
   estimatedPlayTime: "5-10 min",
   thumbnail: {
     src: "/assets/thumbnails/orbital.png",
@@ -45,5 +45,8 @@ export const orbitalDefinition: GameDefinition = {
       { name: "Circular Orbital Velocity", description: "v_{\\text{orb}} = \\sqrt{\\frac{G M}{r}}." },
     ],
   },
-  createGame: () => new OrbitalGame(),
+  createGame: async () => {
+    const { OrbitalGame } = await import("../orbital/OrbitalGame");
+    return new OrbitalGame();
+  },
 };

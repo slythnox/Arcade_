@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { TowerDefenseGame } from "../towerDefense/TowerDefenseGame";
-
 export const towerDefenseDefinition: GameDefinition = {
   id: "tower-defense",
   slug: "tower-defense",
@@ -15,6 +13,8 @@ export const towerDefenseDefinition: GameDefinition = {
     "Place defensive turrets along waypoint-guided creep march lanes to defend your base against escalating waves.",
   difficulty: "medium",
   players: "single",
+  category: "arcade",
+  subcategory: "strategy",
   estimatedPlayTime: "5-15 min",
   thumbnail: {
     src: "/assets/thumbnails/tower-defense.png",
@@ -43,5 +43,8 @@ export const towerDefenseDefinition: GameDefinition = {
       { name: "Greedy Nearest Targeting", description: "\\arg\\min_{c \\in \\text{Creeps}} \\|\\vec{p}_c - \\vec{p}_t\\|." },
     ],
   },
-  createGame: () => new TowerDefenseGame(),
+  createGame: async () => {
+    const { TowerDefenseGame } = await import("../towerDefense/TowerDefenseGame");
+    return new TowerDefenseGame();
+  },
 };

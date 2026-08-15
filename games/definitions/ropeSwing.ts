@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { RopeSwingGame } from "../ropeSwing/RopeSwingGame";
-
 export const ropeSwingDefinition: GameDefinition = {
   id: "rope-swing",
   slug: "rope-swing",
@@ -15,6 +13,8 @@ export const ropeSwingDefinition: GameDefinition = {
     "Swing across an infinite chasm by anchoring ropes to overhead grapple points and conserving angular kinetic momentum.",
   difficulty: "hard",
   players: "single",
+  category: "arcade",
+  subcategory: "physics",
   estimatedPlayTime: "3-6 min",
   thumbnail: {
     src: "/assets/thumbnails/rope-swing.png",
@@ -43,5 +43,8 @@ export const ropeSwingDefinition: GameDefinition = {
       { name: "Centripetal Tension", description: "T = m g \\cos(\\theta) + \\frac{m v^2}{L}." },
     ],
   },
-  createGame: () => new RopeSwingGame(),
+  createGame: async () => {
+    const { RopeSwingGame } = await import("../ropeSwing/RopeSwingGame");
+    return new RopeSwingGame();
+  },
 };

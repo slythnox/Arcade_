@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { GravityWellGame } from "../gravityWell/GravityWellGame";
-
 export const gravityWellDefinition: GameDefinition = {
   id: "gravity-well",
   slug: "gravity-well",
@@ -15,6 +13,8 @@ export const gravityWellDefinition: GameDefinition = {
     "Sculpt chaotic gravitational vector fields by positioning black hole attractor wells to sling drifting comets into orbital traps.",
   difficulty: "medium",
   players: "single",
+  category: "labs",
+  subcategory: "physics-sim",
   estimatedPlayTime: "5-15 min",
   thumbnail: {
     src: "/assets/thumbnails/gravity-well.png",
@@ -43,5 +43,8 @@ export const gravityWellDefinition: GameDefinition = {
       { name: "Orbital Slingshot Conservation", description: "\\text{Angular momentum conservation around composite barycenters}." },
     ],
   },
-  createGame: () => new GravityWellGame(),
+  createGame: async () => {
+    const { GravityWellGame } = await import("../gravityWell/GravityWellGame");
+    return new GravityWellGame();
+  },
 };

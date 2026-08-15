@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { NeonCircuitGame } from "../neonCircuit/NeonCircuitGame";
-
 export const neonCircuitDefinition: GameDefinition = {
   id: "neon-circuit",
   slug: "neon-circuit",
@@ -15,6 +13,8 @@ export const neonCircuitDefinition: GameDefinition = {
     "Solve digital electronic puzzles by arranging Boolean logic gates (AND, OR, NOT, XOR) to route power to target neon lamps.",
   difficulty: "medium",
   players: "single",
+  category: "arcade",
+  subcategory: "experimental",
   estimatedPlayTime: "5-15 min",
   thumbnail: {
     src: "/assets/thumbnails/neon-circuit.png",
@@ -43,5 +43,8 @@ export const neonCircuitDefinition: GameDefinition = {
       { name: "Combinational Logic Lattice", description: "\\text{Topologically sorted signal evaluation across 2D breadboard digraph}." },
     ],
   },
-  createGame: () => new NeonCircuitGame(),
+  createGame: async () => {
+    const { NeonCircuitGame } = await import("../neonCircuit/NeonCircuitGame");
+    return new NeonCircuitGame();
+  },
 };

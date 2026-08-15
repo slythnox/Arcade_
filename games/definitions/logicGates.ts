@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { LogicGatesGame } from "../logicGates/LogicGatesGame";
-
 export const logicGatesDefinition: GameDefinition = {
   id: "logicGates",
   slug: "logic-gates",
@@ -14,6 +12,8 @@ export const logicGatesDefinition: GameDefinition = {
   description: "Wire together AND, OR, NOT, and XOR gates to create functional digital logic circuits.",
   difficulty: "hard",
   players: "single",
+  category: "arcade",
+  subcategory: "puzzle",
   estimatedPlayTime: "15 min",
   thumbnail: { src: "/games/logicGates/thumb.png", alt: "Logic Gates" },
   controls: {
@@ -38,5 +38,8 @@ export const logicGatesDefinition: GameDefinition = {
       },
     ],
   },
-  createGame: () => new LogicGatesGame(),
+  createGame: async () => {
+    const { LogicGatesGame } = await import("../logicGates/LogicGatesGame");
+    return new LogicGatesGame();
+  },
 };

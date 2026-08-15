@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { KingdomGridGame } from "../kingdomGrid/KingdomGridGame";
-
 export const kingdomGridDefinition: GameDefinition = {
   id: "kingdom-grid",
   slug: "kingdom-grid",
@@ -15,6 +13,8 @@ export const kingdomGridDefinition: GameDefinition = {
     "Capture territory against an AI adversary by claiming adjacent neutral and enemy sectors using turn-based energy economy.",
   difficulty: "medium",
   players: "1-2 players",
+  category: "labs",
+  subcategory: "experimental",
   estimatedPlayTime: "5-12 min",
   thumbnail: {
     src: "/assets/thumbnails/kingdom-grid.png",
@@ -43,5 +43,8 @@ export const kingdomGridDefinition: GameDefinition = {
       { name: "Territory Income Scaling", description: "\\text{Turn energy proportional to connected component cardinality}." },
     ],
   },
-  createGame: () => new KingdomGridGame(),
+  createGame: async () => {
+    const { KingdomGridGame } = await import("../kingdomGrid/KingdomGridGame");
+    return new KingdomGridGame();
+  },
 };

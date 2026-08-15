@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { PipeConnectGame } from "../pipeConnect/PipeConnectGame";
-
 export const pipeConnectDefinition: GameDefinition = {
   id: "pipe-connect",
   slug: "pipe-connect",
@@ -15,6 +13,8 @@ export const pipeConnectDefinition: GameDefinition = {
     "Connect the water source to the destination drain by rotating modular pipe fittings in a 2D network.",
   difficulty: "medium",
   players: "single",
+  category: "arcade",
+  subcategory: "puzzle",
   estimatedPlayTime: "3-8 min",
   thumbnail: {
     src: "/assets/thumbnails/pipe-connect.png",
@@ -44,5 +44,8 @@ export const pipeConnectDefinition: GameDefinition = {
       { name: "Reachability BFS", description: "\\text{Queue-based path verification from } S \\to T." },
     ],
   },
-  createGame: () => new PipeConnectGame(),
+  createGame: async () => {
+    const { PipeConnectGame } = await import("../pipeConnect/PipeConnectGame");
+    return new PipeConnectGame();
+  },
 };

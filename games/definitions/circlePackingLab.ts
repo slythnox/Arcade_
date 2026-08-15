@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { CirclePackingLabGame } from "../circlePackingLab/CirclePackingLabGame";
-
 export const circlePackingLabDefinition: GameDefinition = {
   id: "circlePackingLab",
   slug: "circle-packing-lab",
@@ -14,6 +12,8 @@ export const circlePackingLabDefinition: GameDefinition = {
   description: "Add circles, watch them find optimal positions. Beautiful emergent geometry.",
   difficulty: "easy",
   players: "single",
+  category: "arcade",
+  subcategory: "simulation",
   estimatedPlayTime: "Infinite",
   thumbnail: { src: "/games/circlePackingLab/thumb.png", alt: "Circle Packing" },
   controls: {
@@ -35,5 +35,8 @@ export const circlePackingLabDefinition: GameDefinition = {
       { name: "Collision Response", description: "Push apart overlapping circles" }
     ]
   },
-  createGame: () => new CirclePackingLabGame(),
+  createGame: async () => {
+    const { CirclePackingLabGame } = await import("../circlePackingLab/CirclePackingLabGame");
+    return new CirclePackingLabGame();
+  },
 };

@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { OmegaRunGame } from "../omegaRun/OmegaRunGame";
-
 export const omegaRunDefinition: GameDefinition = {
   id: "omegaRun",
   slug: "omega-run",
@@ -14,6 +12,8 @@ export const omegaRunDefinition: GameDefinition = {
   description: "Navigate a procedurally generated obstacle field. Speed increases. Score is distance.",
   difficulty: "hard",
   players: "single",
+  category: "arcade",
+  subcategory: "platformer",
   estimatedPlayTime: "2-10 min",
   thumbnail: { src: "/games/omegaRun/thumb.png", alt: "Omega Run" },
   controls: {
@@ -35,5 +35,8 @@ export const omegaRunDefinition: GameDefinition = {
       { name: "AABB Collision", description: "Axis-Aligned Bounding Box" }
     ]
   },
-  createGame: () => new OmegaRunGame(),
+  createGame: async () => {
+    const { OmegaRunGame } = await import("../omegaRun/OmegaRunGame");
+    return new OmegaRunGame();
+  },
 };

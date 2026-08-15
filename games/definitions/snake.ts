@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { SnakeGame } from "../snake/SnakeGame";
-
 export const snakeDefinition: GameDefinition = {
   id: "snake",
   slug: "snake",
@@ -15,6 +13,8 @@ export const snakeDefinition: GameDefinition = {
     "Control an ever-growing serpent across a 20x20 discrete grid. Avoid colliding with walls or your own tail. Features deterministic food generation and an optional Breadth-First Search (BFS) automated autopilot mode.",
   difficulty: "easy",
   players: "single",
+  category: "arcade",
+  subcategory: "classics",
   estimatedPlayTime: "3–10 min",
   thumbnail: {
     src: "/games/snake/thumb.png",
@@ -59,5 +59,8 @@ export const snakeDefinition: GameDefinition = {
       },
     ],
   },
-  createGame: () => new SnakeGame(),
+  createGame: async () => {
+    const { SnakeGame } = await import("../snake/SnakeGame");
+    return new SnakeGame();
+  },
 };

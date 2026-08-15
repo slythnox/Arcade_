@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { LaserGridGame } from "../laserGrid/LaserGridGame";
-
 export const laserGridDefinition: GameDefinition = {
   id: "laser-grid",
   slug: "laser-grid",
@@ -15,6 +13,8 @@ export const laserGridDefinition: GameDefinition = {
     "Solve spatial optics puzzles by rotating 45-degree angle mirrors to route photonic laser beams to target sensors.",
   difficulty: "medium",
   players: "single",
+  category: "arcade",
+  subcategory: "classics",
   estimatedPlayTime: "5-10 min",
   thumbnail: {
     src: "/assets/thumbnails/laser-grid.png",
@@ -44,5 +44,8 @@ export const laserGridDefinition: GameDefinition = {
       { name: "Backslash Mirror Matrix", description: "(dx, dy) \\to (dy, dx)." },
     ],
   },
-  createGame: () => new LaserGridGame(),
+  createGame: async () => {
+    const { LaserGridGame } = await import("../laserGrid/LaserGridGame");
+    return new LaserGridGame();
+  },
 };

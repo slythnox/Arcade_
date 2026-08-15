@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { PredatorPreyGame } from "../predatorPrey/PredatorPreyGame";
-
 export const predatorPreyDefinition: GameDefinition = {
   id: "predatorPrey",
   slug: "predator-prey",
@@ -14,6 +12,8 @@ export const predatorPreyDefinition: GameDefinition = {
   description: "Emergent artificial life ecosystem featuring flocking prey agents that separate, align, cohere, and evade pursuit predators.",
   difficulty: "easy",
   players: "single",
+  category: "arcade",
+  subcategory: "simulation",
   estimatedPlayTime: "5 min",
   thumbnail: { src: "/games/predatorPrey/thumb.png", alt: "Predator Prey" },
   controls: {
@@ -36,5 +36,8 @@ export const predatorPreyDefinition: GameDefinition = {
       },
     ],
   },
-  createGame: () => new PredatorPreyGame(),
+  createGame: async () => {
+    const { PredatorPreyGame } = await import("../predatorPrey/PredatorPreyGame");
+    return new PredatorPreyGame();
+  },
 };

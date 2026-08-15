@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { FloodFillGame } from "../floodFill/FloodFillGame";
-
 export const floodFillDefinition: GameDefinition = {
   id: "flood-fill",
   slug: "flood-fill",
@@ -15,6 +13,8 @@ export const floodFillDefinition: GameDefinition = {
     "Expand an interconnected color territory using graph breadth-first search within a finite move budget.",
   difficulty: "medium",
   players: "single",
+  category: "arcade",
+  subcategory: "puzzle",
   estimatedPlayTime: "3-5 min",
   thumbnail: {
     src: "/assets/thumbnails/flood-fill.png",
@@ -44,5 +44,8 @@ export const floodFillDefinition: GameDefinition = {
       { name: "Graph Contraction", description: "Shrinks color graph G to single super-vertex." },
     ],
   },
-  createGame: () => new FloodFillGame(),
+  createGame: async () => {
+    const { FloodFillGame } = await import("../floodFill/FloodFillGame");
+    return new FloodFillGame();
+  },
 };

@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { MatchThreeGame } from "../matchThree/MatchThreeGame";
-
 export const matchThreeDefinition: GameDefinition = {
   id: "match-3",
   slug: "match-3",
@@ -15,6 +13,8 @@ export const matchThreeDefinition: GameDefinition = {
     "Form matching horizontal and vertical triplets to trigger cascading multi-combo gravity reactions.",
   difficulty: "medium",
   players: "single",
+  category: "arcade",
+  subcategory: "puzzle",
   estimatedPlayTime: "5-10 min",
   thumbnail: {
     src: "/assets/thumbnails/match-3.png",
@@ -44,5 +44,8 @@ export const matchThreeDefinition: GameDefinition = {
       { name: "Cascade Multiplier", description: "\\text{Score} = N_{\\text{matched}} \\times 100 \\times \\text{Combo}." },
     ],
   },
-  createGame: () => new MatchThreeGame(),
+  createGame: async () => {
+    const { MatchThreeGame } = await import("../matchThree/MatchThreeGame");
+    return new MatchThreeGame();
+  },
 };

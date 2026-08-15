@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { CaveEscapeGame } from "../caveEscape/CaveEscapeGame";
-
 export const caveEscapeDefinition: GameDefinition = {
   id: "cave-escape",
   slug: "cave-escape",
@@ -15,6 +13,8 @@ export const caveEscapeDefinition: GameDefinition = {
     "Control a thrust-powered craft through a continuously undulating procedural cavern without colliding with ceilings or floors.",
   difficulty: "hard",
   players: "single",
+  category: "arcade",
+  subcategory: "platformer",
   estimatedPlayTime: "3-6 min",
   thumbnail: {
     src: "/assets/thumbnails/cave-escape.png",
@@ -42,5 +42,8 @@ export const caveEscapeDefinition: GameDefinition = {
       { name: "Continuous Gap Interpolation", description: "\\text{Height differential clamped to human reaction latency windows}." },
     ],
   },
-  createGame: () => new CaveEscapeGame(),
+  createGame: async () => {
+    const { CaveEscapeGame } = await import("../caveEscape/CaveEscapeGame");
+    return new CaveEscapeGame();
+  },
 };

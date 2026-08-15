@@ -9,6 +9,8 @@ import {
   GameSEO,
   MathSection,
   GameAction,
+  GameCategory,
+  GameSubcategory,
 } from "../core/types/game";
 import { GameContext } from "../engine/GameContext";
 import { Renderer } from "../engine/rendering/Renderer";
@@ -32,7 +34,7 @@ export interface GameInstance {
   getLives?(): number;
 }
 
-export type GameFactory = () => GameInstance;
+export type GameFactory = () => Promise<GameInstance>;
 
 /**
  * Game Definition Schema.
@@ -51,6 +53,8 @@ export interface GameDefinition {
   tagline: string;
   difficulty: Difficulty;
   players: PlayerCount;
+  category: GameCategory;
+  subcategory: GameSubcategory;
   estimatedPlayTime: string;
   thumbnail: GameAsset;
   controls: GameControls;

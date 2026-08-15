@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { TwentyFortyEightHexGame } from "../twentyFortyEightHex/TwentyFortyEightHexGame";
-
 export const twentyFortyEightHexDefinition: GameDefinition = {
   id: "2048-hex",
   slug: "2048-hex",
@@ -15,6 +13,8 @@ export const twentyFortyEightHexDefinition: GameDefinition = {
     "Merge equal numbers across an expanded 5x5 lattice matrix to achieve maximum combinatorial values.",
   difficulty: "hard",
   players: "single",
+  category: "labs",
+  subcategory: "experimental",
   estimatedPlayTime: "10-20 min",
   thumbnail: {
     src: "/assets/thumbnails/2048-hex.png",
@@ -42,5 +42,8 @@ export const twentyFortyEightHexDefinition: GameDefinition = {
       { name: "Exponential Value Scale", description: "V_k = 2^k, \\text{with logarithmic scoring}." },
     ],
   },
-  createGame: () => new TwentyFortyEightHexGame(),
+  createGame: async () => {
+    const { TwentyFortyEightHexGame } = await import("../twentyFortyEightHex/TwentyFortyEightHexGame");
+    return new TwentyFortyEightHexGame();
+  },
 };

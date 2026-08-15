@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { GravityMazeGame } from "../gravityMaze/GravityMazeGame";
-
 export const gravityMazeDefinition: GameDefinition = {
   id: "gravity-maze",
   slug: "gravity-maze",
@@ -15,6 +13,8 @@ export const gravityMazeDefinition: GameDefinition = {
     "Solve spatial orientation labyrinths by rotating the global gravitational vector across 4 cardinal directions.",
   difficulty: "medium",
   players: "single",
+  category: "labs",
+  subcategory: "experimental",
   estimatedPlayTime: "3-8 min",
   thumbnail: {
     src: "/assets/thumbnails/gravity-maze.png",
@@ -42,5 +42,8 @@ export const gravityMazeDefinition: GameDefinition = {
       { name: "Cardinal Rotation Matrix", description: "\\text{Discrete 90-degree orthogonal transformation group } SO(2, \\mathbb{Z})." },
     ],
   },
-  createGame: () => new GravityMazeGame(),
+  createGame: async () => {
+    const { GravityMazeGame } = await import("../gravityMaze/GravityMazeGame");
+    return new GravityMazeGame();
+  },
 };

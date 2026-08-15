@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { QuantumTilesGame } from "../quantumTiles/QuantumTilesGame";
-
 export const quantumTilesDefinition: GameDefinition = {
   id: "quantumTiles",
   slug: "quantum-tiles",
@@ -14,6 +12,8 @@ export const quantumTilesDefinition: GameDefinition = {
   description: "Tiles have adjacency constraints. Watch entropy collapse as the grid resolves.",
   difficulty: "easy",
   players: "single",
+  category: "arcade",
+  subcategory: "simulation",
   estimatedPlayTime: "Infinite",
   thumbnail: { src: "/games/quantumTiles/thumb.png", alt: "Quantum Tiles" },
   controls: {
@@ -33,5 +33,8 @@ export const quantumTilesDefinition: GameDefinition = {
       { name: "Entropy", description: "Choosing the state with the fewest possibilities" }
     ]
   },
-  createGame: () => new QuantumTilesGame(),
+  createGame: async () => {
+    const { QuantumTilesGame } = await import("../quantumTiles/QuantumTilesGame");
+    return new QuantumTilesGame();
+  },
 };

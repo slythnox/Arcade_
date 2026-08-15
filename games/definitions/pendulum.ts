@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { PendulumGame } from "../pendulum/PendulumGame";
-
 export const pendulumDefinition: GameDefinition = {
   id: "pendulum",
   slug: "pendulum",
@@ -15,6 +13,8 @@ export const pendulumDefinition: GameDefinition = {
     "Test your reflex and rhythm against a non-linear simple harmonic oscillator swinging through target intervals.",
   difficulty: "medium",
   players: "single",
+  category: "arcade",
+  subcategory: "physics",
   estimatedPlayTime: "3-5 min",
   thumbnail: {
     src: "/assets/thumbnails/pendulum.png",
@@ -43,5 +43,8 @@ export const pendulumDefinition: GameDefinition = {
       { name: "Equilibrium Maximum Velocity", description: "v_{\\text{max}} = \\sqrt{2 g L (1 - \\cos(\\theta_0))}." },
     ],
   },
-  createGame: () => new PendulumGame(),
+  createGame: async () => {
+    const { PendulumGame } = await import("../pendulum/PendulumGame");
+    return new PendulumGame();
+  },
 };

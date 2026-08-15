@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { MazeRunnerGame } from "../mazeRunner/MazeRunnerGame";
-
 export const mazeRunnerDefinition: GameDefinition = {
   id: "maze-runner",
   slug: "maze-runner",
@@ -15,6 +13,8 @@ export const mazeRunnerDefinition: GameDefinition = {
     "Navigate procedurally carved spanning-tree mazes generated with randomized depth-first search.",
   difficulty: "medium",
   players: "single",
+  category: "arcade",
+  subcategory: "puzzle",
   estimatedPlayTime: "3-8 min",
   thumbnail: {
     src: "/assets/thumbnails/maze-runner.png",
@@ -43,5 +43,8 @@ export const mazeRunnerDefinition: GameDefinition = {
       { name: "Recursive Backtracking", description: "\\text{Stack-based randomized DFS corridor carving}." },
     ],
   },
-  createGame: () => new MazeRunnerGame(),
+  createGame: async () => {
+    const { MazeRunnerGame } = await import("../mazeRunner/MazeRunnerGame");
+    return new MazeRunnerGame();
+  },
 };

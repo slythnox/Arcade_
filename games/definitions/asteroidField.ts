@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { AsteroidFieldGame } from "../asteroidField/AsteroidFieldGame";
-
 export const asteroidFieldDefinition: GameDefinition = {
   id: "asteroid-field",
   slug: "asteroid-field",
@@ -15,6 +13,8 @@ export const asteroidFieldDefinition: GameDefinition = {
     "Rotate, thrust, and fire at split-geometry asteroids across a 2D toroidal wrapping space with Newtonian inertia.",
   difficulty: "hard",
   players: "single",
+  category: "arcade",
+  subcategory: "classics",
   estimatedPlayTime: "5-10 min",
   thumbnail: {
     src: "/assets/thumbnails/asteroid-field.png",
@@ -45,5 +45,8 @@ export const asteroidFieldDefinition: GameDefinition = {
       { name: "Toroidal Wrap", description: "x \\pmod W, y \\pmod H." },
     ],
   },
-  createGame: () => new AsteroidFieldGame(),
+  createGame: async () => {
+    const { AsteroidFieldGame } = await import("../asteroidField/AsteroidFieldGame");
+    return new AsteroidFieldGame();
+  },
 };

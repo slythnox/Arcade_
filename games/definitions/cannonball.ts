@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { CannonballGame } from "../cannonball/CannonballGame";
-
 export const cannonballDefinition: GameDefinition = {
   id: "cannonball",
   slug: "cannonball",
@@ -15,6 +13,8 @@ export const cannonballDefinition: GameDefinition = {
     "Solve classic 2D ballistic kinematics equations to hit targets with quadratic parabolic projectile trajectories.",
   difficulty: "medium",
   players: "single",
+  category: "arcade",
+  subcategory: "physics",
   estimatedPlayTime: "3-8 min",
   thumbnail: {
     src: "/assets/thumbnails/cannonball.png",
@@ -45,5 +45,8 @@ export const cannonballDefinition: GameDefinition = {
       { name: "Peak Altitude", description: "H = \\frac{v_0^2 \\sin^2(\\theta)}{2g}." },
     ],
   },
-  createGame: () => new CannonballGame(),
+  createGame: async () => {
+    const { CannonballGame } = await import("../cannonball/CannonballGame");
+    return new CannonballGame();
+  },
 };

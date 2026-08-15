@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { VoronoiGardenGame } from "../voronoiGarden/VoronoiGardenGame";
-
 export const voronoiGardenDefinition: GameDefinition = {
   id: "voronoiGarden",
   slug: "voronoi-garden",
@@ -14,6 +12,8 @@ export const voronoiGardenDefinition: GameDefinition = {
   description: "Interactive Voronoi diagram generator demonstrating Euclidean (L2) and Manhattan (L1) metric spaces in real-time.",
   difficulty: "easy",
   players: "single",
+  category: "labs",
+  subcategory: "procedural",
   estimatedPlayTime: "5 min",
   thumbnail: { src: "/games/voronoiGarden/thumb.png", alt: "Voronoi Garden" },
   controls: {
@@ -43,5 +43,8 @@ export const voronoiGardenDefinition: GameDefinition = {
       },
     ],
   },
-  createGame: () => new VoronoiGardenGame(),
+  createGame: async () => {
+    const { VoronoiGardenGame } = await import("../voronoiGarden/VoronoiGardenGame");
+    return new VoronoiGardenGame();
+  },
 };

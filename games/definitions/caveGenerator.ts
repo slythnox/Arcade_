@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { CaveGeneratorGame } from "../caveGenerator/CaveGeneratorGame";
-
 export const caveGeneratorDefinition: GameDefinition = {
   id: "caveGenerator",
   slug: "cave-generator",
@@ -14,6 +12,8 @@ export const caveGeneratorDefinition: GameDefinition = {
   description: "Interactive procedural cave generation using B5678/S45678 cellular automata smoothing rules.",
   difficulty: "easy",
   players: "single",
+  category: "arcade",
+  subcategory: "simulation",
   estimatedPlayTime: "5 min",
   thumbnail: { src: "/games/caveGenerator/thumb.png", alt: "Cave Generator" },
   controls: {
@@ -39,5 +39,8 @@ export const caveGeneratorDefinition: GameDefinition = {
       },
     ],
   },
-  createGame: () => new CaveGeneratorGame(),
+  createGame: async () => {
+    const { CaveGeneratorGame } = await import("../caveGenerator/CaveGeneratorGame");
+    return new CaveGeneratorGame();
+  },
 };

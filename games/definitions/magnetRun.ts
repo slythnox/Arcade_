@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { MagnetRunGame } from "../magnetRun/MagnetRunGame";
-
 export const magnetRunDefinition: GameDefinition = {
   id: "magnet-run",
   slug: "magnet-run",
@@ -15,6 +13,8 @@ export const magnetRunDefinition: GameDefinition = {
     "Navigate an obstacle course of charged magnetic poles by switching your magnetic polarity to attract or repel.",
   difficulty: "hard",
   players: "single",
+  category: "arcade",
+  subcategory: "physics",
   estimatedPlayTime: "3-6 min",
   thumbnail: {
     src: "/assets/thumbnails/magnet-run.png",
@@ -44,5 +44,8 @@ export const magnetRunDefinition: GameDefinition = {
       { name: "Dynamic Vector Summation", description: "\\vec{a} = \\sum_{i} \\frac{k_e I_i}{|\\vec{r}_i|^3} \\vec{r}_i." },
     ],
   },
-  createGame: () => new MagnetRunGame(),
+  createGame: async () => {
+    const { MagnetRunGame } = await import("../magnetRun/MagnetRunGame");
+    return new MagnetRunGame();
+  },
 };

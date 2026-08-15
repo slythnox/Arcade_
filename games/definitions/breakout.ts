@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { BreakoutGame } from "../breakout/BreakoutGame";
-
 export const breakoutDefinition: GameDefinition = {
   id: "breakout",
   slug: "breakout",
@@ -15,6 +13,8 @@ export const breakoutDefinition: GameDefinition = {
     "Deflect a high-speed ball using an adjustable paddle to demolish brick walls. Features continuous vector reflection mathematics, variable angle strikes, multi-tier scoring, and progressive difficulty.",
   difficulty: "medium",
   players: "single",
+  category: "arcade",
+  subcategory: "classics",
   estimatedPlayTime: "5–12 min",
   thumbnail: {
     src: "/games/breakout/thumb.png",
@@ -60,5 +60,8 @@ export const breakoutDefinition: GameDefinition = {
       },
     ],
   },
-  createGame: () => new BreakoutGame(),
+  createGame: async () => {
+    const { BreakoutGame } = await import("../breakout/BreakoutGame");
+    return new BreakoutGame();
+  },
 };

@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { WallRunnerGame } from "../wallRunner/WallRunnerGame";
-
 export const wallRunnerDefinition: GameDefinition = {
   id: "wall-runner",
   slug: "wall-runner",
@@ -15,6 +13,8 @@ export const wallRunnerDefinition: GameDefinition = {
     "Ascend an endless vertical shaft by wall jumping between opposing surfaces while dodging hazardous wall spikes.",
   difficulty: "hard",
   players: "single",
+  category: "arcade",
+  subcategory: "platformer",
   estimatedPlayTime: "3-6 min",
   thumbnail: {
     src: "/assets/thumbnails/wall-runner.png",
@@ -42,5 +42,8 @@ export const wallRunnerDefinition: GameDefinition = {
       { name: "Horizontal Impulse", description: "\\Delta v_x = \\mp v_{\\text{jump}}." },
     ],
   },
-  createGame: () => new WallRunnerGame(),
+  createGame: async () => {
+    const { WallRunnerGame } = await import("../wallRunner/WallRunnerGame");
+    return new WallRunnerGame();
+  },
 };

@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { PongGame } from "../pong/PongGame";
-
 export const pongDefinition: GameDefinition = {
   id: "pong",
   slug: "pong",
@@ -15,6 +13,8 @@ export const pongDefinition: GameDefinition = {
     "Engage in timeless table tennis combat against an adaptive AI opponent. Features spin reflection angles, increasing rally acceleration, and authentic 1970s arcade audio tones.",
   difficulty: "medium",
   players: "1-2 players",
+  category: "arcade",
+  subcategory: "classics",
   estimatedPlayTime: "3–6 min",
   thumbnail: {
     src: "/games/pong/thumb.png",
@@ -52,5 +52,8 @@ export const pongDefinition: GameDefinition = {
       },
     ],
   },
-  createGame: () => new PongGame(),
+  createGame: async () => {
+    const { PongGame } = await import("../pong/PongGame");
+    return new PongGame();
+  },
 };

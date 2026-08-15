@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { ConnectFourGame } from "../connectFour/ConnectFourGame";
-
 export const connectFourDefinition: GameDefinition = {
   id: "connect-four",
   slug: "connect-four",
@@ -15,6 +13,8 @@ export const connectFourDefinition: GameDefinition = {
     "Play the classic vertical drop connection board game against an intelligent Minimax adversarial search AI opponent.",
   difficulty: "medium",
   players: "1-2 players",
+  category: "arcade",
+  subcategory: "strategy",
   estimatedPlayTime: "3-8 min",
   thumbnail: {
     src: "/assets/thumbnails/connect-four.png",
@@ -43,5 +43,8 @@ export const connectFourDefinition: GameDefinition = {
       { name: "Directional 4-Ray Check", description: "\\text{Vector scanning along } (1,0), (0,1), (1,1), (1,-1)." },
     ],
   },
-  createGame: () => new ConnectFourGame(),
+  createGame: async () => {
+    const { ConnectFourGame } = await import("../connectFour/ConnectFourGame");
+    return new ConnectFourGame();
+  },
 };

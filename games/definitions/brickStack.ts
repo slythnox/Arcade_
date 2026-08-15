@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { BrickStackGame } from "../brickStack/BrickStackGame";
-
 export const brickStackDefinition: GameDefinition = {
   id: "brick-stack",
   slug: "brick-stack",
@@ -15,6 +13,8 @@ export const brickStackDefinition: GameDefinition = {
     "Test your timing by stacking oscillating blocks on top of each other. Any misaligned section is sliced off!",
   difficulty: "medium",
   players: "single",
+  category: "labs",
+  subcategory: "experimental",
   estimatedPlayTime: "3-5 min",
   thumbnail: {
     src: "/assets/thumbnails/brick-stack.png",
@@ -43,5 +43,8 @@ export const brickStackDefinition: GameDefinition = {
       { name: "Precision Threshold", description: "|x_{\\text{cur}} - x_{\\text{prev}}| < \\epsilon \\implies \\text{Perfect Lock Combo}." },
     ],
   },
-  createGame: () => new BrickStackGame(),
+  createGame: async () => {
+    const { BrickStackGame } = await import("../brickStack/BrickStackGame");
+    return new BrickStackGame();
+  },
 };

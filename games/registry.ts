@@ -210,6 +210,24 @@ export const gameRegistry: readonly GameDefinition[] = [
   dungeonGeneratorDefinition,
 ];
 
+/** Games visible in the main ARCADE_ game library. */
+export const arcadeRegistry: readonly GameDefinition[] = gameRegistry.filter(
+  (g) => g.category === "arcade"
+);
+
+/** Mathematical experiments and simulations in the Labs section. */
+export const labsRegistry: readonly GameDefinition[] = gameRegistry.filter(
+  (g) => g.category === "labs"
+);
+
+export function getArcadeGames(): readonly GameDefinition[] {
+  return arcadeRegistry;
+}
+
+export function getLabsGames(): readonly GameDefinition[] {
+  return labsRegistry;
+}
+
 export function getAllGames(): readonly GameDefinition[] {
   return gameRegistry;
 }
@@ -218,7 +236,7 @@ export function getGameBySlug(slug: string): GameDefinition | undefined {
   return gameRegistry.find((g) => g.slug === slug || g.id === slug);
 }
 
-export function createGameInstance(idOrSlug: string): GameInstance | null {
+export async function createGameInstance(idOrSlug: string): Promise<GameInstance | null> {
   const def = getGameBySlug(idOrSlug);
   return def ? def.createGame() : null;
 }

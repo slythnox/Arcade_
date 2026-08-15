@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { BallDropGame } from "../ballDrop/BallDropGame";
-
 export const ballDropDefinition: GameDefinition = {
   id: "ball-drop",
   slug: "ball-drop",
@@ -15,6 +13,8 @@ export const ballDropDefinition: GameDefinition = {
     "Steer a falling ball through opening gaps in ascending floor platforms to survive as scroll speeds ramp up.",
   difficulty: "medium",
   players: "single",
+  category: "arcade",
+  subcategory: "physics",
   estimatedPlayTime: "3-6 min",
   thumbnail: {
     src: "/assets/thumbnails/ball-drop.png",
@@ -42,5 +42,8 @@ export const ballDropDefinition: GameDefinition = {
       { name: "Continuous Collision Check", description: "\\text{Interval gap test } x_{\\text{ball}} \\notin [x_{\\text{gap}}, x_{\\text{gap}} + w_{\\text{gap}}] \\implies \\text{rest on platform}." },
     ],
   },
-  createGame: () => new BallDropGame(),
+  createGame: async () => {
+    const { BallDropGame } = await import("../ballDrop/BallDropGame");
+    return new BallDropGame();
+  },
 };

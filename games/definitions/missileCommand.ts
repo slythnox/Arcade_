@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { MissileCommandGame } from "../missileCommand/MissileCommandGame";
-
 export const missileCommandDefinition: GameDefinition = {
   id: "missile-command",
   slug: "missile-command",
@@ -15,6 +13,8 @@ export const missileCommandDefinition: GameDefinition = {
     "Intercept descending ballistic ICBM nuclear warheads by strategically detonating expanding anti-air flak explosions.",
   difficulty: "hard",
   players: "single",
+  category: "arcade",
+  subcategory: "shooter",
   estimatedPlayTime: "3-8 min",
   thumbnail: {
     src: "/assets/thumbnails/missile-command.png",
@@ -43,5 +43,8 @@ export const missileCommandDefinition: GameDefinition = {
       { name: "Blast Envelope", description: "\\text{Kinetic destruction volume defined by expanding sphere/disc}." },
     ],
   },
-  createGame: () => new MissileCommandGame(),
+  createGame: async () => {
+    const { MissileCommandGame } = await import("../missileCommand/MissileCommandGame");
+    return new MissileCommandGame();
+  },
 };

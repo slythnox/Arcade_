@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { OrbitalMechanicsGame } from "../orbitalMechanics/OrbitalMechanicsGame";
-
 export const orbitalMechanicsDefinition: GameDefinition = {
   id: "orbitalMechanics",
   slug: "orbital-mechanics",
@@ -14,6 +12,8 @@ export const orbitalMechanicsDefinition: GameDefinition = {
   description: "Add thrust to adjust orbit. Achieve target orbit altitude. Real gravitational physics.",
   difficulty: "hard",
   players: "single",
+  category: "arcade",
+  subcategory: "simulation",
   estimatedPlayTime: "10-20 min",
   thumbnail: { src: "/games/orbitalMechanics/thumb.png", alt: "Orbital Mechanics" },
   controls: {
@@ -34,5 +34,8 @@ export const orbitalMechanicsDefinition: GameDefinition = {
       { name: "Numerical Integration", description: "Runge-Kutta or Euler integration" }
     ]
   },
-  createGame: () => new OrbitalMechanicsGame(),
+  createGame: async () => {
+    const { OrbitalMechanicsGame } = await import("../orbitalMechanics/OrbitalMechanicsGame");
+    return new OrbitalMechanicsGame();
+  },
 };

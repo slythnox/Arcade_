@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { TicTacToePlusGame } from "../ticTacToePlus/TicTacToePlusGame";
-
 export const ticTacToePlusDefinition: GameDefinition = {
   id: "tic-tac-toe-plus",
   slug: "tic-tac-toe-plus",
@@ -15,6 +13,8 @@ export const ticTacToePlusDefinition: GameDefinition = {
     "Play Ultimate Tic-Tac-Toe where winning individual sub-boards claims positions on the macro 3x3 master grid.",
   difficulty: "hard",
   players: "1-2 players",
+  category: "arcade",
+  subcategory: "strategy",
   estimatedPlayTime: "5-12 min",
   thumbnail: {
     src: "/assets/thumbnails/tic-tac-toe-plus.png",
@@ -44,5 +44,8 @@ export const ticTacToePlusDefinition: GameDefinition = {
       { name: "Constrained Target Dispatch", description: "\\text{Sub-move } (r, c) \\implies \\text{Next active master board } M = (r, c)." },
     ],
   },
-  createGame: () => new TicTacToePlusGame(),
+  createGame: async () => {
+    const { TicTacToePlusGame } = await import("../ticTacToePlus/TicTacToePlusGame");
+    return new TicTacToePlusGame();
+  },
 };

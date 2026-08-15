@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { SpaceDefenderGame } from "../spaceDefender/SpaceDefenderGame";
-
 export const spaceDefenderDefinition: GameDefinition = {
   id: "space-defender",
   slug: "space-defender",
@@ -15,6 +13,8 @@ export const spaceDefenderDefinition: GameDefinition = {
     "Defend Earth from continuous descending waves of alien formations with laser cannons and directional evasion.",
   difficulty: "medium",
   players: "single",
+  category: "arcade",
+  subcategory: "classics",
   estimatedPlayTime: "5-10 min",
   thumbnail: {
     src: "/assets/thumbnails/space-defender.png",
@@ -44,5 +44,8 @@ export const spaceDefenderDefinition: GameDefinition = {
       { name: "AABB Bullet Hitbox", description: "Point-to-box collision: |x_bullet - x_alien| < width / 2." },
     ],
   },
-  createGame: () => new SpaceDefenderGame(),
+  createGame: async () => {
+    const { SpaceDefenderGame } = await import("../spaceDefender/SpaceDefenderGame");
+    return new SpaceDefenderGame();
+  },
 };

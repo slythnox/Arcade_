@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { TimeLoopGame } from "../timeLoop/TimeLoopGame";
-
 export const timeLoopDefinition: GameDefinition = {
   id: "timeLoop",
   slug: "time-loop",
@@ -14,6 +12,8 @@ export const timeLoopDefinition: GameDefinition = {
   description: "Coordinate with your past self to solve puzzles.",
   difficulty: "hard",
   players: "single",
+  category: "arcade",
+  subcategory: "simulation",
   estimatedPlayTime: "15-30 min",
   thumbnail: { src: "/games/timeLoop/thumb.png", alt: "Time Loop" },
   controls: {
@@ -33,5 +33,8 @@ export const timeLoopDefinition: GameDefinition = {
       { name: "Temporal Mechanics", description: "Recording and playback of states" }
     ]
   },
-  createGame: () => new TimeLoopGame(),
+  createGame: async () => {
+    const { TimeLoopGame } = await import("../timeLoop/TimeLoopGame");
+    return new TimeLoopGame();
+  },
 };

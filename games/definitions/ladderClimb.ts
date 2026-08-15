@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { LadderClimbGame } from "../ladderClimb/LadderClimbGame";
-
 export const ladderClimbDefinition: GameDefinition = {
   id: "ladder-climb",
   slug: "ladder-climb",
@@ -15,6 +13,8 @@ export const ladderClimbDefinition: GameDefinition = {
     "Ascend multi-tier industrial scaffolding by climbing vertical ladders and timing hops over rolling barrels.",
   difficulty: "hard",
   players: "single",
+  category: "arcade",
+  subcategory: "platformer",
   estimatedPlayTime: "3-8 min",
   thumbnail: {
     src: "/assets/thumbnails/ladder-climb.png",
@@ -42,5 +42,8 @@ export const ladderClimbDefinition: GameDefinition = {
       { name: "Zigzag Tier Descent", description: "v_x = \\text{dir} \\cdot s, \\text{ upon reaching edge } y \\leftarrow y_{\\text{lower}}." },
     ],
   },
-  createGame: () => new LadderClimbGame(),
+  createGame: async () => {
+    const { LadderClimbGame } = await import("../ladderClimb/LadderClimbGame");
+    return new LadderClimbGame();
+  },
 };

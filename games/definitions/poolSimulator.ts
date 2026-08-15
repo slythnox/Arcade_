@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { PoolSimulatorGame } from "../poolSimulator/PoolSimulatorGame";
-
 export const poolSimulatorDefinition: GameDefinition = {
   id: "poolSimulator",
   slug: "pool-simulator",
@@ -14,6 +12,8 @@ export const poolSimulatorDefinition: GameDefinition = {
   description: "Elastic collisions between balls. Friction. Pocket detection. Play a simplified 8-ball.",
   difficulty: "medium",
   players: "single",
+  category: "arcade",
+  subcategory: "simulation",
   estimatedPlayTime: "5-15 min",
   thumbnail: { src: "/games/poolSimulator/thumb.png", alt: "Pool Simulator" },
   controls: {
@@ -35,5 +35,8 @@ export const poolSimulatorDefinition: GameDefinition = {
       { name: "Vector Reflection", description: "Wall bounce and ball collision" }
     ]
   },
-  createGame: () => new PoolSimulatorGame(),
+  createGame: async () => {
+    const { PoolSimulatorGame } = await import("../poolSimulator/PoolSimulatorGame");
+    return new PoolSimulatorGame();
+  },
 };

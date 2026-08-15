@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { DashRunnerGame } from "../dashRunner/DashRunnerGame";
-
 export const dashRunnerDefinition: GameDefinition = {
   id: "dash-runner",
   slug: "dash-runner",
@@ -15,6 +13,8 @@ export const dashRunnerDefinition: GameDefinition = {
     "Endless procedural rooftop runner featuring double jump impulses and increasing scroll speeds.",
   difficulty: "hard",
   players: "single",
+  category: "labs",
+  subcategory: "experimental",
   estimatedPlayTime: "3-6 min",
   thumbnail: {
     src: "/assets/thumbnails/dash-runner.png",
@@ -42,5 +42,8 @@ export const dashRunnerDefinition: GameDefinition = {
       { name: "Double Jump Reset", description: "\\text{Air jump counter resets strictly upon ground contact}." },
     ],
   },
-  createGame: () => new DashRunnerGame(),
+  createGame: async () => {
+    const { DashRunnerGame } = await import("../dashRunner/DashRunnerGame");
+    return new DashRunnerGame();
+  },
 };

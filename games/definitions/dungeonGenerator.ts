@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { DungeonGeneratorGame } from "../dungeonGenerator/DungeonGeneratorGame";
-
 export const dungeonGeneratorDefinition: GameDefinition = {
   id: "dungeonGenerator",
   slug: "dungeon-generator",
@@ -14,6 +12,8 @@ export const dungeonGeneratorDefinition: GameDefinition = {
   description: "Interactive Binary Space Partitioning (BSP) algorithm that recursively subdivides space to construct non-overlapping rooms and connecting corridors.",
   difficulty: "easy",
   players: "single",
+  category: "arcade",
+  subcategory: "simulation",
   estimatedPlayTime: "5 min",
   thumbnail: { src: "/games/dungeonGenerator/thumb.png", alt: "Dungeon Generator" },
   controls: {
@@ -37,5 +37,8 @@ export const dungeonGeneratorDefinition: GameDefinition = {
       },
     ],
   },
-  createGame: () => new DungeonGeneratorGame(),
+  createGame: async () => {
+    const { DungeonGeneratorGame } = await import("../dungeonGenerator/DungeonGeneratorGame");
+    return new DungeonGeneratorGame();
+  },
 };

@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { CheckersGame } from "../checkers/CheckersGame";
-
 export const checkersDefinition: GameDefinition = {
   id: "checkers",
   slug: "checkers",
@@ -15,6 +13,8 @@ export const checkersDefinition: GameDefinition = {
     "Play classic 8x8 American Checkers with diagonal moves, jumping captures, king crowning, and adversarial AI.",
   difficulty: "medium",
   players: "1-2 players",
+  category: "arcade",
+  subcategory: "strategy",
   estimatedPlayTime: "5-15 min",
   thumbnail: {
     src: "/assets/thumbnails/checkers.png",
@@ -43,5 +43,8 @@ export const checkersDefinition: GameDefinition = {
       { name: "King Crown Promotion", description: "\\text{Piece reaching enemy back rank } (r = 0 \\lor r = 7) \\text{ gains bidirectional movement}." },
     ],
   },
-  createGame: () => new CheckersGame(),
+  createGame: async () => {
+    const { CheckersGame } = await import("../checkers/CheckersGame");
+    return new CheckersGame();
+  },
 };

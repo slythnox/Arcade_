@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { EvolutionLabGame } from "../evolutionLab/EvolutionLabGame";
-
 export const evolutionLabDefinition: GameDefinition = {
   id: "evolutionLab",
   slug: "evolution-lab",
@@ -14,6 +12,8 @@ export const evolutionLabDefinition: GameDefinition = {
   description: "Autonomous agents evolve locomotion sequences over successive generations through tournament selection, crossover, and mutation.",
   difficulty: "easy",
   players: "single",
+  category: "arcade",
+  subcategory: "simulation",
   estimatedPlayTime: "5 min",
   thumbnail: { src: "/games/evolutionLab/thumb.png", alt: "Evolution Lab" },
   controls: {
@@ -36,5 +36,8 @@ export const evolutionLabDefinition: GameDefinition = {
       },
     ],
   },
-  createGame: () => new EvolutionLabGame(),
+  createGame: async () => {
+    const { EvolutionLabGame } = await import("../evolutionLab/EvolutionLabGame");
+    return new EvolutionLabGame();
+  },
 };

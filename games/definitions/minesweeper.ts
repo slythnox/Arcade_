@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { MinesweeperGame } from "../minesweeper/MinesweeperGame";
-
 export const minesweeperDefinition: GameDefinition = {
   id: "minesweeper",
   slug: "minesweeper",
@@ -15,6 +13,8 @@ export const minesweeperDefinition: GameDefinition = {
     "Clear a hidden 10x10 minefield using numerical adjacency clues. Features guaranteed first-click safety, iterative flood-fill cell expansion, flagging system, and win-state verification.",
   difficulty: "hard",
   players: "single",
+  category: "arcade",
+  subcategory: "classics",
   estimatedPlayTime: "3–8 min",
   thumbnail: {
     src: "/games/minesweeper/thumb.png",
@@ -60,5 +60,8 @@ export const minesweeperDefinition: GameDefinition = {
       },
     ],
   },
-  createGame: () => new MinesweeperGame(),
+  createGame: async () => {
+    const { MinesweeperGame } = await import("../minesweeper/MinesweeperGame");
+    return new MinesweeperGame();
+  },
 };

@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { LightsOutGame } from "../lightsOut/LightsOutGame";
-
 export const lightsOutDefinition: GameDefinition = {
   id: "lights-out",
   slug: "lights-out",
@@ -15,6 +13,8 @@ export const lightsOutDefinition: GameDefinition = {
     "Solve the classic electronic puzzle where pressing any button toggles both it and its adjacent neighbors.",
   difficulty: "hard",
   players: "single",
+  category: "arcade",
+  subcategory: "puzzle",
   estimatedPlayTime: "5-10 min",
   thumbnail: {
     src: "/assets/thumbnails/lights-out.png",
@@ -44,5 +44,8 @@ export const lightsOutDefinition: GameDefinition = {
       { name: "Neighborhood Inversion", description: "M_{i,j}' = M_{i,j} \\oplus 1, \\forall (i,j) \\in N(c)." },
     ],
   },
-  createGame: () => new LightsOutGame(),
+  createGame: async () => {
+    const { LightsOutGame } = await import("../lightsOut/LightsOutGame");
+    return new LightsOutGame();
+  },
 };

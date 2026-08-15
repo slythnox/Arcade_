@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { AlgorithmDungeonGame } from "../algorithmDungeon/AlgorithmDungeonGame";
-
 export const algorithmDungeonDefinition: GameDefinition = {
   id: "algorithmDungeon",
   slug: "algorithm-dungeon",
@@ -14,6 +12,8 @@ export const algorithmDungeonDefinition: GameDefinition = {
   description: "A procedural maze solved concurrently by BFS, A*, and Dijkstra pathfinding algorithms.",
   difficulty: "easy",
   players: "single",
+  category: "labs",
+  subcategory: "algorithms",
   estimatedPlayTime: "5 min",
   thumbnail: { src: "/games/algorithmDungeon/thumb.png", alt: "Algorithm Dungeon" },
   controls: {
@@ -38,5 +38,8 @@ export const algorithmDungeonDefinition: GameDefinition = {
       },
     ],
   },
-  createGame: () => new AlgorithmDungeonGame(),
+  createGame: async () => {
+    const { AlgorithmDungeonGame } = await import("../algorithmDungeon/AlgorithmDungeonGame");
+    return new AlgorithmDungeonGame();
+  },
 };

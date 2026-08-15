@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { ReversiGame } from "../reversi/ReversiGame";
-
 export const reversiDefinition: GameDefinition = {
   id: "reversi",
   slug: "reversi",
@@ -15,6 +13,8 @@ export const reversiDefinition: GameDefinition = {
     "Play classic Othello / Reversi board strategy with 8-directional ray scanning and corner-weight positional AI.",
   difficulty: "hard",
   players: "1-2 players",
+  category: "arcade",
+  subcategory: "strategy",
   estimatedPlayTime: "5-15 min",
   thumbnail: {
     src: "/assets/thumbnails/reversi.png",
@@ -43,5 +43,8 @@ export const reversiDefinition: GameDefinition = {
       { name: "Positional Weighting Matrix", description: "\\text{Corner squares } W_{(0,0)} = 100 \\text{ versus adjacent hazard squares } W_{(0,1)} = -20." },
     ],
   },
-  createGame: () => new ReversiGame(),
+  createGame: async () => {
+    const { ReversiGame } = await import("../reversi/ReversiGame");
+    return new ReversiGame();
+  },
 };

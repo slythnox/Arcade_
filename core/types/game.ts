@@ -8,9 +8,37 @@ export type GameGenre =
   | "physics"
   | "shooter"
   | "platformer"
-  | "experimental";
+  | "experimental"
+  | "racing"
+  | "fighting"
+  | "rpg"
+  | "simulation";
 
 export type GameEra = "1970s" | "1980s" | "1990s" | "2000s";
+
+export type GameCategory = "arcade" | "labs";
+
+export type GameSubcategory =
+  // Arcade subcategories
+  | "classics"
+  | "platformer"
+  | "puzzle"
+  | "racing"
+  | "fighting"
+  | "rpg"
+  | "strategy"
+  | "shooter"
+  | "casual"
+  | "physics"
+  | "simulation"
+  // Labs subcategories
+  | "fractals"
+  | "physics-sim"
+  | "algorithms"
+  | "cellular-automata"
+  | "ai"
+  | "procedural"
+  | "experimental";
 
 export type Difficulty = "easy" | "medium" | "hard";
 

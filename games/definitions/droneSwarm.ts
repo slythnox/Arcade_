@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { DroneSwarmGame } from "../droneSwarm/DroneSwarmGame";
-
 export const droneSwarmDefinition: GameDefinition = {
   id: "drone-swarm",
   slug: "drone-swarm",
@@ -15,6 +13,8 @@ export const droneSwarmDefinition: GameDefinition = {
     "Battle intelligent autonomous drone swarms executing emergent separation, cohesion, and pursuit behaviors.",
   difficulty: "hard",
   players: "single",
+  category: "arcade",
+  subcategory: "shooter",
   estimatedPlayTime: "3-8 min",
   thumbnail: {
     src: "/assets/thumbnails/drone-swarm.png",
@@ -44,5 +44,8 @@ export const droneSwarmDefinition: GameDefinition = {
       { name: "Cohesion Centroid", description: "\\vec{F}_c = \\frac{1}{N} \\sum_{j} \\vec{p}_j - \\vec{p}_i." },
     ],
   },
-  createGame: () => new DroneSwarmGame(),
+  createGame: async () => {
+    const { DroneSwarmGame } = await import("../droneSwarm/DroneSwarmGame");
+    return new DroneSwarmGame();
+  },
 };

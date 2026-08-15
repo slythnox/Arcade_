@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { RailBlasterGame } from "../railBlaster/RailBlasterGame";
-
 export const railBlasterDefinition: GameDefinition = {
   id: "rail-blaster",
   slug: "rail-blaster",
@@ -15,6 +13,8 @@ export const railBlasterDefinition: GameDefinition = {
     "Test optical reflex speed by steering a high-speed crosshair reticle to eliminate emerging targets before detonation.",
   difficulty: "medium",
   players: "single",
+  category: "arcade",
+  subcategory: "shooter",
   estimatedPlayTime: "3-6 min",
   thumbnail: {
     src: "/assets/thumbnails/rail-blaster.png",
@@ -44,5 +44,8 @@ export const railBlasterDefinition: GameDefinition = {
       { name: "Exponential Combo Scaling", description: "S = 200 \\times 2^{c-1}." },
     ],
   },
-  createGame: () => new RailBlasterGame(),
+  createGame: async () => {
+    const { RailBlasterGame } = await import("../railBlaster/RailBlasterGame");
+    return new RailBlasterGame();
+  },
 };

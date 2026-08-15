@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { AntColonyGame } from "../antColony/AntColonyGame";
-
 export const antColonyDefinition: GameDefinition = {
   id: "antColony",
   slug: "ant-colony",
@@ -14,6 +12,8 @@ export const antColonyDefinition: GameDefinition = {
   description: "Ants leave pheromone trails. Other ants follow them. Food gets found and carried back emergently.",
   difficulty: "medium",
   players: "single",
+  category: "arcade",
+  subcategory: "simulation",
   estimatedPlayTime: "5-10 min",
   thumbnail: { src: "/games/antColony/thumb.png", alt: "Ant Colony" },
   controls: {
@@ -31,5 +31,8 @@ export const antColonyDefinition: GameDefinition = {
       { name: "Stigmergy", description: "Gradient following, pheromone diffusion" }
     ]
   },
-  createGame: () => new AntColonyGame(),
+  createGame: async () => {
+    const { AntColonyGame } = await import("../antColony/AntColonyGame");
+    return new AntColonyGame();
+  },
 };

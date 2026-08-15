@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { SandWorldGame } from "../sandWorld/SandWorldGame";
-
 export const sandWorldDefinition: GameDefinition = {
   id: "sandWorld",
   slug: "sand-world",
@@ -14,6 +12,8 @@ export const sandWorldDefinition: GameDefinition = {
   tagline: "Watch the world fall into place.",
   difficulty: "easy",
   players: "single",
+  category: "arcade",
+  subcategory: "simulation",
   estimatedPlayTime: "Infinite",
   thumbnail: { src: "/assets/games/sandworld/thumbnail.png", alt: "Sand World" },
   controls: {
@@ -36,5 +36,8 @@ export const sandWorldDefinition: GameDefinition = {
       { name: "Fluid dynamics", description: "Approximation of liquid flow and dispersion." }
     ]
   },
-  createGame: () => new SandWorldGame()
+  createGame: async () => {
+    const { SandWorldGame } = await import("../sandWorld/SandWorldGame");
+    return new SandWorldGame();
+  }
 };

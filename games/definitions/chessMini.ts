@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { ChessMiniGame } from "../chessMini/ChessMiniGame";
-
 export const chessMiniDefinition: GameDefinition = {
   id: "chess-mini",
   slug: "chess-mini",
@@ -15,6 +13,8 @@ export const chessMiniDefinition: GameDefinition = {
     "Play Gardner's 5x6 compact mini chess variant with full piece dynamics, legal move generation, and tactical AI search.",
   difficulty: "hard",
   players: "1-2 players",
+  category: "arcade",
+  subcategory: "strategy",
   estimatedPlayTime: "5-15 min",
   thumbnail: {
     src: "/assets/thumbnails/chess-mini.png",
@@ -43,5 +43,8 @@ export const chessMiniDefinition: GameDefinition = {
       { name: "Shannon Evaluation Function", description: "V = [100, 300, 320, 500, 900, 10000] \\text{ for } [P, N, B, R, Q, K]." },
     ],
   },
-  createGame: () => new ChessMiniGame(),
+  createGame: async () => {
+    const { ChessMiniGame } = await import("../chessMini/ChessMiniGame");
+    return new ChessMiniGame();
+  },
 };

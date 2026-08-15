@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { ColorCollapseGame } from "../colorCollapse/ColorCollapseGame";
-
 export const colorCollapseDefinition: GameDefinition = {
   id: "color-collapse",
   slug: "color-collapse",
@@ -15,6 +13,8 @@ export const colorCollapseDefinition: GameDefinition = {
     "Clear groups of matching colored blocks to trigger cascading gravity drops and compacting column shifts.",
   difficulty: "medium",
   players: "single",
+  category: "arcade",
+  subcategory: "puzzle",
   estimatedPlayTime: "5-10 min",
   thumbnail: {
     src: "/assets/thumbnails/color-collapse.png",
@@ -44,5 +44,8 @@ export const colorCollapseDefinition: GameDefinition = {
       { name: "Column Compaction", description: "\\text{Shift non-empty columns left to compress matrix}." },
     ],
   },
-  createGame: () => new ColorCollapseGame(),
+  createGame: async () => {
+    const { ColorCollapseGame } = await import("../colorCollapse/ColorCollapseGame");
+    return new ColorCollapseGame();
+  },
 };

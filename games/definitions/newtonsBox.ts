@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { NewtonsBoxGame } from "../newtonsBox/NewtonsBoxGame";
-
 export const newtonsBoxDefinition: GameDefinition = {
   id: "newtons-box",
   slug: "newtons-box",
@@ -15,6 +13,8 @@ export const newtonsBoxDefinition: GameDefinition = {
     "Solve spatial inertia puzzles by pushing heavy blocks that slide continuously until stopped by obstacles.",
   difficulty: "medium",
   players: "single",
+  category: "arcade",
+  subcategory: "physics",
   estimatedPlayTime: "5-10 min",
   thumbnail: {
     src: "/assets/thumbnails/newtons-box.png",
@@ -42,5 +42,8 @@ export const newtonsBoxDefinition: GameDefinition = {
       { name: "Terminal Displacement", description: "\\vec{p}_{\\text{stop}} = \\vec{p}_0 + (k_{\\text{hit}} - 1) \\vec{d}." },
     ],
   },
-  createGame: () => new NewtonsBoxGame(),
+  createGame: async () => {
+    const { NewtonsBoxGame } = await import("../newtonsBox/NewtonsBoxGame");
+    return new NewtonsBoxGame();
+  },
 };

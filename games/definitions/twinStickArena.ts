@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { TwinStickArenaGame } from "../twinStickArena/TwinStickArenaGame";
-
 export const twinStickArenaDefinition: GameDefinition = {
   id: "twin-stick-arena",
   slug: "twin-stick-arena",
@@ -15,6 +13,8 @@ export const twinStickArenaDefinition: GameDefinition = {
     "Survive enclosed gladiatorial arenas by destroying swarms of homing enemies with 360-degree twin-stick mechanics.",
   difficulty: "hard",
   players: "single",
+  category: "arcade",
+  subcategory: "shooter",
   estimatedPlayTime: "3-8 min",
   thumbnail: {
     src: "/assets/thumbnails/twin-stick-arena.png",
@@ -43,5 +43,8 @@ export const twinStickArenaDefinition: GameDefinition = {
       { name: "Unit Homing Vector", description: "\\hat{u} = \\frac{\\vec{\\Delta r}}{\\|\\vec{\\Delta r}\\|}." },
     ],
   },
-  createGame: () => new TwinStickArenaGame(),
+  createGame: async () => {
+    const { TwinStickArenaGame } = await import("../twinStickArena/TwinStickArenaGame");
+    return new TwinStickArenaGame();
+  },
 };

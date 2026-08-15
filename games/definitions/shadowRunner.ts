@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { ShadowRunnerGame } from "../shadowRunner/ShadowRunnerGame";
-
 export const shadowRunnerDefinition: GameDefinition = {
   id: "shadow-runner",
   slug: "shadow-runner",
@@ -15,6 +13,8 @@ export const shadowRunnerDefinition: GameDefinition = {
     "Record and replay your own best time trial runs as a transparent ghost racer to shave milliseconds off your lap records.",
   difficulty: "hard",
   players: "single",
+  category: "arcade",
+  subcategory: "platformer",
   estimatedPlayTime: "3-8 min",
   thumbnail: {
     src: "/assets/thumbnails/shadow-runner.png",
@@ -42,5 +42,8 @@ export const shadowRunnerDefinition: GameDefinition = {
       { name: "Time Trial State Serialization", description: "\\text{Deterministic frame recording array } [\\vec{p}_0, \\dots, \\vec{p}_N]." },
     ],
   },
-  createGame: () => new ShadowRunnerGame(),
+  createGame: async () => {
+    const { ShadowRunnerGame } = await import("../shadowRunner/ShadowRunnerGame");
+    return new ShadowRunnerGame();
+  },
 };

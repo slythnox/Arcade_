@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { SokobanGame } from "../sokoban/SokobanGame";
-
 export const sokobanDefinition: GameDefinition = {
   id: "sokoban",
   slug: "sokoban",
@@ -14,6 +12,8 @@ export const sokobanDefinition: GameDefinition = {
   description: "Push all cargo crates onto the target docks with finite moves, spatial forward-planning, and complete state undo capabilities.",
   difficulty: "hard",
   players: "single",
+  category: "arcade",
+  subcategory: "puzzle",
   estimatedPlayTime: "10 min",
   thumbnail: { src: "/games/sokoban/thumb.png", alt: "Sokoban" },
   controls: {
@@ -38,5 +38,8 @@ export const sokobanDefinition: GameDefinition = {
       },
     ],
   },
-  createGame: () => new SokobanGame(),
+  createGame: async () => {
+    const { SokobanGame } = await import("../sokoban/SokobanGame");
+    return new SokobanGame();
+  },
 };

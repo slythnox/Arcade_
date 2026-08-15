@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { TargetRangeGame } from "../targetRange/TargetRangeGame";
-
 export const targetRangeDefinition: GameDefinition = {
   id: "target-range",
   slug: "target-range",
@@ -15,6 +13,8 @@ export const targetRangeDefinition: GameDefinition = {
     "Hit rapid emerging concentric bullseye targets with precision radius scoring within a 45-second round.",
   difficulty: "medium",
   players: "single",
+  category: "labs",
+  subcategory: "experimental",
   estimatedPlayTime: "1-3 min",
   thumbnail: {
     src: "/assets/thumbnails/target-range.png",
@@ -43,5 +43,8 @@ export const targetRangeDefinition: GameDefinition = {
       { name: "Continuous Accuracy Formula", description: "\\text{Score scales linearly with proximity to center bullseye}." },
     ],
   },
-  createGame: () => new TargetRangeGame(),
+  createGame: async () => {
+    const { TargetRangeGame } = await import("../targetRange/TargetRangeGame");
+    return new TargetRangeGame();
+  },
 };

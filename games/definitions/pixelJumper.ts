@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { PixelJumperGame } from "../pixelJumper/PixelJumperGame";
-
 export const pixelJumperDefinition: GameDefinition = {
   id: "pixel-jumper",
   slug: "pixel-jumper",
@@ -15,6 +13,8 @@ export const pixelJumperDefinition: GameDefinition = {
     "Steer an auto-jumping character across an infinite vertical cascade of platforms with toroidal wrap mechanics.",
   difficulty: "medium",
   players: "single",
+  category: "arcade",
+  subcategory: "platformer",
   estimatedPlayTime: "3-8 min",
   thumbnail: {
     src: "/assets/thumbnails/pixel-jumper.png",
@@ -43,5 +43,8 @@ export const pixelJumperDefinition: GameDefinition = {
       { name: "Camera Relative Scrolling", description: "y_{\\text{cam}} = \\min(y_{\\text{cam}}, y_{\\text{player}} - h_{\\text{offset}})." },
     ],
   },
-  createGame: () => new PixelJumperGame(),
+  createGame: async () => {
+    const { PixelJumperGame } = await import("../pixelJumper/PixelJumperGame");
+    return new PixelJumperGame();
+  },
 };

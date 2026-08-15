@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { FireSpreadGame } from "../fireSpread/FireSpreadGame";
-
 export const fireSpreadDefinition: GameDefinition = {
   id: "fireSpread",
   slug: "fire-spread",
@@ -14,6 +12,8 @@ export const fireSpreadDefinition: GameDefinition = {
   description: "Control firebreaks. Can you save the forest?",
   difficulty: "hard",
   players: "single",
+  category: "arcade",
+  subcategory: "strategy",
   estimatedPlayTime: "5-10 min",
   thumbnail: { src: "/games/fireSpread/thumb.png", alt: "Fire Spread" },
   controls: {
@@ -35,5 +35,8 @@ export const fireSpreadDefinition: GameDefinition = {
       { name: "Probabilistic rules", description: "Spread chance influenced by wind" }
     ]
   },
-  createGame: () => new FireSpreadGame(),
+  createGame: async () => {
+    const { FireSpreadGame } = await import("../fireSpread/FireSpreadGame");
+    return new FireSpreadGame();
+  },
 };

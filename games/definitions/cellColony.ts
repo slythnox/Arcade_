@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { CellColonyGame } from "../cellColony/CellColonyGame";
-
 export const cellColonyDefinition: GameDefinition = {
   id: "cell-colony",
   slug: "cell-colony",
@@ -15,6 +13,8 @@ export const cellColonyDefinition: GameDefinition = {
     "Design and simulate living cellular populations using John Conway's mathematical B3/S23 cellular automata rules.",
   difficulty: "easy",
   players: "single",
+  category: "arcade",
+  subcategory: "experimental",
   estimatedPlayTime: "5-20 min",
   thumbnail: {
     src: "/assets/thumbnails/cell-colony.png",
@@ -44,5 +44,8 @@ export const cellColonyDefinition: GameDefinition = {
       { name: "Turing Completeness", description: "\\text{Universal computation emergent from 2-state Moore neighborhood rules}." },
     ],
   },
-  createGame: () => new CellColonyGame(),
+  createGame: async () => {
+    const { CellColonyGame } = await import("../cellColony/CellColonyGame");
+    return new CellColonyGame();
+  },
 };

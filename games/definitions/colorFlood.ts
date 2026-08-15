@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { ColorFloodGame } from "../colorFlood/ColorFloodGame";
-
 export const colorFloodDefinition: GameDefinition = {
   id: "colorFlood",
   slug: "color-flood",
@@ -14,6 +12,8 @@ export const colorFloodDefinition: GameDefinition = {
   description: "Each choice flood-fills matching neighbors. Clear board in minimum moves.",
   difficulty: "medium",
   players: "single",
+  category: "arcade",
+  subcategory: "puzzle",
   estimatedPlayTime: "2-5 min",
   thumbnail: { src: "/games/colorFlood/thumb.png", alt: "Color Flood" },
   controls: {
@@ -33,5 +33,8 @@ export const colorFloodDefinition: GameDefinition = {
       { name: "Flood Fill", description: "Iterative region expansion" }
     ]
   },
-  createGame: () => new ColorFloodGame(),
+  createGame: async () => {
+    const { ColorFloodGame } = await import("../colorFlood/ColorFloodGame");
+    return new ColorFloodGame();
+  },
 };

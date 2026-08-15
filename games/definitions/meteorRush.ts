@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { MeteorRushGame } from "../meteorRush/MeteorRushGame";
-
 export const meteorRushDefinition: GameDefinition = {
   id: "meteor-rush",
   slug: "meteor-rush",
@@ -15,6 +13,8 @@ export const meteorRushDefinition: GameDefinition = {
     "Defend a planetary station by rotating rapid-fire orbital defense turrets across 360 degrees to blast converging meteors.",
   difficulty: "medium",
   players: "single",
+  category: "labs",
+  subcategory: "experimental",
   estimatedPlayTime: "3-8 min",
   thumbnail: {
     src: "/assets/thumbnails/meteor-rush.png",
@@ -43,5 +43,8 @@ export const meteorRushDefinition: GameDefinition = {
       { name: "Polar Trajectory Alignment", description: "\\theta_{\\text{turret}} = \\text{atan2}(y - y_c, x - x_c)." },
     ],
   },
-  createGame: () => new MeteorRushGame(),
+  createGame: async () => {
+    const { MeteorRushGame } = await import("../meteorRush/MeteorRushGame");
+    return new MeteorRushGame();
+  },
 };

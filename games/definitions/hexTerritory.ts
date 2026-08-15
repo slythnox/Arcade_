@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { HexTerritoryGame } from "../hexTerritory/HexTerritoryGame";
-
 export const hexTerritoryDefinition: GameDefinition = {
   id: "hexTerritory",
   slug: "hex-territory",
@@ -14,6 +12,8 @@ export const hexTerritoryDefinition: GameDefinition = {
   description: "Flood fill determines territory. AI opponent uses greedy strategy.",
   difficulty: "medium",
   players: "single",
+  category: "arcade",
+  subcategory: "strategy",
   estimatedPlayTime: "5-10 min",
   thumbnail: { src: "/games/hexTerritory/thumb.png", alt: "Hex Territory" },
   controls: {
@@ -33,5 +33,8 @@ export const hexTerritoryDefinition: GameDefinition = {
       { name: "Axial Coordinates", description: "q, r coordinate system" }
     ]
   },
-  createGame: () => new HexTerritoryGame(),
+  createGame: async () => {
+    const { HexTerritoryGame } = await import("../hexTerritory/HexTerritoryGame");
+    return new HexTerritoryGame();
+  },
 };

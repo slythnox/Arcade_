@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { InfiniteForestGame } from "../infiniteForest/InfiniteForestGame";
-
 export const infiniteForestDefinition: GameDefinition = {
   id: "infiniteForest",
   slug: "infinite-forest",
@@ -14,6 +12,8 @@ export const infiniteForestDefinition: GameDefinition = {
   description: "Trees, hills, and clouds generated via layered noise. Serene visualization.",
   difficulty: "easy",
   players: "single",
+  category: "arcade",
+  subcategory: "platformer",
   estimatedPlayTime: "Infinite",
   thumbnail: { src: "/games/infiniteForest/thumb.png", alt: "Infinite Forest" },
   controls: {
@@ -33,5 +33,8 @@ export const infiniteForestDefinition: GameDefinition = {
       { name: "Value Noise", description: "1D/2D noise for natural variation" }
     ]
   },
-  createGame: () => new InfiniteForestGame(),
+  createGame: async () => {
+    const { InfiniteForestGame } = await import("../infiniteForest/InfiniteForestGame");
+    return new InfiniteForestGame();
+  },
 };

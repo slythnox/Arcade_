@@ -38,10 +38,18 @@ import {
 
 export interface GameShellProps {
   gameSlug: string;
+  /** "labs" applies purple accent and LABS EXPERIMENT branding. Defaults to "arcade". */
+  mode?: "arcade" | "labs";
 }
 
-export const GameShell: React.FC<GameShellProps> = ({ gameSlug }) => {
+export const GameShell: React.FC<GameShellProps> = ({ gameSlug, mode = "arcade" }) => {
   const game = getGameBySlug(gameSlug);
+  const isLabs = mode === "labs";
+  const accentColor = isLabs ? "#a879ff" : "#ffd84d";
+  const accentGlow = isLabs ? "rgba(168, 121, 255, 0.3)" : "rgba(255, 216, 77, 0.3)";
+  const accentBg = isLabs ? "rgba(168, 121, 255, 0.1)" : "rgba(255, 216, 77, 0.1)";
+  const accentBorder = isLabs ? "rgba(168, 121, 255, 0.3)" : "rgba(255, 216, 77, 0.3)";
+  const specsLabel = isLabs ? "LABS EXPERIMENT" : "CARTRIDGE SPECS";
   const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const engineRef = useRef<GameEngine | null>(null);
@@ -111,10 +119,11 @@ export const GameShell: React.FC<GameShellProps> = ({ gameSlug }) => {
     });
     engineRef.current = engine;
 
-    const gameInstance = createGameInstance(game.id);
-    if (gameInstance) {
-      engine.loadGame(gameInstance);
-    }
+    createGameInstance(game.id).then((gameInstance) => {
+      if (gameInstance) {
+        engine.loadGame(gameInstance);
+      }
+    });
 
     const session = engine.getSession();
     session.subscribe((s) => {
@@ -343,7 +352,7 @@ export const GameShell: React.FC<GameShellProps> = ({ gameSlug }) => {
               fontFamily: "var(--font-mono)",
               fontSize: "11px",
               fontWeight: 900,
-              color: "#ffd84d",
+              color: accentColor,
               textTransform: "uppercase",
               letterSpacing: "0.12em",
               marginBottom: "14px",
@@ -352,20 +361,20 @@ export const GameShell: React.FC<GameShellProps> = ({ gameSlug }) => {
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <Sliders size={13} color="#ffd84d" />
-              <span>CARTRIDGE SPECS</span>
+              <Sliders size={13} color={accentColor} />
+              <span>{specsLabel}</span>
             </div>
             <span
               style={{
                 fontSize: "9px",
-                color: "#4de8e8",
-                backgroundColor: "rgba(77, 232, 232, 0.1)",
+                color: accentColor,
+                backgroundColor: accentBg,
                 padding: "2px 6px",
-                border: "1px solid rgba(77, 232, 232, 0.25)",
+                border: `1px solid ${accentBorder}`,
                 borderRadius: "3px",
               }}
             >
-              {game.genre.toUpperCase()}
+              {(game.subcategory || game.genre).toUpperCase().replace("-", " ")}
             </span>
           </div>
 
@@ -415,9 +424,9 @@ export const GameShell: React.FC<GameShellProps> = ({ gameSlug }) => {
               style={{
                 fontSize: "26px",
                 fontWeight: 900,
-                color: "#ffd84d",
+                color: accentColor,
                 letterSpacing: "0.05em",
-                textShadow: "0 0 12px rgba(255, 216, 77, 0.3)",
+                textShadow: `0 0 12px ${accentGlow}`,
                 lineHeight: 1.1,
                 marginBottom: "8px",
               }}

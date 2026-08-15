@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { SlidingPuzzleGame } from "../slidingPuzzle/SlidingPuzzleGame";
-
 export const slidingPuzzleDefinition: GameDefinition = {
   id: "sliding-puzzle",
   slug: "sliding-puzzle",
@@ -15,6 +13,8 @@ export const slidingPuzzleDefinition: GameDefinition = {
     "Solve the classic mathematical 15-puzzle by sliding tiles into the single vacant position.",
   difficulty: "hard",
   players: "single",
+  category: "arcade",
+  subcategory: "puzzle",
   estimatedPlayTime: "5-15 min",
   thumbnail: {
     src: "/assets/thumbnails/sliding-puzzle.png",
@@ -44,5 +44,8 @@ export const slidingPuzzleDefinition: GameDefinition = {
       { name: "Inversion Parity", description: "\\text{Solvability determined by parity of inversion count } N." },
     ],
   },
-  createGame: () => new SlidingPuzzleGame(),
+  createGame: async () => {
+    const { SlidingPuzzleGame } = await import("../slidingPuzzle/SlidingPuzzleGame");
+    return new SlidingPuzzleGame();
+  },
 };

@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { GravityFlipGame } from "../gravityFlip/GravityFlipGame";
-
 export const gravityFlipDefinition: GameDefinition = {
   id: "gravity-flip",
   slug: "gravity-flip",
@@ -15,6 +13,8 @@ export const gravityFlipDefinition: GameDefinition = {
     "Sprint through an infinite obstacle course by flipping your gravitational acceleration vector between floor and ceiling.",
   difficulty: "hard",
   players: "single",
+  category: "arcade",
+  subcategory: "physics",
   estimatedPlayTime: "3-8 min",
   thumbnail: {
     src: "/assets/thumbnails/gravity-flip.png",
@@ -42,5 +42,8 @@ export const gravityFlipDefinition: GameDefinition = {
       { name: "Sign Inversion", description: "a_y = g \\cdot \\text{sgn}(D), D \\in \\{-1, +1\\}." },
     ],
   },
-  createGame: () => new GravityFlipGame(),
+  createGame: async () => {
+    const { GravityFlipGame } = await import("../gravityFlip/GravityFlipGame");
+    return new GravityFlipGame();
+  },
 };

@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { FractalExplorerGame } from "../fractalExplorer/FractalExplorerGame";
-
 export const fractalExplorerDefinition: GameDefinition = {
   id: "fractalExplorer",
   slug: "fractal-explorer",
@@ -14,6 +12,8 @@ export const fractalExplorerDefinition: GameDefinition = {
   tagline: "Dive into infinity.",
   difficulty: "easy",
   players: "single",
+  category: "arcade",
+  subcategory: "experimental",
   estimatedPlayTime: "Infinite",
   thumbnail: { src: "/assets/games/fractalexplorer/thumbnail.png", alt: "Fractal Explorer" },
   controls: {
@@ -36,5 +36,8 @@ export const fractalExplorerDefinition: GameDefinition = {
       { name: "Complex arithmetic", description: "Squaring complex numbers." }
     ]
   },
-  createGame: () => new FractalExplorerGame()
+  createGame: async () => {
+    const { FractalExplorerGame } = await import("../fractalExplorer/FractalExplorerGame");
+    return new FractalExplorerGame();
+  }
 };

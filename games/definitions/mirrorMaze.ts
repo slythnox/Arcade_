@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { MirrorMazeGame } from "../mirrorMaze/MirrorMazeGame";
-
 export const mirrorMazeDefinition: GameDefinition = {
   id: "mirrorMaze",
   slug: "mirror-maze",
@@ -14,6 +12,8 @@ export const mirrorMazeDefinition: GameDefinition = {
   tagline: "Light the way.",
   difficulty: "medium",
   players: "single",
+  category: "arcade",
+  subcategory: "puzzle",
   estimatedPlayTime: "5-10 mins",
   thumbnail: { src: "/assets/games/mirrormaze/thumbnail.png", alt: "Mirror Maze" },
   controls: {
@@ -36,5 +36,8 @@ export const mirrorMazeDefinition: GameDefinition = {
       { name: "Reflection", description: "Angle of incidence equals angle of reflection." }
     ]
   },
-  createGame: () => new MirrorMazeGame()
+  createGame: async () => {
+    const { MirrorMazeGame } = await import("../mirrorMaze/MirrorMazeGame");
+    return new MirrorMazeGame();
+  }
 };

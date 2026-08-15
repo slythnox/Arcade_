@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { NumberMergeGame } from "../numberMerge/NumberMergeGame";
-
 export const numberMergeDefinition: GameDefinition = {
   id: "number-merge",
   slug: "number-merge",
@@ -15,6 +13,8 @@ export const numberMergeDefinition: GameDefinition = {
     "Drop exponential numbers into columns to match adjacent values and initiate cascading mergers.",
   difficulty: "medium",
   players: "single",
+  category: "labs",
+  subcategory: "experimental",
   estimatedPlayTime: "5-10 min",
   thumbnail: {
     src: "/assets/thumbnails/number-merge.png",
@@ -43,5 +43,8 @@ export const numberMergeDefinition: GameDefinition = {
       { name: "Cascade Chaining", description: "\\text{Recursive search for adjacent identical powers of two}." },
     ],
   },
-  createGame: () => new NumberMergeGame(),
+  createGame: async () => {
+    const { NumberMergeGame } = await import("../numberMerge/NumberMergeGame");
+    return new NumberMergeGame();
+  },
 };

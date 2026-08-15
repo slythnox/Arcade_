@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { TwentyFortyEightGame } from "../twentyFortyEight/TwentyFortyEightGame";
-
 export const twentyFortyEightDefinition: GameDefinition = {
   id: "2048",
   slug: "2048",
@@ -15,6 +13,8 @@ export const twentyFortyEightDefinition: GameDefinition = {
     "Combine equal numbered tiles using four-directional slides to multiply values up to 2048.",
   difficulty: "medium",
   players: "single",
+  category: "arcade",
+  subcategory: "puzzle",
   estimatedPlayTime: "5-15 min",
   thumbnail: {
     src: "/assets/thumbnails/2048.png",
@@ -43,5 +43,8 @@ export const twentyFortyEightDefinition: GameDefinition = {
       { name: "Monotonicity Heuristic", description: "\\sum |M_{i,j} - M_{i,j+1}|." },
     ],
   },
-  createGame: () => new TwentyFortyEightGame(),
+  createGame: async () => {
+    const { TwentyFortyEightGame } = await import("../twentyFortyEight/TwentyFortyEightGame");
+    return new TwentyFortyEightGame();
+  },
 };

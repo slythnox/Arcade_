@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { RicochetGame } from "../ricochet/RicochetGame";
-
 export const ricochetDefinition: GameDefinition = {
   id: "ricochet",
   slug: "ricochet",
@@ -15,6 +13,8 @@ export const ricochetDefinition: GameDefinition = {
     "Calculate specular boundary reflections and angle lines to eliminate all target nodes with a single bouncing bullet.",
   difficulty: "medium",
   players: "single",
+  category: "arcade",
+  subcategory: "physics",
   estimatedPlayTime: "3-8 min",
   thumbnail: {
     src: "/assets/thumbnails/ricochet.png",
@@ -43,5 +43,8 @@ export const ricochetDefinition: GameDefinition = {
       { name: "Normal Reflection Matrix", description: "R = I - 2 \\hat{n} \\hat{n}^T." },
     ],
   },
-  createGame: () => new RicochetGame(),
+  createGame: async () => {
+    const { RicochetGame } = await import("../ricochet/RicochetGame");
+    return new RicochetGame();
+  },
 };

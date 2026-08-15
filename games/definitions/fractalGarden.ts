@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { FractalGardenGame } from "../fractalGarden/FractalGardenGame";
-
 export const fractalGardenDefinition: GameDefinition = {
   id: "fractal-garden",
   slug: "fractal-garden",
@@ -15,6 +13,8 @@ export const fractalGardenDefinition: GameDefinition = {
     "Grow recursive algorithmic fractal trees by tuning branching angles, length scaling, and recursion depth in real time.",
   difficulty: "easy",
   players: "single",
+  category: "labs",
+  subcategory: "fractals",
   estimatedPlayTime: "5-15 min",
   thumbnail: {
     src: "/assets/thumbnails/fractal-garden.png",
@@ -44,5 +44,8 @@ export const fractalGardenDefinition: GameDefinition = {
       { name: "Hausdorff Fractal Dimension", description: "D = \\frac{\\log(N)}{\\log(1/r)} = \\frac{\\log(2)}{\\log(1/0.72)} \\approx 2.11." },
     ],
   },
-  createGame: () => new FractalGardenGame(),
+  createGame: async () => {
+    const { FractalGardenGame } = await import("../fractalGarden/FractalGardenGame");
+    return new FractalGardenGame();
+  },
 };

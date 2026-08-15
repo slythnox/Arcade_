@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { AlienSwarmGame } from "../alienSwarm/AlienSwarmGame";
-
 export const alienSwarmDefinition: GameDefinition = {
   id: "alien-swarm",
   slug: "alien-swarm",
@@ -15,6 +13,8 @@ export const alienSwarmDefinition: GameDefinition = {
     "Intercept dynamic swooping alien attack waves with rapid-fire lasers and reflex evasion.",
   difficulty: "medium",
   players: "single",
+  category: "arcade",
+  subcategory: "classics",
   estimatedPlayTime: "5-10 min",
   thumbnail: {
     src: "/assets/thumbnails/alien-swarm.png",
@@ -44,5 +44,8 @@ export const alienSwarmDefinition: GameDefinition = {
       { name: "Dive Trajectory", description: "x(t) = x_0 + A \\sin(k t), y(t) = y_0 + v_y t." },
     ],
   },
-  createGame: () => new AlienSwarmGame(),
+  createGame: async () => {
+    const { AlienSwarmGame } = await import("../alienSwarm/AlienSwarmGame");
+    return new AlienSwarmGame();
+  },
 };

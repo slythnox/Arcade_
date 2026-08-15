@@ -1,6 +1,4 @@
 import { GameDefinition } from "../types";
-import { TetrisGame } from "../tetris/TetrisGame";
-
 export const tetrisDefinition: GameDefinition = {
   id: "tetris",
   slug: "tetris",
@@ -15,6 +13,8 @@ export const tetrisDefinition: GameDefinition = {
     "Arrange falling geometric tetrominoes to clear horizontal lines in a 10x20 discrete matrix. Features the authentic Super Rotation System (SRS) with wall kicks, ghost piece projection, and combo scoring.",
   difficulty: "medium",
   players: "single",
+  category: "arcade",
+  subcategory: "classics",
   estimatedPlayTime: "5–15 min",
   thumbnail: {
     src: "/games/tetris/thumb.png",
@@ -63,5 +63,8 @@ export const tetrisDefinition: GameDefinition = {
       },
     ],
   },
-  createGame: () => new TetrisGame(),
+  createGame: async () => {
+    const { TetrisGame } = await import("../tetris/TetrisGame");
+    return new TetrisGame();
+  },
 };

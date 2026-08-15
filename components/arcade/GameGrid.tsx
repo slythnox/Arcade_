@@ -9,12 +9,15 @@ export interface GameGridProps {
   games: readonly GameDefinition[];
   title?: string;
   emptyMessage?: string;
+  /** Route prefix passed to each GameCard. Defaults to '/games'. */
+  cardBasePath?: string;
 }
 
 export const GameGrid: React.FC<GameGridProps> = ({
   games,
   title,
   emptyMessage = "NO CARTRIDGES FOUND MATCHING CRITERIA.",
+  cardBasePath = "/games",
 }) => {
   return (
     <section style={{ marginBottom: "var(--space-16)" }}>
@@ -94,7 +97,7 @@ export const GameGrid: React.FC<GameGridProps> = ({
           }}
         >
           {games.map((game) => (
-            <GameCard key={game.id} game={game} />
+            <GameCard key={game.id} game={game} basePath={cardBasePath} />
           ))}
         </div>
       )}
