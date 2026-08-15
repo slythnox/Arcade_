@@ -228,22 +228,48 @@ export class PixelCircuitGame implements GameInstance {
     renderer.scale(scale, scale);
     renderer.translate(-this.playerKart.x, -this.playerKart.y);
     
-    // Draw Asphalt Track with Red/White Curbstones
-    for (let i = 0; i < this.track.length; i++) {
-      const p1 = this.track[i];
-      const p2 = this.track[(i + 1) % this.track.length];
-      renderer.drawLine(p1.x, p1.y, p2.x, p2.y, "#ef4444", 100); // Outer red curb
-      renderer.drawLine(p1.x, p1.y, p2.x, p2.y, "#f8fafc", 92);  // Inner white curb
-      renderer.drawLine(p1.x, p1.y, p2.x, p2.y, "#334155", 80);  // Dark asphalt track
-      renderer.drawLine(p1.x, p1.y, p2.x, p2.y, "#ffd84d", 2);   // Golden center line
+    // Draw Continuous Smooth Asphalt Track with Red/White Curbstones
+    const ctx = (renderer as any).getContext ? (renderer as any).getContext() : null;
+    if (ctx && typeof ctx.beginPath === "function" && this.track.length > 0) {
+      const drawTrackPath = (color: string, width: number) => {
+        ctx.beginPath();
+        ctx.moveTo(this.track[0].x, this.track[0].y);
+        for (let i = 1; i < this.track.length; i++) {
+          ctx.lineTo(this.track[i].x, this.track[i].y);
+        }
+        ctx.closePath();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width;
+        ctx.lineJoin = "round";
+        ctx.lineCap = "round";
+        ctx.stroke();
+      };
+
+      drawTrackPath("#ef4444", 104); // Red outer curb
+      drawTrackPath("#f8fafc", 92);  // White inner curb
+      drawTrackPath("#334155", 76);  // Dark asphalt track
+      drawTrackPath("#ffd84d", 3);   // Golden center line
+    } else {
+      // Fallback
+      for (let i = 0; i < this.track.length; i++) {
+        const p1 = this.track[i];
+        const p2 = this.track[(i + 1) % this.track.length];
+        renderer.drawLine(p1.x, p1.y, p2.x, p2.y, "#334155", 80);
+      }
     }
 
     // Checkered Finish Line at Waypoint 0
     const startWp = this.track[0];
-    for (let f = -40; f <= 40; f += 10) {
-      const isWhite = (f / 10) % 2 === 0;
-      renderer.drawRect(startWp.x + f, startWp.y - 10, 10, 20, isWhite ? "#ffffff" : "#000000", true);
+    const nextWp = this.track[1];
+    const finishAngle = Math.atan2(nextWp.y - startWp.y, nextWp.x - startWp.x) + Math.PI / 2;
+    renderer.save();
+    renderer.translate(startWp.x, startWp.y);
+    renderer.rotate(finishAngle);
+    for (let f = -38; f <= 38; f += 10) {
+      const isWhite = (Math.floor((f + 40) / 10)) % 2 === 0;
+      renderer.drawRect(f, -8, 10, 16, isWhite ? "#ffffff" : "#000000", true);
     }
+    renderer.restore();
     
     // Draw Karts (Mario Kart style top-down pixel karts)
     for (const kart of this.karts) {
