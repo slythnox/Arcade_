@@ -97,7 +97,7 @@ export class GameEngine {
     };
 
     this.game.init(context);
-    this.session.setStatus("ready");
+    this.session.setStatus("running");
 
     // Listen to inputs
     if (this.unsubscribeInput) {
@@ -119,10 +119,11 @@ export class GameEngine {
   }
 
   public start(): void {
-    if (!this.game) {
-      throw new Error("Cannot start GameEngine without a loaded game");
+    if (this.game) {
+      this.session.setStatus("running");
+    } else {
+      this.session.setStatus("ready");
     }
-    this.session.setStatus("running");
     this.loop.start();
   }
 

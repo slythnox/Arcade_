@@ -106,6 +106,7 @@ export const GameShell: React.FC<GameShellProps> = ({ gameSlug, mode = "arcade" 
   // Instant Auto-Start on Mount
   useEffect(() => {
     if (!game || !canvasRef.current) return;
+    let cancelled = false;
 
     if (engineRef.current) {
       engineRef.current.destroy();
@@ -119,14 +120,9 @@ export const GameShell: React.FC<GameShellProps> = ({ gameSlug, mode = "arcade" 
     });
     engineRef.current = engine;
 
-    createGameInstance(game.id).then((gameInstance) => {
-      if (gameInstance) {
-        engine.loadGame(gameInstance);
-      }
-    });
-
     const session = engine.getSession();
     session.subscribe((s) => {
+      if (cancelled) return;
       setStatus(s.status);
       setScore(s.score);
       setLevel(s.level);
@@ -142,10 +138,17 @@ export const GameShell: React.FC<GameShellProps> = ({ gameSlug, mode = "arcade" 
       }
     });
 
-    engine.start();
-    track("game_start", { gameId: game.id });
+    createGameInstance(game.id).then((gameInstance) => {
+      if (cancelled || !engineRef.current) return;
+      if (gameInstance) {
+        engine.loadGame(gameInstance);
+        engine.start();
+        track("game_start", { gameId: game.id });
+      }
+    });
 
     return () => {
+      cancelled = true;
       if (engineRef.current) {
         engineRef.current.destroy();
         engineRef.current = null;
