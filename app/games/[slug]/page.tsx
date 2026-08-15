@@ -41,15 +41,14 @@ export default async function GameDetailPage({ params }: Props) {
     <div
       style={{
         width: "100%",
-        height: "calc(100vh - var(--header-height))",
-        maxHeight: "calc(100vh - var(--header-height))",
-        overflow: "hidden",
+        minHeight: "calc(100vh - var(--header-height, 64px))",
         display: "flex",
         flexDirection: "column",
-        justifyContent: "center",
+        justifyContent: "flex-start",
         alignItems: "center",
         boxSizing: "border-box",
-        paddingTop: "6px",
+        paddingTop: "12px",
+        paddingBottom: "12px",
       }}
     >
       <script

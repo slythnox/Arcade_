@@ -235,8 +235,8 @@ export const GameShell: React.FC<GameShellProps> = ({ gameSlug, mode = "arcade" 
       style={{
         width: "100%",
         maxWidth: isFullscreen ? "100vw" : "1280px",
-        height: isFullscreen ? "100vh" : "calc(100vh - 72px)",
-        maxHeight: isFullscreen ? "100vh" : "calc(100vh - 72px)",
+        height: isFullscreen ? "100vh" : "calc(100vh - var(--header-height, 64px) - 24px)",
+        maxHeight: isFullscreen ? "100vh" : "calc(100vh - var(--header-height, 64px) - 24px)",
         display: "flex",
         flexDirection: isFullscreen ? "column" : "row",
         justifyContent: isFullscreen ? "space-between" : "center",

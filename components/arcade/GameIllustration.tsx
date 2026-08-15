@@ -155,6 +155,8 @@ export const GAME_THEMES: Record<string, GameTheme> = {
   springMass: { primary: "#4da3ff", secondary: "#ffd84d", accent: "#ff5c8a", glow: "rgba(77, 163, 255, 0.4)" },
   "logic-gates": { primary: "#ffd84d", secondary: "#4de8e8", accent: "#ff5c8a", glow: "rgba(255, 216, 77, 0.4)" },
   logicGates: { primary: "#ffd84d", secondary: "#4de8e8", accent: "#ff5c8a", glow: "rgba(255, 216, 77, 0.4)" },
+  "diamond-run": { primary: "#4de8e8", secondary: "#ffd84d", accent: "#a879ff", glow: "rgba(77, 232, 232, 0.4)" },
+  diamondRun: { primary: "#4de8e8", secondary: "#ffd84d", accent: "#a879ff", glow: "rgba(77, 232, 232, 0.4)" },
   "cave-generator": { primary: "#4de8e8", secondary: "#1e3060", accent: "#ffd84d", glow: "rgba(77, 232, 232, 0.4)" },
   caveGenerator: { primary: "#4de8e8", secondary: "#1e3060", accent: "#ffd84d", glow: "rgba(77, 232, 232, 0.4)" },
   "voronoi-garden": { primary: "#a879ff", secondary: "#63e66d", accent: "#ffd84d", glow: "rgba(168, 121, 255, 0.4)" },
@@ -1331,6 +1333,18 @@ export const GameIllustration: React.FC<GameIllustrationProps> = ({ game, size =
             <polygon points="15,4 7,16 15,14 23,16" fill="#63e66d" />
             <line x1="15" y1="4" x2="15" y2="26" stroke="#ffd84d" strokeWidth="2" />
             <line x1="10" y1="20" x2="20" y2="20" stroke="#4da3ff" strokeWidth="2" />
+          </>
+        );
+
+      case "diamond-run":
+      case "diamondRun":
+        return (
+          <>
+            <rect x="4" y="4" width="22" height="22" fill="#0d1b1e" stroke="#c8a46a" strokeWidth="1.5" />
+            <polygon points="15,6 23,15 15,24 7,15" fill="#4de8e8" stroke="#ffffff" strokeWidth="1" />
+            <polygon points="15,9 20,15 15,21 10,15" fill="#e0f2fe" />
+            <circle cx="9" cy="8" r="1" fill="#ffd84d" />
+            <circle cx="21" cy="22" r="1.5" fill="#a879ff" />
           </>
         );
 

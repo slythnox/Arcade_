@@ -535,27 +535,37 @@ export class DiamondRunGame implements GameInstance {
         } else if (tile === TileType.ICE) {
           pr.drawPixelBlock(tx, ty, TILE_SIZE, "#48CAE4", "#E0F2FE", "#0077B6");
         } else if (tile === TileType.LAVA) {
-          pr.drawPixelBlock(tx, ty, TILE_SIZE, "#D90429", "#FF8800", "#780000");
+          const glow = Math.floor(Date.now() / 150) % 2 === 0 ? "#FF8800" : "#D90429";
+          pr.drawPixelBlock(tx, ty, TILE_SIZE, "#D90429", glow, "#780000");
         } else if (tile === TileType.WATER) {
           pr.drawRect(tx, ty, TILE_SIZE, TILE_SIZE, "rgba(0, 240, 255, 0.4)", true);
+          pr.drawRect(tx, ty + (Math.floor(Date.now() / 200 + c) % 4), TILE_SIZE, 2, "rgba(255,255,255,0.6)", true);
         } else if (tile === TileType.MUD) {
           pr.drawRect(tx, ty, TILE_SIZE, TILE_SIZE, "#3A1c0c", true);
         } else if (tile === TileType.SPIKE) {
           pr.drawPixelBlock(tx, ty + 8, TILE_SIZE, "#94A3B8", "#FFFFFF", "#334155");
         } else if (tile === TileType.DIAMOND) {
-          pr.drawCircle(tx + 8, ty + 8, 5, "#4DE8E8", true);
+          const pulse = 4.5 + Math.sin((Date.now() + c * 100) / 180) * 1.2;
+          pr.drawCircle(tx + 8, ty + 8, Math.round(pulse + 2), "rgba(77, 232, 232, 0.3)", true);
+          pr.drawCircle(tx + 8, ty + 8, Math.round(pulse), "#4DE8E8", true);
           pr.drawCircle(tx + 8, ty + 8, 2, "#FFFFFF", true);
         } else if (tile === TileType.GEM_RARE) {
-          pr.drawCircle(tx + 8, ty + 8, 6, "#FFD84D", true);
+          const pulse = 5.5 + Math.sin((Date.now() + c * 120) / 150) * 1.5;
+          pr.drawCircle(tx + 8, ty + 8, Math.round(pulse), "#FFD84D", true);
+          pr.drawCircle(tx + 8, ty + 8, 2, "#FFFFFF", true);
         } else if (tile === TileType.GEM_SECRET) {
-          pr.drawCircle(tx + 8, ty + 8, 7, "#A879FF", true);
+          const pulse = 6.5 + Math.sin((Date.now() + c * 150) / 120) * 1.8;
+          pr.drawCircle(tx + 8, ty + 8, Math.round(pulse), "#A879FF", true);
+          pr.drawCircle(tx + 8, ty + 8, 3, "#FFFFFF", true);
         } else if (tile === TileType.KEY_BRONZE) {
           pr.drawRect(tx + 4, ty + 4, 8, 8, "#FFD84D", true);
         } else if (tile === TileType.KEY_BRONZE_GATE) {
           pr.drawPixelBlock(tx, ty, TILE_SIZE, "#B45309", "#FFD84D", "#78350F");
         } else if (tile === TileType.EXIT) {
-          pr.drawRect(tx + 2, ty + 2, 12, 14, "#00FF66", false);
-          pr.drawRect(tx + 4, ty + 4, 8, 10, "#00FF66", true);
+          const pulseColor = Math.floor(Date.now() / 250) % 2 === 0 ? "#00FF66" : "#4DE8E8";
+          pr.drawRect(tx, ty, TILE_SIZE, TILE_SIZE, "rgba(0,255,102,0.15)", true);
+          pr.drawRect(tx + 2, ty + 2, 12, 14, pulseColor, false);
+          pr.drawRect(tx + 4, ty + 4, 8, 10, pulseColor, true);
         } else if (tile === TileType.PUSHABLE) {
           pr.drawPixelBlock(tx, ty, TILE_SIZE, "#A16207", "#CA8A04", "#713F12");
         } else if (tile === TileType.PRESSURE_PLATE) {
@@ -566,13 +576,22 @@ export class DiamondRunGame implements GameInstance {
       }
     }
 
-    // Draw Player Sprite
+    // Draw Detailed Explorer Sprite
     const px = Math.floor(this.player.x + offsetX);
     const py = Math.floor(this.player.y + offsetY);
 
     if (this.player.invulnerabilityTimer <= 0 || Math.floor(Date.now() / 100) % 2 === 0) {
+      // Body & Explorer Shirt
       pr.drawPixelBlock(px, py, PLAYER_WIDTH, "#FFD84D", "#FFFFFF", "#B45309");
-      // Directional eye
+      // Explorer Fedora Hat
+      pr.drawRect(px - 1, py - 3, PLAYER_WIDTH + 2, 3, "#8B5E34", true);
+      pr.drawRect(px + 2, py - 6, PLAYER_WIDTH - 4, 3, "#A67C52", true);
+
+      // Backpack
+      const packX = px + (this.player.facing === "right" ? -3 : PLAYER_WIDTH);
+      pr.drawRect(packX, py + 4, 3, 7, "#5C3D2E", true);
+
+      // Directional eyes
       const eyeX = px + (this.player.facing === "right" ? 8 : 2);
       pr.drawRect(eyeX, py + 3, 2, 3, "#000000", true);
     }
