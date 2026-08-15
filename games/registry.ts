@@ -103,6 +103,15 @@ import { caveGeneratorDefinition } from "./definitions/caveGenerator";
 import { voronoiGardenDefinition } from "./definitions/voronoiGarden";
 import { dungeonGeneratorDefinition } from "./definitions/dungeonGenerator";
 
+// Nostalgia Classics — New Additions
+import { mazeChaserDefinition } from "./definitions/mazeChaserDefinition";
+import { roadHopperDefinition } from "./definitions/roadHopperDefinition";
+import { starFormationDefinition } from "./definitions/starFormationDefinition";
+import { bombGridDefinition } from "./definitions/bombGridDefinition";
+import { pegBlastDefinition } from "./definitions/pegBlastDefinition";
+import { caveHunterDefinition } from "./definitions/caveHunterDefinition";
+import { donkeyClimbDefinition } from "./definitions/donkeyClimbDefinition";
+
 /**
  * Single source of truth for all 60 game cartridges in ARCADE_.
  */
@@ -118,6 +127,15 @@ export const gameRegistry: readonly GameDefinition[] = [
   alienSwarmDefinition,
   brickStackDefinition,
   laserGridDefinition,
+
+  // Nostalgia Classics — Phase 3A Additions
+  mazeChaserDefinition,
+  roadHopperDefinition,
+  starFormationDefinition,
+  bombGridDefinition,
+  pegBlastDefinition,
+  caveHunterDefinition,
+  donkeyClimbDefinition,
 
   // Tier 2 — Puzzle Games (11-22)
   twentyFortyEightDefinition,
