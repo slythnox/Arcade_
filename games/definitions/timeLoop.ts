@@ -1,4 +1,4 @@
-import { GameDefinition } from "../types";
+import type { GameDefinition } from "../types";
 export const timeLoopDefinition: GameDefinition = {
   id: "timeLoop",
   slug: "time-loop",

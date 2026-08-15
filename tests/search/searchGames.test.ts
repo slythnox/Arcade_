@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { searchGames } from "../../lib/search/searchGames";
-import { GameDefinition } from "../../games/types";
+import type { GameDefinition } from "../../games/types";
 
 describe("searchGames", () => {
   const games: GameDefinition[] = [

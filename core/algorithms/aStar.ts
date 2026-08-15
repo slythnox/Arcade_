@@ -1,4 +1,4 @@
-import { GridCoord } from "../types/geometry";
+import type { GridCoord } from "../types/geometry";
 
 interface AStarNode {
   coord: GridCoord;

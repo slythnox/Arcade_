@@ -1,5 +1,5 @@
-import { GameDefinition, GameInstance } from "./types";
-import { GamePlatform, GameGenre } from "../core/types/game";
+import type { GameDefinition, GameInstance } from "./types";
+import type { GamePlatform, GameGenre } from "../core/types/game";
 
 // Tier 1 — Core Classics (10)
 import { tetrisDefinition } from "./definitions/tetris";

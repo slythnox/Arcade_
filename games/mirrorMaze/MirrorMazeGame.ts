@@ -1,7 +1,7 @@
-import { GameInstance } from "../types";
-import { GameContext } from "../../engine/GameContext";
-import { Renderer } from "../../engine/rendering/Renderer";
-import { GameAction } from "../../core/types/game";
+import type { GameInstance } from "../types";
+import type { GameContext } from "../../engine/GameContext";
+import type { Renderer } from "../../engine/rendering/Renderer";
+import type { GameAction } from "../../core/types/game";
 
 const W = 12;
 const H = 10;
@@ -199,7 +199,7 @@ export class MirrorMazeGame implements GameInstance {
       if (x < 0 || x >= W || y < 0 || y >= H) break;
       
       this.beamPath.push({x, y});
-      let cell = this.grid[y][x];
+      const cell = this.grid[y][x];
       
       if (cell === WALL) break;
       if (cell === TARGET) {
@@ -207,10 +207,10 @@ export class MirrorMazeGame implements GameInstance {
         break;
       }
       if (cell === SLASH) { // /
-        let ndx = -dy, ndy = -dx;
+        const ndx = -dy, ndy = -dx;
         dx = ndx; dy = ndy;
       } else if (cell === BACKSLASH) { // \
-        let ndx = dy, ndy = dx;
+        const ndx = dy, ndy = dx;
         dx = ndx; dy = ndy;
       }
     }
@@ -257,7 +257,7 @@ export class MirrorMazeGame implements GameInstance {
   }
 
   private placeMirror(type: number) {
-    let curr = this.grid[this.cursor.y][this.cursor.x];
+    const curr = this.grid[this.cursor.y][this.cursor.x];
     if (curr === SOURCE || curr === TARGET || curr === WALL) return;
     
     if (curr === type) {
@@ -287,10 +287,10 @@ export class MirrorMazeGame implements GameInstance {
     // Draw grid & elements
     for (let y = 0; y < H; y++) {
       for (let x = 0; x < W; x++) {
-        let px = x * cellW, py = y * cellH;
+        const px = x * cellW, py = y * cellH;
         renderer.drawRect(px, py, cellW, cellH, "#16213e", false);
         
-        let cell = this.grid[y][x];
+        const cell = this.grid[y][x];
         if (cell === WALL) {
           renderer.drawRect(px, py, cellW, cellH, "#0f3460", true);
         } else if (cell === SOURCE) {
@@ -308,8 +308,8 @@ export class MirrorMazeGame implements GameInstance {
     // Draw Beam
     if (this.beamPath.length > 0) {
       for (let i = 0; i < this.beamPath.length - 1; i++) {
-        let p1 = this.beamPath[i];
-        let p2 = this.beamPath[i+1];
+        const p1 = this.beamPath[i];
+        const p2 = this.beamPath[i+1];
         renderer.drawLine(
           p1.x * cellW + cellW/2, p1.y * cellH + cellH/2,
           p2.x * cellW + cellW/2, p2.y * cellH + cellH/2,

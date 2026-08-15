@@ -1,4 +1,4 @@
-import { GameDefinition } from '../types';
+import type { GameDefinition } from '../types';
 export const lineRiderLabDefinition: GameDefinition = {
   id: 'lineRiderLab', slug: 'line-rider-lab', name: 'Line Rider Lab',
   platform: 'arcade', genre: 'simulation', era: '2000s', year: 2006,

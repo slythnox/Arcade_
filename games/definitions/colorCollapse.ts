@@ -1,4 +1,4 @@
-import { GameDefinition } from "../types";
+import type { GameDefinition } from "../types";
 export const colorCollapseDefinition: GameDefinition = {
   id: "color-collapse",
   slug: "color-collapse",

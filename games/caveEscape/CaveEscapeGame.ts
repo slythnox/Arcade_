@@ -1,8 +1,8 @@
-import { GameInstance } from "../types";
-import { GameContext } from "../../engine/GameContext";
-import { Renderer } from "../../engine/rendering/Renderer";
-import { PixelRenderer } from "../../engine/rendering/PixelRenderer";
-import { GameAction } from "../../core/types/game";
+import type { GameInstance } from "../types";
+import type { GameContext } from "../../engine/GameContext";
+import type { Renderer } from "../../engine/rendering/Renderer";
+import type { PixelRenderer } from "../../engine/rendering/PixelRenderer";
+import type { GameAction } from "../../core/types/game";
 import { Vector2 } from "../../core/math/vector";
 
 interface CaveSegment {
@@ -39,8 +39,8 @@ export class CaveEscapeGame implements GameInstance {
     this.isPaused = false;
     this.caveSegments = [];
 
-    let curTop = 120;
-    let curBottom = 580;
+    const curTop = 120;
+    const curBottom = 580;
     for (let x = 0; x < 660; x += this.segmentWidth) {
       this.caveSegments.push({
         x,

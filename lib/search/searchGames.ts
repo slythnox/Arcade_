@@ -1,5 +1,5 @@
-import { GameDefinition } from "../../games/types";
-import { SearchResult, SearchScoreBreakdown } from "../../core/types/search";
+import type { GameDefinition } from "../../games/types";
+import type { SearchResult, SearchScoreBreakdown } from "../../core/types/search";
 import { calculateWeightedSearchScore } from "../../core/algorithms/weightedSearch";
 import { calculateFieldScore } from "./similarity";
 import { tokenize } from "./tokenize";

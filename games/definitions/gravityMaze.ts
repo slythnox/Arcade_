@@ -1,4 +1,4 @@
-import { GameDefinition } from "../types";
+import type { GameDefinition } from "../types";
 export const gravityMazeDefinition: GameDefinition = {
   id: "gravity-maze",
   slug: "gravity-maze",

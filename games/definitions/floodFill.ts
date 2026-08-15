@@ -1,4 +1,4 @@
-import { GameDefinition } from "../types";
+import type { GameDefinition } from "../types";
 export const floodFillDefinition: GameDefinition = {
   id: "flood-fill",
   slug: "flood-fill",

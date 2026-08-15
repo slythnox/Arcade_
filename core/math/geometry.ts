@@ -1,4 +1,4 @@
-import { Rectangle, Circle, Point2D, BoundingBox } from "../types/geometry";
+import type { Rectangle, Circle, Point2D} from "../types/geometry";
 import { Vector2 } from "./vector";
 import { clamp } from "../utils";
 

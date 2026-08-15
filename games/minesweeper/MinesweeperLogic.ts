@@ -1,5 +1,5 @@
-import { MinesweeperBoard } from "./MinesweeperBoard";
-import { GridCoord } from "../../core/types/geometry";
+import type { MinesweeperBoard } from "./MinesweeperBoard";
+import type { GridCoord } from "../../core/types/geometry";
 import { iterativeFloodFill } from "../../core/algorithms/floodFill";
 
 export interface RevealResult {

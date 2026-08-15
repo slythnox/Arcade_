@@ -1,5 +1,5 @@
-import { GridCoord } from "../../core/types/geometry";
-import { RandomSource } from "../../core/math/random";
+import type { GridCoord } from "../../core/types/geometry";
+import type { RandomSource } from "../../core/math/random";
 
 export interface MineCell {
   col: number;

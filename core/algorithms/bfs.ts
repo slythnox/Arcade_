@@ -1,4 +1,4 @@
-import { GridCoord } from "../types/geometry";
+import type { GridCoord } from "../types/geometry";
 
 /**
  * 4-directional Breadth-First Search on a 2D grid.

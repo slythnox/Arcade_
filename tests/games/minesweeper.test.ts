@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { MinesweeperGame } from "../../games/minesweeper/MinesweeperGame";
 import { createMockContext } from "../helpers/mockContext";
-import { GameContext } from "../../engine/GameContext";
+import type { GameContext } from "../../engine/GameContext";
 
 describe("MinesweeperGame", () => {
   let game: MinesweeperGame;

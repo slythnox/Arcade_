@@ -1,4 +1,4 @@
-import { GameDefinition } from "../types";
+import type { GameDefinition } from "../types";
 export const laserGridDefinition: GameDefinition = {
   id: "laser-grid",
   slug: "laser-grid",

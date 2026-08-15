@@ -1,6 +1,6 @@
-import { GameContext } from "../../engine/GameContext";
+import type { GameContext } from "../../engine/GameContext";
 import { RandomSource } from "../../core/math/random";
-import { Renderer } from "../../engine/rendering/Renderer";
+import type { Renderer } from "../../engine/rendering/Renderer";
 import { vi } from "vitest";
 
 if (typeof globalThis.ImageData === "undefined") {

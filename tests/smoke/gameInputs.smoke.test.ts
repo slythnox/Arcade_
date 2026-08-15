@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { arcadeRegistry } from "@/games/registry";
 import { createMockContext, createMockRenderer } from "../helpers/mockContext";
-import { GameAction } from "@/core/types/game";
+import type { GameAction } from "@/core/types/game";
 
 // ALL valid GameAction values
 const ALL_ACTIONS: GameAction[] = [

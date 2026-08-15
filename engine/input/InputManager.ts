@@ -1,4 +1,4 @@
-import { GameAction } from "../../core/types/game";
+import type { GameAction } from "../../core/types/game";
 
 export type InputActionListener = (action: GameAction, isPressed: boolean) => void;
 

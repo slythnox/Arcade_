@@ -1,8 +1,8 @@
-import { GameInstance } from "../types";
-import { GameContext } from "../../engine/GameContext";
-import { Renderer } from "../../engine/rendering/Renderer";
-import { PixelRenderer } from "../../engine/rendering/PixelRenderer";
-import { GameAction } from "../../core/types/game";
+import type { GameInstance } from "../types";
+import type { GameContext } from "../../engine/GameContext";
+import type { Renderer } from "../../engine/rendering/Renderer";
+import type { PixelRenderer } from "../../engine/rendering/PixelRenderer";
+import type { GameAction } from "../../core/types/game";
 
 // Tile states: 0 = Uncollapsed Superposition, 1 = Water, 2 = Sand/Land, 3 = Forest, 4 = Mountain
 const UNCOLLAPSED = 0;

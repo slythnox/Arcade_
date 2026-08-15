@@ -1,4 +1,4 @@
-import { GameDefinition } from "../types";
+import type { GameDefinition } from "../types";
 export const twentyFortyEightHexDefinition: GameDefinition = {
   id: "2048-hex",
   slug: "2048-hex",

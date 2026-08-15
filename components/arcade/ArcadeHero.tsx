@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React from "react";
 import { Search } from "lucide-react";
 
 export interface ArcadeHeroProps {

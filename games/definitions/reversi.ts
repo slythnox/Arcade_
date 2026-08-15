@@ -1,4 +1,4 @@
-import { GameDefinition } from "../types";
+import type { GameDefinition } from "../types";
 export const reversiDefinition: GameDefinition = {
   id: "reversi",
   slug: "reversi",

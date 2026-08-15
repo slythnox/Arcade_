@@ -1,4 +1,4 @@
-import { GameDefinition } from "../types";
+import type { GameDefinition } from "../types";
 export const pipeConnectDefinition: GameDefinition = {
   id: "pipe-connect",
   slug: "pipe-connect",

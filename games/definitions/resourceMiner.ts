@@ -1,4 +1,4 @@
-import { GameDefinition } from "../types";
+import type { GameDefinition } from "../types";
 export const resourceMinerDefinition: GameDefinition = {
   id: "resource-miner",
   slug: "resource-miner",

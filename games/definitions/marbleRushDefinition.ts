@@ -1,4 +1,4 @@
-import { GameDefinition } from '../types';
+import type { GameDefinition } from '../types';
 export const marbleRushDefinition: GameDefinition = {
   id: 'marbleRush', slug: 'marble-rush', name: 'Marble Rush',
   platform: 'arcade', genre: 'puzzle', era: '2000s', year: 2003,

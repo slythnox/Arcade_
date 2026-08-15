@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 type Phase = 'hidden' | 'glitch' | 'nature' | 'cabinet' | 'world' | 'boot' | 'logo' | 'zoom' | 'done';
 
@@ -111,16 +111,16 @@ LAUNCH SEQUENCE: READY`;
     const isMobile = window.innerWidth <= 768;
     const timeScale = isMobile ? 0.44 : 1.0;
 
-    let startTime = performance.now();
-    let currentPhase: Phase = 'hidden';
+    const startTime = performance.now();
+    const currentPhase: Phase = 'hidden';
 
     // Canvas State
     const chunks: any[] = [];
     const vines: any[] = [];
     const voxels: any[] = [];
     const fireflies: any[] = [];
-    let canvasW = window.innerWidth;
-    let canvasH = window.innerHeight;
+    const canvasW = window.innerWidth;
+    const canvasH = window.innerHeight;
 
     const initCanvasState = () => {
       // Chunks

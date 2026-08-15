@@ -1,4 +1,4 @@
-import { GameDefinition } from "../types";
+import type { GameDefinition } from "../types";
 export const dashRunnerDefinition: GameDefinition = {
   id: "dash-runner",
   slug: "dash-runner",

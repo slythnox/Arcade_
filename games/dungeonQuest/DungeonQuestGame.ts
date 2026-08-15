@@ -1,7 +1,7 @@
-import { GameInstance } from "../types";
-import { GameContext } from "../../engine/GameContext";
-import { Renderer } from "../../engine/rendering/Renderer";
-import { GameAction } from "../../core/types/game";
+import type { GameInstance } from "../types";
+import type { GameContext } from "../../engine/GameContext";
+import type { Renderer } from "../../engine/rendering/Renderer";
+import type { GameAction } from "../../core/types/game";
 
 const TILE_SIZE = 40;
 
@@ -55,7 +55,7 @@ export class DungeonQuestGame implements GameInstance {
   private loadRoom(): void {
     this.roomMap = [];
     for (let y = 0; y < 10; y++) {
-      let row: string[] = [];
+      const row: string[] = [];
       for (let x = 0; x < 10; x++) {
         if (x === 0 || x === 9 || y === 0 || y === 9) {
           if (x === 4 && y === 0) row.push("D"); // Door

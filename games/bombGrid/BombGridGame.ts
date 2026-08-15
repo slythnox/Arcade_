@@ -1,7 +1,7 @@
-import { GameInstance } from "../types";
-import { GameContext } from "../../engine/GameContext";
-import { Renderer } from "../../engine/rendering/Renderer";
-import { GameAction } from "../../core/types/game";
+import type { GameInstance } from "../types";
+import type { GameContext } from "../../engine/GameContext";
+import type { Renderer } from "../../engine/rendering/Renderer";
+import type { GameAction } from "../../core/types/game";
 
 export class BombGridGame implements GameInstance {
   private ctx!: GameContext;
@@ -111,9 +111,9 @@ export class BombGridGame implements GameInstance {
         e.timer = 0;
         
         const dirs = [[0,-1], [1,0], [0,1], [-1,0]];
-        let d = dirs[e.dir];
-        let nx = e.x + d[0];
-        let ny = e.y + d[1];
+        const d = dirs[e.dir];
+        const nx = e.x + d[0];
+        const ny = e.y + d[1];
         
         if (this.grid[ny][nx] !== 0 || this.hasBomb(nx, ny)) {
           e.dir = Math.floor(Math.random() * 4);

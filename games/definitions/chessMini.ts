@@ -1,4 +1,4 @@
-import { GameDefinition } from "../types";
+import type { GameDefinition } from "../types";
 export const chessMiniDefinition: GameDefinition = {
   id: "chess-mini",
   slug: "chess-mini",

@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { GameDefinition } from "@/games/types";
+import type { GameDefinition } from "@/games/types";
 import { GameIllustration, getGameTheme } from "./GameIllustration";
 
 export interface GameCardProps {

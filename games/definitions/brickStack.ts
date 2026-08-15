@@ -1,4 +1,4 @@
-import { GameDefinition } from "../types";
+import type { GameDefinition } from "../types";
 export const brickStackDefinition: GameDefinition = {
   id: "brick-stack",
   slug: "brick-stack",

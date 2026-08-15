@@ -1,4 +1,4 @@
-import { GameDefinition } from "../types";
+import type { GameDefinition } from "../types";
 export const cellColonyDefinition: GameDefinition = {
   id: "cell-colony",
   slug: "cell-colony",

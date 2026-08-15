@@ -1,4 +1,4 @@
-import { GameDefinition } from "../types";
+import type { GameDefinition } from "../types";
 export const missileCommandDefinition: GameDefinition = {
   id: "missile-command",
   slug: "missile-command",

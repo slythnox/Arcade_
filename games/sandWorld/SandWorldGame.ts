@@ -1,7 +1,7 @@
-import { GameInstance } from "../types";
-import { GameContext } from "../../engine/GameContext";
-import { Renderer } from "../../engine/rendering/Renderer";
-import { GameAction } from "../../core/types/game";
+import type { GameInstance } from "../types";
+import type { GameContext } from "../../engine/GameContext";
+import type { Renderer } from "../../engine/rendering/Renderer";
+import type { GameAction } from "../../core/types/game";
 
 const WIDTH = 80;
 const HEIGHT = 60;
@@ -57,11 +57,11 @@ export class SandWorldGame implements GameInstance {
     for (let y = HEIGHT - 2; y >= 0; y--) {
       // Process left to right (or random order ideally, but this works)
       for (let x = 0; x < WIDTH; x++) {
-        let idx = this.getIdx(x, y);
-        let val = this.grid[idx];
+        const idx = this.getIdx(x, y);
+        const val = this.grid[idx];
         if (val === EMPTY || val === STONE) continue;
 
-        let belowIdx = this.getIdx(x, y + 1);
+        const belowIdx = this.getIdx(x, y + 1);
         
         if (val === SAND) {
           if (this.nextGrid[belowIdx] === EMPTY || this.nextGrid[belowIdx] === WATER) {
@@ -73,8 +73,8 @@ export class SandWorldGame implements GameInstance {
             }
             this.nextGrid[belowIdx] = SAND;
           } else {
-            let leftEmpty = x > 0 && this.nextGrid[belowIdx - 1] === EMPTY;
-            let rightEmpty = x < WIDTH - 1 && this.nextGrid[belowIdx + 1] === EMPTY;
+            const leftEmpty = x > 0 && this.nextGrid[belowIdx - 1] === EMPTY;
+            const rightEmpty = x < WIDTH - 1 && this.nextGrid[belowIdx + 1] === EMPTY;
             
             if (leftEmpty && rightEmpty) {
               if (Math.random() < 0.5) {
@@ -97,8 +97,8 @@ export class SandWorldGame implements GameInstance {
             this.nextGrid[idx] = EMPTY;
             this.nextGrid[belowIdx] = WATER;
           } else {
-            let leftEmpty = x > 0 && this.nextGrid[idx - 1] === EMPTY;
-            let rightEmpty = x < WIDTH - 1 && this.nextGrid[idx + 1] === EMPTY;
+            const leftEmpty = x > 0 && this.nextGrid[idx - 1] === EMPTY;
+            const rightEmpty = x < WIDTH - 1 && this.nextGrid[idx + 1] === EMPTY;
             
             if (leftEmpty && rightEmpty) {
               if (Math.random() < 0.5) {
@@ -138,7 +138,7 @@ export class SandWorldGame implements GameInstance {
         if (this.cursorX < WIDTH - 1) this.cursorX++;
         break;
       case "ACTION_PRIMARY":
-        let idx = this.getIdx(this.cursorX, this.cursorY);
+        const idx = this.getIdx(this.cursorX, this.cursorY);
         if (this.grid[idx] === EMPTY && this.currentMaterial !== EMPTY) {
           this.score++;
         }
@@ -157,9 +157,9 @@ export class SandWorldGame implements GameInstance {
 
     for (let y = 0; y < HEIGHT; y++) {
       for (let x = 0; x < WIDTH; x++) {
-        let val = this.grid[this.getIdx(x, y)];
+        const val = this.grid[this.getIdx(x, y)];
         if (val !== EMPTY) {
-          let color = val === SAND ? "#C8A46A" : val === WATER ? "#4DA8DA" : "#8A8A8A";
+          const color = val === SAND ? "#C8A46A" : val === WATER ? "#4DA8DA" : "#8A8A8A";
           renderer.drawRect(x * cellW, y * cellH, cellW, cellH, color, true);
         }
       }

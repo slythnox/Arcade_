@@ -1,4 +1,4 @@
-import { SearchScoreBreakdown } from "../types/search";
+import type { SearchScoreBreakdown } from "../types/search";
 import { SEARCH_WEIGHTS } from "../constants/search";
 
 /**

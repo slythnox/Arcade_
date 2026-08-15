@@ -1,5 +1,5 @@
-import { Metadata } from "next";
-import { GameDefinition } from "../../games/types";
+import type { Metadata } from "next";
+import type { GameDefinition } from "../../games/types";
 
 const SITE_NAME = "ARCADE_";
 const SITE_URL = "https://arcade.games";

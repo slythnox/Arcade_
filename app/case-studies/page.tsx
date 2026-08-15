@@ -1,10 +1,10 @@
 import React from "react";
 import Link from "next/link";
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import { constructSiteMetadata } from "@/lib/seo/metadata";
 import { getAllCaseStudies } from "@/data/caseStudies";
 import { BreadcrumbTrail } from "@/components/marketing/BreadcrumbTrail";
-import { ArrowRight, Clock, BookOpen } from "lucide-react";
+import { ArrowRight, Clock } from "lucide-react";
 
 export const metadata: Metadata = constructSiteMetadata({
   title: "Engineering Case Studies — Engine & Algorithms",

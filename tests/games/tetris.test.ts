@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { TetrisGame } from "../../games/tetris/TetrisGame";
 import { createMockContext } from "../helpers/mockContext";
-import { GameContext } from "../../engine/GameContext";
+import type { GameContext } from "../../engine/GameContext";
 
 describe("TetrisGame", () => {
   let game: TetrisGame;

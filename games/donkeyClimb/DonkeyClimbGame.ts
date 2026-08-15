@@ -1,8 +1,8 @@
-import { GameInstance } from "../types";
-import { GameContext } from "../../engine/GameContext";
-import { Renderer } from "../../engine/rendering/Renderer";
-import { PixelRenderer } from "../../engine/rendering/PixelRenderer";
-import { GameAction } from "../../core/types/game";
+import type { GameInstance } from "../types";
+import type { GameContext } from "../../engine/GameContext";
+import type { Renderer } from "../../engine/rendering/Renderer";
+import type { PixelRenderer } from "../../engine/rendering/PixelRenderer";
+import type { GameAction } from "../../core/types/game";
 
 interface Barrel {
   x: number;
@@ -88,7 +88,7 @@ export class DonkeyClimbGame implements GameInstance {
     
     const barrelSpeed = 100 + this.level * 10;
     
-    for (let b of this.barrels) {
+    for (const b of this.barrels) {
       if (!b.active) continue;
       
       b.x += b.dir * barrelSpeed * deltaTime;
@@ -219,7 +219,7 @@ export class DonkeyClimbGame implements GameInstance {
     pr.drawPixelBlock(this.playerX, this.playerY - 16, 16, "#FF4500", "#FF6347", "#8B0000");
     
     // Draw Barrels
-    for (let b of this.barrels) {
+    for (const b of this.barrels) {
       pr.drawPixelBlock(b.x, b.y - 12, 12, "#CD853F", "#DEB887", "#8B4513");
     }
     

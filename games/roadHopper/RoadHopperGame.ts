@@ -1,7 +1,7 @@
-import { GameInstance } from "../types";
-import { GameContext } from "../../engine/GameContext";
-import { Renderer } from "../../engine/rendering/Renderer";
-import { GameAction } from "../../core/types/game";
+import type { GameInstance } from "../types";
+import type { GameContext } from "../../engine/GameContext";
+import type { Renderer } from "../../engine/rendering/Renderer";
+import type { GameAction } from "../../core/types/game";
 
 export class RoadHopperGame implements GameInstance {
   private ctx!: GameContext;
@@ -171,7 +171,7 @@ export class RoadHopperGame implements GameInstance {
     
     if (this.player.y === 1 && prevY !== 1) {
       // Check goal
-      let gx = Math.floor(this.player.x);
+      const gx = Math.floor(this.player.x);
       let goalIdx = -1;
       for (let i=0; i<5; i++) {
         if (gx === 1 + i*2 || gx === 2 + i*2) {

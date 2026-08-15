@@ -1,4 +1,4 @@
-import { GameDefinition } from "../../games/types";
+import type { GameDefinition } from "../../games/types";
 
 export function generateWebSiteSchema() {
   return {

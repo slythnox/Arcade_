@@ -1,4 +1,4 @@
-import {
+import type {
   GamePlatform,
   GameGenre,
   GameEra,
@@ -12,8 +12,8 @@ import {
   GameCategory,
   GameSubcategory,
 } from "../core/types/game";
-import { GameContext } from "../engine/GameContext";
-import { Renderer } from "../engine/rendering/Renderer";
+import type { GameContext } from "../engine/GameContext";
+import type { Renderer } from "../engine/rendering/Renderer";
 
 /**
  * Standard Game Contract that every playable arcade cartridge implements.

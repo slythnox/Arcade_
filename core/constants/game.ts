@@ -1,4 +1,4 @@
-import { PlayerSettings } from "../types/player";
+import type { PlayerSettings } from "../types/player";
 
 export const DEFAULT_PLAYER_SETTINGS: PlayerSettings = {
   soundEnabled: true,

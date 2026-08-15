@@ -1,10 +1,11 @@
-import { GameInstance } from "../types";
-import { GameContext } from "../../engine/GameContext";
-import { Renderer } from "../../engine/rendering/Renderer";
-import { PixelRenderer } from "../../engine/rendering/PixelRenderer";
-import { GameAction } from "../../core/types/game";
+import type { GameInstance } from "../types";
+import type { GameContext } from "../../engine/GameContext";
+import type { Renderer } from "../../engine/rendering/Renderer";
+import type { PixelRenderer } from "../../engine/rendering/PixelRenderer";
+import type { GameAction } from "../../core/types/game";
 import { TetrisBoard } from "./TetrisBoard";
-import { TetrisPiece, TetrominoType, TETROMINO_SHAPES } from "./TetrisPiece";
+import type { TetrominoType} from "./TetrisPiece";
+import { TetrisPiece, TETROMINO_SHAPES } from "./TetrisPiece";
 import { tryRotateSRS } from "./TetrisRotation";
 import { calculateLineScore, getGravityForLevel } from "./TetrisScoring";
 

@@ -1,4 +1,4 @@
-import { GameDefinition } from '../types';
+import type { GameDefinition } from '../types';
 export const gardenDefenseDefinition: GameDefinition = {
   id: 'gardenDefense', slug: 'garden-defense', name: 'Garden Defense',
   platform: 'arcade', genre: 'strategy', era: '2000s', year: 2009,

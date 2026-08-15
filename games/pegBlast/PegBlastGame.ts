@@ -1,8 +1,8 @@
-import { GameInstance } from "../types";
-import { GameContext } from "../../engine/GameContext";
-import { Renderer } from "../../engine/rendering/Renderer";
-import { CanvasRenderer } from "../../engine/rendering/CanvasRenderer";
-import { GameAction } from "../../core/types/game";
+import type { GameInstance } from "../types";
+import type { GameContext } from "../../engine/GameContext";
+import type { Renderer } from "../../engine/rendering/Renderer";
+import type { CanvasRenderer } from "../../engine/rendering/CanvasRenderer";
+import type { GameAction } from "../../core/types/game";
 
 class Vector2 {
   constructor(public x: number, public y: number) {}
@@ -75,7 +75,7 @@ export class PegBlastGame implements GameInstance {
     const cols = 10 + this.level;
     const rows = 5 + Math.floor(this.level / 2);
     
-    let orangesToPlace = 10 + this.level;
+    const orangesToPlace = 10 + this.level;
     
     const positions: Vector2[] = [];
     for (let r = 0; r < rows; r++) {

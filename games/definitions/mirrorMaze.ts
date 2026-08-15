@@ -1,4 +1,4 @@
-import { GameDefinition } from "../types";
+import type { GameDefinition } from "../types";
 export const mirrorMazeDefinition: GameDefinition = {
   id: "mirrorMaze",
   slug: "mirror-maze",

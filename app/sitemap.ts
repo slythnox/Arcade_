@@ -1,4 +1,4 @@
-import { MetadataRoute } from "next";
+import type { MetadataRoute } from "next";
 import { gameRegistry, labsRegistry } from "@/games/registry";
 import { getAllCaseStudies } from "@/data/caseStudies";
 

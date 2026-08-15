@@ -1,5 +1,5 @@
-import { TetrominoType, TetrisPiece } from "./TetrisPiece";
-import { TetrisBoard } from "./TetrisBoard";
+import type { TetrisPiece } from "./TetrisPiece";
+import type { TetrisBoard } from "./TetrisBoard";
 
 // Standard SRS Wall Kick Offsets for J, L, S, T, Z pieces
 const JLSTZ_WALL_KICK_DATA: Record<string, [number, number][]> = {

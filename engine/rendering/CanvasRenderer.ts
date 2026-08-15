@@ -1,4 +1,4 @@
-import { Renderer, TextRenderOptions } from "./Renderer";
+import type { Renderer, TextRenderOptions } from "./Renderer";
 
 /**
  * Standard HTML5 Canvas 2D Renderer implementation.

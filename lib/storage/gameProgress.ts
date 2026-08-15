@@ -1,4 +1,4 @@
-import { PlayerStats } from "../../core/types/player";
+import type { PlayerStats } from "../../core/types/player";
 import { getStorageItem, setStorageItem } from "./localStorage";
 
 const DEFAULT_PLAYER_STATS: PlayerStats = {

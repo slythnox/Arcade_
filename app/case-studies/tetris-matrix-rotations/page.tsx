@@ -1,5 +1,5 @@
 import React from "react";
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import { constructSiteMetadata } from "@/lib/seo/metadata";
 import { BreadcrumbTrail } from "@/components/marketing/BreadcrumbTrail";
 import Link from "next/link";

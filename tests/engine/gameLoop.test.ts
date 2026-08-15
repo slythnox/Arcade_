@@ -17,7 +17,7 @@ describe("GameLoop", () => {
     const loop = new GameLoop(() => {}, () => {});
     expect(loop.getIsRunning()).toBe(false);
     
-    let time = 0;
+    const time = 0;
     vi.stubGlobal("performance", { now: () => time });
 
     loop.start();

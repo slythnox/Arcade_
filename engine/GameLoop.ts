@@ -1,4 +1,4 @@
-import { FIXED_DT, MAX_FRAME_DELTA, DEFAULT_FPS_SAMPLE_RATE } from "../core/constants/timing";
+import { FIXED_DT, MAX_FRAME_DELTA } from "../core/constants/timing";
 
 export type UpdateCallback = (dt: number) => void;
 export type RenderCallback = () => void;

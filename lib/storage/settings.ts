@@ -1,4 +1,4 @@
-import { PlayerSettings } from "../../core/types/player";
+import type { PlayerSettings } from "../../core/types/player";
 import { DEFAULT_PLAYER_SETTINGS } from "../../core/constants/game";
 import { getStorageItem, setStorageItem } from "./localStorage";
 

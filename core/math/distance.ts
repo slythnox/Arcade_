@@ -1,4 +1,4 @@
-import { Point2D } from "../types/geometry";
+import type { Point2D } from "../types/geometry";
 
 /**
  * Manhattan distance: |x1 - x2| + |y1 - y2|

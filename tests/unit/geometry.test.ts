@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { AABB, circleIntersectsAABB, circleIntersectsCircle } from "../../core/math/geometry";
-import { Circle } from "../../core/types/geometry";
+import type { Circle } from "../../core/types/geometry";
 
 describe("Geometry", () => {
   describe("AABB", () => {

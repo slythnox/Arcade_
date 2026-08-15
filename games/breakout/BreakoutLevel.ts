@@ -1,4 +1,4 @@
-import { Rectangle } from "../../core/types/geometry";
+import type { Rectangle } from "../../core/types/geometry";
 
 export interface Brick extends Rectangle {
   color: string;

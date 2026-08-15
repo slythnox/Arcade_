@@ -1,4 +1,4 @@
-import { GameDefinition } from '../types';
+import type { GameDefinition } from '../types';
 export const coasterLabDefinition: GameDefinition = {
   id: 'coasterLab', slug: 'coaster-lab', name: 'Coaster Lab',
   platform: 'arcade', genre: 'simulation', era: '2000s', year: 1999,

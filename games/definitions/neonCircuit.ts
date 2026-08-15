@@ -1,4 +1,4 @@
-import { GameDefinition } from "../types";
+import type { GameDefinition } from "../types";
 export const neonCircuitDefinition: GameDefinition = {
   id: "neon-circuit",
   slug: "neon-circuit",

@@ -1,6 +1,6 @@
-import { GridCoord } from "../../core/types/geometry";
+import type { GridCoord } from "../../core/types/geometry";
 import { findPathBFS } from "../../core/algorithms/bfs";
-import { GameAction } from "../../core/types/game";
+import type { GameAction } from "../../core/types/game";
 
 /**
  * Automated Snake AI using Breadth-First Search.

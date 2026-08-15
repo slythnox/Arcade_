@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { FAQItem } from "@/data/faq";
+import type { FAQItem } from "@/data/faq";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
 export interface FAQAccordionProps {

@@ -1,13 +1,14 @@
-import { GameInstance } from "../types";
-import { GameContext } from "../../engine/GameContext";
-import { Renderer } from "../../engine/rendering/Renderer";
-import { PixelRenderer } from "../../engine/rendering/PixelRenderer";
-import { GameAction } from "../../core/types/game";
+import type { GameInstance } from "../types";
+import type { GameContext } from "../../engine/GameContext";
+import type { Renderer } from "../../engine/rendering/Renderer";
+import type { PixelRenderer } from "../../engine/rendering/PixelRenderer";
+import type { GameAction } from "../../core/types/game";
 import { Vector2 } from "../../core/math/vector";
-import { Rectangle } from "../../core/types/geometry";
+import type { Rectangle } from "../../core/types/geometry";
 import { clamp } from "../../core/utils";
 import { calculatePaddleReflection, testBallBrickCollision } from "./BreakoutPhysics";
-import { Brick, generateBreakoutLevel } from "./BreakoutLevel";
+import type { Brick} from "./BreakoutLevel";
+import { generateBreakoutLevel } from "./BreakoutLevel";
 
 export class BreakoutGame implements GameInstance {
   private ctx!: GameContext;

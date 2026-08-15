@@ -1,4 +1,4 @@
-import { GameDefinition } from "../types";
+import type { GameDefinition } from "../types";
 export const matchThreeDefinition: GameDefinition = {
   id: "match-3",
   slug: "match-3",

@@ -1,4 +1,4 @@
-import { GameDefinition } from "../types";
+import type { GameDefinition } from "../types";
 export const magnetRunDefinition: GameDefinition = {
   id: "magnet-run",
   slug: "magnet-run",

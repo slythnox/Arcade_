@@ -1,13 +1,13 @@
 import { GameSession } from "./GameSession";
 import { GameLoop } from "./GameLoop";
 import { InputManager } from "./input/InputManager";
-import { Renderer } from "./rendering/Renderer";
 import { PixelRenderer } from "./rendering/PixelRenderer";
-import { AudioManager, getAudioManager } from "./audio/AudioManager";
+import type { AudioManager} from "./audio/AudioManager";
+import { getAudioManager } from "./audio/AudioManager";
 import { RandomSource } from "../core/math/random";
-import { GameInstance } from "../games/types";
-import { GameAction } from "../core/types/game";
-import { GameContext } from "./GameContext";
+import type { GameInstance } from "../games/types";
+import type { GameAction } from "../core/types/game";
+import type { GameContext } from "./GameContext";
 
 export interface GameEngineOptions {
   canvas: HTMLCanvasElement;

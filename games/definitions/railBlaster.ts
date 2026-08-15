@@ -1,4 +1,4 @@
-import { GameDefinition } from "../types";
+import type { GameDefinition } from "../types";
 export const railBlasterDefinition: GameDefinition = {
   id: "rail-blaster",
   slug: "rail-blaster",

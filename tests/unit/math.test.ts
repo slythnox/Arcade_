@@ -1,10 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { Vector2 } from "../../core/math/vector";
 import { Matrix2, rotateMatrixCW, rotateMatrixCCW } from "../../core/math/matrix";
-import { AABB, circleIntersectsAABB, circleIntersectsCircle } from "../../core/math/geometry";
+import { AABB, circleIntersectsAABB } from "../../core/math/geometry";
 import { lerp, inverseLerp, remap, smoothstep } from "../../core/math/interpolation";
 import { RandomSource, seedFromDateString } from "../../core/math/random";
-import { ValueNoise } from "../../core/math/noise";
 import { manhattanDistance, euclideanDistance } from "../../core/math/distance";
 import { clamp } from "../../core/utils";
 

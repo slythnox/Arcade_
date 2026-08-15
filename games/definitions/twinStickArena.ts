@@ -1,4 +1,4 @@
-import { GameDefinition } from "../types";
+import type { GameDefinition } from "../types";
 export const twinStickArenaDefinition: GameDefinition = {
   id: "twin-stick-arena",
   slug: "twin-stick-arena",

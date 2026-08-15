@@ -1,4 +1,4 @@
-import { GameDefinition } from "../types";
+import type { GameDefinition } from "../types";
 export const shadowRunnerDefinition: GameDefinition = {
   id: "shadow-runner",
   slug: "shadow-runner",

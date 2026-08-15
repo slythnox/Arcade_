@@ -1,4 +1,4 @@
-import { GameDefinition } from "../types";
+import type { GameDefinition } from "../types";
 export const droneSwarmDefinition: GameDefinition = {
   id: "drone-swarm",
   slug: "drone-swarm",

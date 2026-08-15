@@ -1,7 +1,7 @@
-import { GameInstance } from "../types";
-import { GameContext } from "../../engine/GameContext";
-import { Renderer } from "../../engine/rendering/Renderer";
-import { GameAction } from "../../core/types/game";
+import type { GameInstance } from "../types";
+import type { GameContext } from "../../engine/GameContext";
+import type { Renderer } from "../../engine/rendering/Renderer";
+import type { GameAction } from "../../core/types/game";
 
 const MAZES = [
   [
@@ -292,7 +292,7 @@ export class MazeChaserGame implements GameInstance {
     // Draw Ghosts
     const ghostColors = ["#FF0000", "#FFB8FF", "#00FFFF", "#FFB852"];
     for (const g of this.ghosts) {
-      let color = g.state === 'frightened' ? "#0000FF" : ghostColors[g.type];
+      const color = g.state === 'frightened' ? "#0000FF" : ghostColors[g.type];
       renderer.drawRect(offsetX + g.x * cellSize + 2, offsetY + g.y * cellSize + 2, cellSize - 4, cellSize - 4, color);
     }
     

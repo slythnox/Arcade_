@@ -4,7 +4,7 @@ import React, { useRef, useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { getGameBySlug, createGameInstance } from "@/games/registry";
 import { GameEngine } from "@/engine/GameEngine";
-import { GameStatus, GameAction } from "@/core/types/game";
+import type { GameStatus, GameAction } from "@/core/types/game";
 import { CRTOverlay } from "../environment/CRTOverlay";
 import { SteamLaunchOverlay } from "./SteamLaunchOverlay";
 import { recordGameSessionEnd, loadPlayerStats } from "@/lib/storage/gameProgress";

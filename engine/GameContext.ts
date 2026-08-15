@@ -1,8 +1,8 @@
-import { GameSession } from "./GameSession";
-import { InputManager } from "./input/InputManager";
-import { Renderer } from "./rendering/Renderer";
-import { AudioManager } from "./audio/AudioManager";
-import { RandomSource } from "../core/math/random";
+import type { GameSession } from "./GameSession";
+import type { InputManager } from "./input/InputManager";
+import type { Renderer } from "./rendering/Renderer";
+import type { AudioManager } from "./audio/AudioManager";
+import type { RandomSource } from "../core/math/random";
 
 /**
  * Execution context passed to every GameInstance.

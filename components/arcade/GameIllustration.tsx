@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { GameDefinition } from "@/games/types";
+import type { GameDefinition } from "@/games/types";
 
 export interface GameIllustrationProps {
   game: GameDefinition;

@@ -1,4 +1,3 @@
-import { Rectangle, Circle, Point2D } from "../../core/types/geometry";
 
 /**
  * Common Renderer interface.

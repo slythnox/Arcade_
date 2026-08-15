@@ -1,7 +1,7 @@
-import { GameInstance } from "../types";
-import { GameContext } from "../../engine/GameContext";
-import { Renderer } from "../../engine/rendering/Renderer";
-import { GameAction } from "../../core/types/game";
+import type { GameInstance } from "../types";
+import type { GameContext } from "../../engine/GameContext";
+import type { Renderer } from "../../engine/rendering/Renderer";
+import type { GameAction } from "../../core/types/game";
 
 const MAP: number[][] = [
   [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
@@ -140,7 +140,7 @@ export class RaySectorGame implements GameInstance {
   }
   
   private shoot(): void {
-    for (let e of this.enemies) {
+    for (const e of this.enemies) {
       if (!e.active) continue;
       const dx = e.x - this.posX;
       const dy = e.y - this.posY;
@@ -181,8 +181,8 @@ export class RaySectorGame implements GameInstance {
       let sideDistX;
       let sideDistY;
       
-      let deltaDistX = (rayDirX === 0) ? 1e30 : Math.abs(1 / rayDirX);
-      let deltaDistY = (rayDirY === 0) ? 1e30 : Math.abs(1 / rayDirY);
+      const deltaDistX = (rayDirX === 0) ? 1e30 : Math.abs(1 / rayDirX);
+      const deltaDistY = (rayDirY === 0) ? 1e30 : Math.abs(1 / rayDirY);
       let perpWallDist;
       
       let stepX;

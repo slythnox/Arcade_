@@ -1,4 +1,4 @@
-import { GameDefinition } from '../types';
+import type { GameDefinition } from '../types';
 export const velocityRushDefinition: GameDefinition = {
   id: 'velocityRush', slug: 'velocity-rush', name: 'Velocity Rush',
   platform: 'nes', genre: 'platformer', era: '1990s', year: 1991,

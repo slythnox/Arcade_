@@ -1,4 +1,4 @@
-import { GameDefinition } from "../types";
+import type { GameDefinition } from "../types";
 export const hexTerritoryDefinition: GameDefinition = {
   id: "hexTerritory",
   slug: "hex-territory",

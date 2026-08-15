@@ -1,8 +1,8 @@
-import { GameInstance } from "../types";
-import { GameContext } from "../../engine/GameContext";
-import { Renderer } from "../../engine/rendering/Renderer";
-import { PixelRenderer } from "../../engine/rendering/PixelRenderer";
-import { GameAction } from "../../core/types/game";
+import type { GameInstance } from "../types";
+import type { GameContext } from "../../engine/GameContext";
+import type { Renderer } from "../../engine/rendering/Renderer";
+import type { PixelRenderer } from "../../engine/rendering/PixelRenderer";
+import type { GameAction } from "../../core/types/game";
 
 enum Tile {
   EMPTY = 0,
@@ -71,8 +71,8 @@ export class CaveHunterGame implements GameInstance {
     this.enemies = [];
     const numEnemies = 3 + this.level;
     for (let i = 0; i < numEnemies; i++) {
-      let ex = Math.floor(this.ctx.random.nextFloat() * this.cols);
-      let ey = 3 + Math.floor(this.ctx.random.nextFloat() * (this.rows - 3));
+      const ex = Math.floor(this.ctx.random.nextFloat() * this.cols);
+      const ey = 3 + Math.floor(this.ctx.random.nextFloat() * (this.rows - 3));
       this.grid[ey][ex] = Tile.EMPTY; // Clear spawn
       this.enemies.push({
         x: ex, y: ey, dirX: 1, dirY: 0, inflation: 0, moveTimer: 0
@@ -84,7 +84,7 @@ export class CaveHunterGame implements GameInstance {
     if (this.isPaused || this.gameOver) return;
     
     // Deflate enemies
-    for (let e of this.enemies) {
+    for (const e of this.enemies) {
       if (e.inflation > 0) {
         e.inflation -= deltaTime * 0.5;
         if (e.inflation < 0) e.inflation = 0;
@@ -96,7 +96,7 @@ export class CaveHunterGame implements GameInstance {
           // Simple wandering through empty tiles
           const dirs = [{x:1,y:0}, {x:-1,y:0}, {x:0,y:1}, {x:0,y:-1}];
           this.ctx.random.shuffle(dirs);
-          for (let d of dirs) {
+          for (const d of dirs) {
             const nx = e.x + d.x;
             const ny = e.y + d.y;
             if (nx >= 0 && nx < this.cols && ny >= 0 && ny < this.rows && this.grid[ny][nx] === Tile.EMPTY) {
@@ -110,7 +110,7 @@ export class CaveHunterGame implements GameInstance {
     }
     
     // Player - Enemy collision
-    for (let e of this.enemies) {
+    for (const e of this.enemies) {
       if (e.x === this.playerX && e.y === this.playerY && e.inflation === 0) {
         this.die();
         return;
@@ -192,7 +192,7 @@ export class CaveHunterGame implements GameInstance {
       case "MOVE_DOWN": tryMove(0, 1); break;
       case "ACTION_PRIMARY":
         // Inflate enemy in adjacent cell
-        for (let e of this.enemies) {
+        for (const e of this.enemies) {
           const dist = Math.abs(e.x - this.playerX) + Math.abs(e.y - this.playerY);
           if (dist === 1) {
             e.inflation += 1.0;
@@ -232,7 +232,7 @@ export class CaveHunterGame implements GameInstance {
     pr.drawPixelBlock(ox + this.playerX * this.tileSize + 4, oy + this.playerY * this.tileSize + 4, 24, "#0F0", "#5F5", "#050");
     
     // Enemies
-    for (let e of this.enemies) {
+    for (const e of this.enemies) {
       let color = "#F00";
       if (e.inflation > 1) color = "#F55";
       if (e.inflation > 2) color = "#FAA";

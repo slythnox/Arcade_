@@ -1,4 +1,4 @@
-import { GameDefinition } from "../types";
+import type { GameDefinition } from "../types";
 export const sandWorldDefinition: GameDefinition = {
   id: "sandWorld",
   slug: "sand-world",

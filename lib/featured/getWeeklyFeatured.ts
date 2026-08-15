@@ -1,4 +1,4 @@
-import { GameDefinition } from "../../games/types";
+import type { GameDefinition } from "../../games/types";
 import { gameRegistry } from "../../games/registry";
 import { seedFromDateString, RandomSource } from "../../core/math/random";
 

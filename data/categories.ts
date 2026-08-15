@@ -1,4 +1,4 @@
-import { GamePlatform, GameGenre } from "../core/types/game";
+import type { GamePlatform, GameGenre } from "../core/types/game";
 
 export interface CategoryItem<T = string> {
   id: T;

@@ -1,5 +1,5 @@
 import { Vector2 } from "../../core/math/vector";
-import { Rectangle, Circle } from "../../core/types/geometry";
+import type { Rectangle, Circle } from "../../core/types/geometry";
 import { clamp } from "../../core/utils";
 
 /**

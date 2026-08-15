@@ -1,9 +1,9 @@
 import React from "react";
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import { constructSiteMetadata } from "@/lib/seo/metadata";
 import { BreadcrumbTrail } from "@/components/marketing/BreadcrumbTrail";
 import Link from "next/link";
-import { ArrowLeft, Clock, Cpu, CheckCircle2, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Clock } from "lucide-react";
 
 export const metadata: Metadata = constructSiteMetadata({
   title: "Deterministic 60Hz Game Engine Architecture — ARCADE_",

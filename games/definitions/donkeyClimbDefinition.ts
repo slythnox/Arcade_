@@ -1,4 +1,4 @@
-import { GameDefinition } from "../types";
+import type { GameDefinition } from "../types";
 
 export const donkeyClimbDefinition: GameDefinition = {
   id: "donkeyClimb",

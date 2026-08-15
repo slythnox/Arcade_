@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { MinesweeperBoard } from "../../games/minesweeper/MinesweeperBoard";
-import { revealCell, toggleFlag } from "../../games/minesweeper/MinesweeperLogic";
+import { toggleFlag } from "../../games/minesweeper/MinesweeperLogic";
 import { calculatePaddleReflection, testBallBrickCollision } from "../../games/breakout/BreakoutPhysics";
 import { calculatePongPaddleReflection } from "../../games/pong/PongPhysics";
 import { getNextSnakeAIMove } from "../../games/snake/SnakeAI";

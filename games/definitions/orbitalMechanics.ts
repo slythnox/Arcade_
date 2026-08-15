@@ -1,4 +1,4 @@
-import { GameDefinition } from "../types";
+import type { GameDefinition } from "../types";
 export const orbitalMechanicsDefinition: GameDefinition = {
   id: "orbitalMechanics",
   slug: "orbital-mechanics",

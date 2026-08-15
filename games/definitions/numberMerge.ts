@@ -1,4 +1,4 @@
-import { GameDefinition } from "../types";
+import type { GameDefinition } from "../types";
 export const numberMergeDefinition: GameDefinition = {
   id: "number-merge",
   slug: "number-merge",

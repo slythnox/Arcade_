@@ -41,7 +41,7 @@ export const ProceduralBackground: React.FC = () => {
       });
     }
 
-    let startTime = performance.now();
+    const startTime = performance.now();
 
     const render = (now: number) => {
       const elapsed = (now - startTime) / 1000;

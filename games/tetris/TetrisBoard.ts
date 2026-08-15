@@ -1,4 +1,4 @@
-import { TetrisPiece } from "./TetrisPiece";
+import type { TetrisPiece } from "./TetrisPiece";
 
 export interface CellData {
   filled: boolean;

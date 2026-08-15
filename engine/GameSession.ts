@@ -1,4 +1,4 @@
-import { GameStatus } from "../core/types/game";
+import type { GameStatus } from "../core/types/game";
 
 export interface ReplayFrame {
   tick: number;
