@@ -4,6 +4,7 @@ import type { Renderer } from "../../engine/rendering/Renderer";
 import type { PixelRenderer } from "../../engine/rendering/PixelRenderer";
 import type { GameAction } from "../../core/types/game";
 import type { GridCoord } from "../../core/types/geometry";
+import { globalParticles } from "../../engine/particles/ParticleSystem";
 
 export class MatchThreeGame implements GameInstance {
   private ctx!: GameContext;
@@ -102,6 +103,10 @@ export class MatchThreeGame implements GameInstance {
       this.score += matchScore;
       this.ctx.audio.playExplosion();
 
+      const label = this.combo > 1 ? `COMBO x${this.combo}! +${matchScore}` : `+${matchScore}`;
+      globalParticles.emitBurst(300, 320, 20, ["#FFB703", "#FF3366", "#00F0FF", "#00FF66", "#ffffff"], 80, 260);
+      globalParticles.emitText(label, 300, 100, "#FFD700", 22);
+
       // Clear matched gems
       for (const { row, col } of cascadeMatches) {
         this.grid[row][col] = -1;
@@ -163,7 +168,9 @@ export class MatchThreeGame implements GameInstance {
     }
   }
 
-  public update(_dt: number): void {}
+  public update(dt: number): void {
+    globalParticles.update(dt);
+  }
 
   public handleInput(action: GameAction, isPressed: boolean): void {
     if (!isPressed || this.isPaused || this.gameOver || this.isWon) return;
@@ -248,8 +255,11 @@ export class MatchThreeGame implements GameInstance {
     const curY = offY + this.cursor.row * cellSize;
     pr.drawRect(curX, curY, cellSize, cellSize, "#00FF66", false);
 
+    // Render Particles & Combo Text
+    globalParticles.render(pr);
+
     pr.drawText(
-      `SCORE: ${this.score} / ${this.targetScore}  •  MOVES: ${this.movesRemaining}  •  [SPACE TO SELECT/SWAP]`,
+      `MOVES: ${this.movesRemaining}  •  SCORE: ${this.score}/${this.targetScore}  •  [Z TO SELECT/SWAP]`,
       w / 2,
       28,
       {

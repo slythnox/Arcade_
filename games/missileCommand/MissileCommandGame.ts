@@ -4,6 +4,7 @@ import type { Renderer } from "../../engine/rendering/Renderer";
 import type { PixelRenderer } from "../../engine/rendering/PixelRenderer";
 import type { GameAction } from "../../core/types/game";
 import { Vector2 } from "../../core/math/vector";
+import { globalParticles } from "../../engine/particles/ParticleSystem";
 
 interface ICBMMissile {
   start: Vector2;
@@ -89,6 +90,7 @@ export class MissileCommandGame implements GameInstance {
   }
 
   public update(dt: number): void {
+    globalParticles.update(dt);
     if (this.gameOver || this.isPaused) return;
 
     // Crosshair movement
@@ -138,8 +140,11 @@ export class MissileCommandGame implements GameInstance {
       for (const exp of this.explosions) {
         if (Math.hypot(m.current.x - exp.pos.x, m.current.y - exp.pos.y) < exp.radius) {
           this.missiles.splice(i, 1);
-          this.score += 200;
+          const pts = 100 * this.level;
+          this.score += pts;
           this.ctx.audio.playExplosion();
+          globalParticles.emitBurst(m.current.x, m.current.y, 16, ["#00F0FF", "#FFB703", "#ffffff"], 60, 240);
+          globalParticles.emitText(`+${pts}`, m.current.x, m.current.y - 10, "#00F0FF", 14);
           intercepted = true;
           break;
         }
@@ -229,6 +234,9 @@ export class MissileCommandGame implements GameInstance {
     pr.drawCircle(rx, ry, 12, "#00FF66", false);
     pr.drawLine(rx - 16, ry, rx + 16, ry, "#00FF66", 1);
     pr.drawLine(rx, ry - 16, rx, ry + 16, "#00FF66", 1);
+
+    // Render Particle Explosions & Text Popups
+    globalParticles.render(pr);
 
     pr.drawText(
       `AMMO: ${this.ammo}  •  SCORE: ${this.score}  •  LEVEL: ${this.level}  •  [SPACE TO DETONATE FLAK]`,

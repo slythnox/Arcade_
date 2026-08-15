@@ -4,6 +4,7 @@ import type { Renderer } from "../../engine/rendering/Renderer";
 import type { PixelRenderer } from "../../engine/rendering/PixelRenderer";
 import type { GameAction } from "../../core/types/game";
 import type { GridCoord } from "../../core/types/geometry";
+import { globalParticles } from "../../engine/particles/ParticleSystem";
 
 export class LightsOutGame implements GameInstance {
   private ctx!: GameContext;
@@ -56,6 +57,7 @@ export class LightsOutGame implements GameInstance {
     if (playSound) {
       this.moves++;
       this.ctx.audio.playRotate();
+      globalParticles.emitBurst(300, 320, 10, ["#00FF66", "#00F0FF", "#ffffff"], 50, 180);
       this.checkWin();
     }
   }
@@ -67,10 +69,14 @@ export class LightsOutGame implements GameInstance {
       this.score = Math.max(500, 3000 - this.moves * 120);
       this.ctx.session.setStatus("ready");
       this.ctx.audio.playVictory();
+      globalParticles.emitBurst(300, 320, 30, ["#FFD700", "#00FF66", "#00F0FF", "#ffffff"], 100, 300);
+      globalParticles.emitText("PUZZLE CLEARED!", 300, 120, "#FFD700", 24);
     }
   }
 
-  public update(_dt: number): void {}
+  public update(dt: number): void {
+    globalParticles.update(dt);
+  }
 
   public handleInput(action: GameAction, isPressed: boolean): void {
     if (!isPressed || this.isPaused) return;
@@ -143,6 +149,9 @@ export class LightsOutGame implements GameInstance {
         }
       }
     }
+
+    // Render Particles & Text Popups
+    globalParticles.render(pr);
 
     pr.drawText(`MOVES: ${this.moves}  •  [SPACE TO TOGGLE]`, w / 2, 28, {
       size: 13,

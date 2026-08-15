@@ -115,7 +115,7 @@ export class ParticleSystem {
 
     // Render particles
     for (const p of this.particles) {
-      if (ctx) {
+      if (ctx && typeof ctx.save === "function") {
         ctx.save();
         ctx.globalAlpha = p.alpha;
         renderer.drawCircle(p.x, p.y, p.size, p.color, true);
@@ -128,7 +128,7 @@ export class ParticleSystem {
     // Render floating score text popups
     for (const ft of this.floatingTexts) {
       const alpha = Math.max(0, ft.life / ft.maxLife);
-      if (ctx) {
+      if (ctx && typeof ctx.save === "function") {
         ctx.save();
         ctx.globalAlpha = alpha;
         renderer.drawText(ft.text, ft.x, ft.y, {

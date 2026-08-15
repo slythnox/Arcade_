@@ -3,6 +3,7 @@ import type { GameContext } from "../../engine/GameContext";
 import type { Renderer } from "../../engine/rendering/Renderer";
 import type { PixelRenderer } from "../../engine/rendering/PixelRenderer";
 import type { GameAction } from "../../core/types/game";
+import { globalParticles } from "../../engine/particles/ParticleSystem";
 
 export class TwentyFortyEightGame implements GameInstance {
   private ctx!: GameContext;
@@ -101,6 +102,10 @@ export class TwentyFortyEightGame implements GameInstance {
     if (anyMoved) {
       this.score += addedScore;
       this.ctx.audio.playMove();
+      if (addedScore > 0) {
+        globalParticles.emitBurst(300, 350, 16, ["#FFB703", "#FF5C8A", "#00FF66", "#ffffff"], 70, 220);
+        globalParticles.emitText(`+${addedScore}`, 300, 150, "#FFB703", 20);
+      }
       this.spawnTile();
       this.checkGameOver();
     }
@@ -119,7 +124,9 @@ export class TwentyFortyEightGame implements GameInstance {
     this.ctx.audio.playExplosion();
   }
 
-  public update(_dt: number): void {}
+  public update(dt: number): void {
+    globalParticles.update(dt);
+  }
 
   public handleInput(action: GameAction, isPressed: boolean): void {
     if (!isPressed || this.gameOver || this.isPaused) return;
@@ -186,6 +193,9 @@ export class TwentyFortyEightGame implements GameInstance {
         }
       }
     }
+
+    // Render Particles & Text Popups
+    globalParticles.render(pr);
 
     pr.drawText(`SCORE: ${this.score}  •  [← ↑ → ↓ TO SLIDE]`, w / 2, 28, {
       size: 13,

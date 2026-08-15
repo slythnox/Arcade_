@@ -4,6 +4,7 @@ import type { Renderer } from "../../engine/rendering/Renderer";
 import type { PixelRenderer } from "../../engine/rendering/PixelRenderer";
 import type { GameAction } from "../../core/types/game";
 import { Vector2 } from "../../core/math/vector";
+import { globalParticles } from "../../engine/particles/ParticleSystem";
 
 interface Asteroid {
   pos: Vector2;
@@ -74,6 +75,7 @@ export class AsteroidFieldGame implements GameInstance {
   }
 
   public update(dt: number): void {
+    globalParticles.update(dt);
     if (this.gameOver || this.isPaused) return;
 
     // Ship rotation & thrust
@@ -121,8 +123,12 @@ export class AsteroidFieldGame implements GameInstance {
         const ast = this.asteroids[j];
         if (Math.hypot(b.pos.x - ast.pos.x, b.pos.y - ast.pos.y) < ast.radius) {
           this.ctx.audio.playExplosion();
-          this.score += (4 - ast.tier) * 150;
+          const pts = (4 - ast.tier) * 150;
+          this.score += pts;
           this.bullets.splice(i, 1);
+
+          globalParticles.emitBurst(ast.pos.x, ast.pos.y, 16, ["#FFB703", "#FF3366", "#ffffff"], 60, 240);
+          globalParticles.emitText(`+${pts}`, ast.pos.x, ast.pos.y, "#FFB703", 14);
 
           // Split asteroid
           if (ast.tier > 1) {
@@ -246,6 +252,9 @@ export class AsteroidFieldGame implements GameInstance {
       pr.drawLine(leftX, leftY, flameX, flameY, "#FFB703", 2);
       pr.drawLine(rightX, rightY, flameX, flameY, "#FFB703", 2);
     }
+
+    // Render Particle Explosions & Text Popups
+    globalParticles.render(pr);
 
     pr.drawText(`SCORE: ${this.score}  •  LEVEL: ${this.level}  •  LIVES: ${this.lives}`, w / 2, 28, {
       size: 12,
