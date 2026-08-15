@@ -10,6 +10,39 @@ interface Box {
   row: number;
 }
 
+const LEVEL_CONFIGS = [
+  {
+    walls: [[2,3], [5,4], [4,2]],
+    goals: [{ col: 6, row: 1 }, { col: 6, row: 6 }],
+    boxes: [{ col: 2, row: 2 }, { col: 3, row: 5 }],
+    start: { col: 1, row: 1 },
+  },
+  {
+    walls: [[2,2], [2,5], [5,2], [5,5]],
+    goals: [{ col: 1, row: 6 }, { col: 6, row: 1 }],
+    boxes: [{ col: 3, row: 3 }, { col: 4, row: 4 }],
+    start: { col: 1, row: 1 },
+  },
+  {
+    walls: [[3,1], [3,6], [4,3], [4,4]],
+    goals: [{ col: 6, row: 2 }, { col: 6, row: 5 }],
+    boxes: [{ col: 2, row: 3 }, { col: 2, row: 4 }],
+    start: { col: 1, row: 2 },
+  },
+  {
+    walls: [[1,4], [6,3], [3,5], [4,2]],
+    goals: [{ col: 5, row: 1 }, { col: 5, row: 6 }, { col: 1, row: 5 }],
+    boxes: [{ col: 2, row: 2 }, { col: 3, row: 3 }, { col: 4, row: 4 }],
+    start: { col: 1, row: 1 },
+  },
+  {
+    walls: [[2,4], [3,2], [5,3], [4,5]],
+    goals: [{ col: 6, row: 1 }, { col: 6, row: 3 }, { col: 6, row: 6 }],
+    boxes: [{ col: 2, row: 2 }, { col: 3, row: 4 }, { col: 2, row: 5 }],
+    start: { col: 1, row: 1 },
+  },
+];
+
 export class NewtonsBoxGame implements GameInstance {
   private ctx!: GameContext;
   private readonly size: number = 8;
@@ -19,6 +52,7 @@ export class NewtonsBoxGame implements GameInstance {
   private playerPos: GridCoord = { col: 1, row: 1 };
   private moves: number = 0;
   private score: number = 0;
+  private level: number = 1;
   private isWon: boolean = false;
   private isPaused: boolean = false;
 
@@ -31,28 +65,25 @@ export class NewtonsBoxGame implements GameInstance {
     if (seed !== undefined) this.ctx.random.reset(seed);
     this.moves = 0;
     this.score = 0;
+    this.level = 1;
     this.isWon = false;
     this.isPaused = false;
-    this.playerPos = { col: 1, row: 1 };
+    this.loadLevel(this.level - 1);
+  }
 
-    // Walls (Outer ring + internal obstacles)
+  private loadLevel(idx: number): void {
+    const config = LEVEL_CONFIGS[idx % LEVEL_CONFIGS.length];
+    this.playerPos = { ...config.start };
+    this.goals = config.goals.map(g => ({ ...g }));
+    this.boxes = config.boxes.map(b => ({ ...b }));
+
+    const wallSet = new Set(config.walls.map(([r, c]) => `${r},${c}`));
     this.walls = Array.from({ length: this.size }, (_, r) =>
       Array.from({ length: this.size }, (_, c) => {
         if (r === 0 || r === this.size - 1 || c === 0 || c === this.size - 1) return true;
-        if ((r === 2 && c === 3) || (r === 5 && c === 4) || (r === 4 && c === 2)) return true;
-        return false;
+        return wallSet.has(`${r},${c}`);
       })
     );
-
-    this.goals = [
-      { col: 6, row: 1 },
-      { col: 6, row: 6 },
-    ];
-
-    this.boxes = [
-      { col: 2, row: 2 },
-      { col: 3, row: 5 },
-    ];
   }
 
   private tryMove(dCol: number, dRow: number): void {
@@ -70,7 +101,6 @@ export class NewtonsBoxGame implements GameInstance {
     const boxIdx = this.boxes.findIndex((b) => b.col === newPlayerCol && b.row === newPlayerRow);
     if (boxIdx !== -1) {
       const box = this.boxes[boxIdx];
-      // Frictionless sliding: box slides all the way until wall or other box
       let curCol = box.col;
       let curRow = box.row;
 
@@ -86,7 +116,6 @@ export class NewtonsBoxGame implements GameInstance {
       }
 
       if (curCol === box.col && curRow === box.row) {
-        // Blocked box
         this.ctx.audio.playLaser();
         return;
       }
@@ -101,16 +130,22 @@ export class NewtonsBoxGame implements GameInstance {
     this.moves++;
     this.ctx.audio.playMove();
 
-    // Check win condition (all goals covered by boxes)
+    // Check win condition
     const allGoalsCovered = this.goals.every((g) =>
       this.boxes.some((b) => b.col === g.col && b.row === g.row)
     );
 
     if (allGoalsCovered && !this.isWon) {
-      this.isWon = true;
-      this.score = Math.max(500, 3000 - this.moves * 50);
-      this.ctx.session.setStatus("ready");
+      this.score += Math.max(500, 3000 - this.moves * 50);
       this.ctx.audio.playVictory();
+
+      if (this.level < LEVEL_CONFIGS.length) {
+        this.level++;
+        this.loadLevel(this.level - 1);
+      } else {
+        this.isWon = true;
+        this.ctx.session.setStatus("ready");
+      }
     }
   }
 
@@ -130,7 +165,7 @@ export class NewtonsBoxGame implements GameInstance {
   public resume(): void { this.isPaused = false; }
   public destroy(): void {}
   public getScore(): number { return this.score; }
-  public getLevel(): number { return 1; }
+  public getLevel(): number { return this.level; }
 
   public render(renderer: Renderer): void {
     const pr = renderer as PixelRenderer;
@@ -182,7 +217,7 @@ export class NewtonsBoxGame implements GameInstance {
     pr.drawCircle(px, py, 14, "#FF3366", true);
     pr.drawCircle(px, py, 5, "#FFFFFF", true);
 
-    pr.drawText(`MOVES: ${this.moves}  •  [PUSH SLIDING ICE BOXES TO TARGET PADS]`, w / 2, 28, {
+    pr.drawText(`STAGE ${this.level}/${LEVEL_CONFIGS.length}  •  MOVES: ${this.moves}  •  [PUSH ICE BOXES TO TARGET PADS]`, w / 2, 28, {
       size: 11,
       color: "#00FF66",
       align: "center",
