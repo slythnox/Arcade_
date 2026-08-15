@@ -443,17 +443,27 @@ export class DiamondRunGame implements GameInstance {
   public getLevel(): number { return this.currentLevelIdx + 1; }
 
   public render(renderer: Renderer): void {
+    const canvasW = renderer.getWidth();
+    const canvasH = renderer.getHeight();
+
+    const scaleX = canvasW / LOGICAL_WIDTH;
+    const scaleY = canvasH / LOGICAL_HEIGHT;
+
+    renderer.save();
+    renderer.scale(scaleX, scaleY);
+
     const pr = renderer as PixelRenderer;
     const palette = WORLD_PALETTES[this.currentWorld] || WORLD_PALETTES[1];
     pr.clear(palette.bg);
 
-    const w = renderer.getWidth();
-    const h = renderer.getHeight();
+    const w = LOGICAL_WIDTH;
+    const h = LOGICAL_HEIGHT;
 
     if (this.gameState === "BOOT") {
       pr.drawRect(0, 0, w, h, "#04060c", true);
       pr.drawText("DIAMOND RUN", w / 2, h / 2 - 10, { size: 28, color: "#FFD84D", align: "center" });
       pr.drawText("2000s JAVA MOBILE CLASSICS ENGINE", w / 2, h / 2 + 20, { size: 11, color: "#4DE8E8", align: "center" });
+      renderer.restore();
       return;
     }
 
@@ -462,6 +472,7 @@ export class DiamondRunGame implements GameInstance {
       pr.drawText("DIAMOND RUN", w / 2, h / 2 - 40, { size: 36, color: "#FFD84D", align: "center" });
       pr.drawText("ANCIENT TEMPLE EXPLORATION PUZZLE", w / 2, h / 2, { size: 12, color: "#63E66D", align: "center" });
       pr.drawText("[ PRESS SPACE / Z TO START ]", w / 2, h / 2 + 50, { size: 14, color: "#4DE8E8", align: "center" });
+      renderer.restore();
       return;
     }
 
@@ -486,6 +497,7 @@ export class DiamondRunGame implements GameInstance {
       });
 
       pr.drawText("[ PRESS Z TO SELECT WORLD ]", w / 2, h - 30, { size: 11, color: "#63E66D", align: "center" });
+      renderer.restore();
       return;
     }
 
@@ -512,6 +524,7 @@ export class DiamondRunGame implements GameInstance {
       }
 
       pr.drawText("[ PRESS Z TO START LEVEL ]", w / 2, h - 30, { size: 11, color: "#4DE8E8", align: "center" });
+      renderer.restore();
       return;
     }
 
@@ -625,5 +638,7 @@ export class DiamondRunGame implements GameInstance {
       pr.drawText("CONGRATULATIONS EXPLORER!", w / 2, h / 2 + 5, { size: 13, color: "#63E66D", align: "center" });
       pr.drawText(`FINAL SCORE: ${this.score}`, w / 2, h / 2 + 28, { size: 12, color: "#4DE8E8", align: "center" });
     }
+
+    renderer.restore();
   }
 }
