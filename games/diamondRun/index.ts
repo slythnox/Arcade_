@@ -1,0 +1,1 @@
+export { DiamondRunGame } from "./DiamondRunGame";

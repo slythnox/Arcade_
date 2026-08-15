@@ -15,33 +15,25 @@ export const SiteHeader: React.FC = () => {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const settings = loadPlayerSettings();
-    setIsMuted(!settings.soundEnabled);
-    getAudioManager().setMuted(!settings.soundEnabled);
+    const unsubscribeAudio = getAudioManager().subscribeMuteChange((muted) => {
+      setIsMuted(muted);
+    });
 
     const handleFullscreenChange = () => {
       const isFull = !!document.fullscreenElement;
       setIsFullscreen(isFull);
     };
 
-    const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setLibraryOpen(false);
-      }
-    };
-
     document.addEventListener("fullscreenchange", handleFullscreenChange);
-    document.addEventListener("mousedown", handleClickOutside);
     return () => {
+      unsubscribeAudio();
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
-      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
   const handleToggleMute = () => {
     const audio = getAudioManager();
     const newMuted = audio.toggleMute();
-    setIsMuted(newMuted);
     savePlayerSettings({ soundEnabled: !newMuted });
   };
 
@@ -113,12 +105,10 @@ export const SiteHeader: React.FC = () => {
             </span>
           </Link>
 
-          {/* Centre nav — Library dropdown */}
-          <div ref={dropdownRef} style={{ position: "relative" }}>
-            <button
-              onClick={() => setLibraryOpen((o) => !o)}
-              aria-haspopup="true"
-              aria-expanded={libraryOpen}
+          {/* Centre nav — Direct Links */}
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <Link
+              href="/games"
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -129,141 +119,41 @@ export const SiteHeader: React.FC = () => {
                 fontWeight: 800,
                 letterSpacing: "0.08em",
                 textTransform: "uppercase",
-                cursor: "pointer",
+                textDecoration: "none",
                 borderRadius: "6px",
-                border: "1px solid rgba(255,255,255,0.08)",
-                backgroundColor: libraryOpen ? "rgba(255,255,255,0.06)" : "transparent",
-                color: libraryOpen ? "#ffffff" : "rgba(255,255,255,0.55)",
+                border: "1px solid rgba(255,216,77,0.2)",
+                backgroundColor: "rgba(255,216,77,0.06)",
+                color: "#ffd84d",
                 transition: "all 0.15s ease",
               }}
             >
-              LIBRARY
-              <ChevronDown
-                size={12}
-                style={{
-                  transition: "transform 0.2s ease",
-                  transform: libraryOpen ? "rotate(180deg)" : "rotate(0deg)",
-                }}
-              />
-            </button>
+              <Gamepad2 size={14} color="#ffd84d" />
+              GAMES
+            </Link>
 
-            {/* Dropdown panel */}
-            {libraryOpen && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: "calc(100% + 8px)",
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                  minWidth: "210px",
-                  backgroundColor: "#0a1224",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  borderRadius: "10px",
-                  boxShadow: "0 16px 48px rgba(0,0,0,0.6)",
-                  overflow: "hidden",
-                  zIndex: 100,
-                }}
-              >
-                {/* Games entry */}
-                <Link
-                  href="/games"
-                  onClick={() => setLibraryOpen(false)}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "12px",
-                    padding: "14px 18px",
-                    textDecoration: "none",
-                    borderBottom: "1px solid rgba(255,255,255,0.06)",
-                    background: "transparent",
-                    transition: "background 0.15s",
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,216,77,0.06)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                >
-                  <div
-                    style={{
-                      width: "32px",
-                      height: "32px",
-                      borderRadius: "8px",
-                      backgroundColor: "rgba(255,216,77,0.12)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexShrink: 0,
-                    }}
-                  >
-                    <Gamepad2 size={16} color="#ffd84d" />
-                  </div>
-                  <div>
-                    <div
-                      style={{
-                        fontSize: "13px",
-                        fontWeight: 800,
-                        fontFamily: "var(--font-mono)",
-                        letterSpacing: "0.06em",
-                        color: "#ffd84d",
-                        textTransform: "uppercase",
-                      }}
-                    >
-                      🎮 Games
-                    </div>
-                    <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginTop: "2px" }}>
-                      59 arcade cartridges
-                    </div>
-                  </div>
-                </Link>
-
-                {/* Labs entry */}
-                <Link
-                  href="/labs"
-                  onClick={() => setLibraryOpen(false)}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "12px",
-                    padding: "14px 18px",
-                    textDecoration: "none",
-                    background: "transparent",
-                    transition: "background 0.15s",
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(168,121,255,0.06)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                >
-                  <div
-                    style={{
-                      width: "32px",
-                      height: "32px",
-                      borderRadius: "8px",
-                      backgroundColor: "rgba(168,121,255,0.12)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexShrink: 0,
-                    }}
-                  >
-                    <FlaskConical size={16} color="#a879ff" />
-                  </div>
-                  <div>
-                    <div
-                      style={{
-                        fontSize: "13px",
-                        fontWeight: 800,
-                        fontFamily: "var(--font-mono)",
-                        letterSpacing: "0.06em",
-                        color: "#a879ff",
-                        textTransform: "uppercase",
-                      }}
-                    >
-                      🧪 Labs
-                    </div>
-                    <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginTop: "2px" }}>
-                      14 math experiments
-                    </div>
-                  </div>
-                </Link>
-              </div>
-            )}
+            <Link
+              href="/labs"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                padding: "7px 14px",
+                fontSize: "12px",
+                fontFamily: "var(--font-mono)",
+                fontWeight: 800,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                textDecoration: "none",
+                borderRadius: "6px",
+                border: "1px solid rgba(168,121,255,0.2)",
+                backgroundColor: "rgba(168,121,255,0.06)",
+                color: "#a879ff",
+                transition: "all 0.15s ease",
+              }}
+            >
+              <FlaskConical size={14} color="#a879ff" />
+              LABS
+            </Link>
           </div>
 
           {/* Quick Hardware Controls */}

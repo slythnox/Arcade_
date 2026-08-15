@@ -28,6 +28,7 @@ import { raySectorDefinition } from "./definitions/raySectorDefinition";
 import { pixelBrawlDefinition } from "./definitions/pixelBrawlDefinition";
 import { pixelCircuitDefinition } from "./definitions/pixelCircuitDefinition";
 import { dungeonQuestDefinition } from "./definitions/dungeonQuestDefinition";
+import { diamondRunDefinition } from "./definitions/diamondRun";
 
 // Tier 2 — Puzzle Games
 import { twentyFortyEightDefinition } from "./definitions/twentyFortyEight";
@@ -156,6 +157,7 @@ export const gameRegistry: readonly GameDefinition[] = [
   omegaRunDefinition,
   sokobanDefinition,
   logicGatesDefinition,
+  diamondRunDefinition,
 ];
 
 /** Games visible in the main ARCADE_ game library. */

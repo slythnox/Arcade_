@@ -8,9 +8,9 @@ export function rankGame(queryTokens: string[], game: GameDefinition): SearchRes
   const nameMatch = calculateFieldScore(queryTokens, game.name);
   const platformMatch = calculateFieldScore(queryTokens, game.platform);
   const genreMatch = calculateFieldScore(queryTokens, game.genre);
-  const descriptionMatch = calculateFieldScore(queryTokens, `${game.tagline} ${game.description}`);
-  const tagMatch = calculateFieldScore(queryTokens, game.tags.join(" "));
-  const yearMatch = queryTokens.some((t) => t === game.year.toString()) ? 1.0 : 0.0;
+  const descriptionMatch = calculateFieldScore(queryTokens, `${game.tagline || ""} ${game.description || ""}`);
+  const tagMatch = calculateFieldScore(queryTokens, game.tags ? game.tags.join(" ") : "");
+  const yearMatch = game.year && queryTokens.some((t) => t === game.year?.toString()) ? 1.0 : 0.0;
 
   const breakdown: SearchScoreBreakdown = {
     nameMatch,

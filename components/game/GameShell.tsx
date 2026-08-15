@@ -147,8 +147,23 @@ export const GameShell: React.FC<GameShellProps> = ({ gameSlug, mode = "arcade" 
       }
     });
 
+    const unsubscribeAudio = getAudioManager().subscribeMuteChange((muted) => {
+      setIsMuted(muted);
+    });
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.key === "m" || e.key === "M") {
+        e.preventDefault();
+        getAudioManager().toggleMute();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+
     return () => {
       cancelled = true;
+      unsubscribeAudio();
+      window.removeEventListener("keydown", handleKeyDown);
       if (engineRef.current) {
         engineRef.current.destroy();
         engineRef.current = null;
@@ -182,9 +197,7 @@ export const GameShell: React.FC<GameShellProps> = ({ gameSlug, mode = "arcade" 
   };
 
   const handleToggleMute = () => {
-    const audio = getAudioManager();
-    const muted = audio.toggleMute();
-    setIsMuted(muted);
+    getAudioManager().toggleMute();
   };
 
   // Virtual Touch Button Trigger for Mobile Controls

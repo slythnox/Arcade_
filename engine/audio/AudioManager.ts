@@ -33,6 +33,20 @@ export class AudioManager {
     return this.ctx;
   }
 
+  private muteListeners: Set<(muted: boolean) => void> = new Set();
+
+  public subscribeMuteChange(listener: (muted: boolean) => void): () => void {
+    this.muteListeners.add(listener);
+    listener(this.isMuted);
+    return () => {
+      this.muteListeners.delete(listener);
+    };
+  }
+
+  private notifyMuteListeners(): void {
+    this.muteListeners.forEach((listener) => listener(this.isMuted));
+  }
+
   public setVolume(vol: number): void {
     this.volume = Math.max(0, Math.min(1, vol));
     if (this.ctx && this.masterGain && !this.isMuted) {
@@ -49,6 +63,7 @@ export class AudioManager {
     if (this.ctx && this.masterGain) {
       this.masterGain.gain.setValueAtTime(muted ? 0 : this.volume, this.ctx.currentTime);
     }
+    this.notifyMuteListeners();
   }
 
   public toggleMute(): boolean {
