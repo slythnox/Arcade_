@@ -498,39 +498,47 @@ export class DiamondRunGame implements GameInstance {
     const canvasW = renderer.getWidth();
     const canvasH = renderer.getHeight();
 
-    const scaleX = canvasW / LOGICAL_WIDTH;
-    const scaleY = canvasH / LOGICAL_HEIGHT;
-
-    renderer.save();
-    renderer.scale(scaleX, scaleY);
+    // Preserve pixel aspect ratio & center viewport stage
+    const scale = Math.min(canvasW / LOGICAL_WIDTH, canvasH / LOGICAL_HEIGHT);
+    const stageOffsetX = Math.floor((canvasW - LOGICAL_WIDTH * scale) / 2);
+    const stageOffsetY = Math.floor((canvasH - LOGICAL_HEIGHT * scale) / 2);
 
     const pr = renderer as PixelRenderer;
     const palette = WORLD_PALETTES[this.currentWorld] || WORLD_PALETTES[1];
-    pr.clear(palette.bg);
+
+    // Clear outer background
+    pr.clear("#04060d");
+
+    renderer.save();
+    renderer.translate(stageOffsetX, stageOffsetY);
+    renderer.scale(scale, scale);
 
     const w = LOGICAL_WIDTH;
     const h = LOGICAL_HEIGHT;
 
+    // Draw inner canvas background
+    pr.drawRect(0, 0, w, h, palette.bg, true);
+
     if (this.gameState === "BOOT") {
       pr.drawRect(0, 0, w, h, "#04060c", true);
-      pr.drawText("DIAMOND RUN", w / 2, h / 2 - 10, { size: 28, color: "#FFD84D", align: "center" });
-      pr.drawText("2000s JAVA MOBILE CLASSICS ENGINE", w / 2, h / 2 + 20, { size: 11, color: "#4DE8E8", align: "center" });
+      pr.drawText("DIAMOND RUN", w / 2, h / 2 - 12, { size: 18, color: "#FFD84D", align: "center" });
+      pr.drawText("2000s JAVA MOBILE CLASSICS ENGINE", w / 2, h / 2 + 10, { size: 9, color: "#4DE8E8", align: "center" });
       renderer.restore();
       return;
     }
 
     if (this.gameState === "MENU") {
       pr.drawRect(0, 0, w, h, "#081020", true);
-      pr.drawText("DIAMOND RUN", w / 2, h / 2 - 40, { size: 36, color: "#FFD84D", align: "center" });
-      pr.drawText("ANCIENT TEMPLE EXPLORATION PUZZLE", w / 2, h / 2, { size: 12, color: "#63E66D", align: "center" });
-      pr.drawText("[ PRESS SPACE / Z TO START ]", w / 2, h / 2 + 50, { size: 14, color: "#4DE8E8", align: "center" });
+      pr.drawText("DIAMOND RUN", w / 2, h / 2 - 25, { size: 22, color: "#FFD84D", align: "center" });
+      pr.drawText("ANCIENT TEMPLE EXPLORATION PUZZLE", w / 2, h / 2, { size: 9, color: "#63E66D", align: "center" });
+      pr.drawText("[ PRESS Z / ENTER TO START ]", w / 2, h / 2 + 35, { size: 10, color: "#4DE8E8", align: "center" });
       renderer.restore();
       return;
     }
 
     if (this.gameState === "WORLD_SELECT") {
       pr.drawRect(0, 0, w, h, "#0a1224", true);
-      pr.drawText("SELECT WORLD", w / 2, 50, { size: 24, color: "#FFD84D", align: "center" });
+      pr.drawText("SELECT WORLD", w / 2, 22, { size: 14, color: "#FFD84D", align: "center" });
 
       const worldNames = [
         "WORLD 1 — ANCIENT RUINS",
@@ -541,41 +549,41 @@ export class DiamondRunGame implements GameInstance {
       ];
 
       worldNames.forEach((name, idx) => {
-        const y = 120 + idx * 45;
+        const y = 42 + idx * 22;
         const active = idx + 1 === this.currentWorld;
-        pr.drawRect(w / 2 - 160, y - 18, 320, 36, active ? "rgba(77, 232, 232, 0.2)" : "#101b30", true);
-        pr.drawRect(w / 2 - 160, y - 18, 320, 36, active ? "#4DE8E8" : "#233860", false);
-        pr.drawText(name, w / 2, y + 5, { size: 12, color: active ? "#FFFFFF" : "#94A3B8", align: "center" });
+        pr.drawRect(w / 2 - 110, y - 9, 220, 18, active ? "rgba(77, 232, 232, 0.25)" : "#101b30", true);
+        pr.drawRect(w / 2 - 110, y - 9, 220, 18, active ? "#4DE8E8" : "#233860", false);
+        pr.drawText(name, w / 2, y + 3, { size: 10, color: active ? "#FFFFFF" : "#94A3B8", align: "center" });
       });
 
-      pr.drawText("[ PRESS Z TO SELECT WORLD ]", w / 2, h - 30, { size: 11, color: "#63E66D", align: "center" });
+      pr.drawText("[ ↑/↓ CHOOSE  •  Z / ENTER SELECT ]", w / 2, 162, { size: 9, color: "#63E66D", align: "center" });
       renderer.restore();
       return;
     }
 
     if (this.gameState === "LEVEL_SELECT") {
       pr.drawRect(0, 0, w, h, "#0a1224", true);
-      pr.drawText(`WORLD ${this.currentWorld} — LEVEL SELECT`, w / 2, 40, { size: 20, color: "#FFD84D", align: "center" });
+      pr.drawText(`WORLD ${this.currentWorld} — LEVEL SELECT`, w / 2, 22, { size: 13, color: "#FFD84D", align: "center" });
 
       const startIdx = (this.currentWorld - 1) * 5;
       for (let i = 0; i < 5; i++) {
         const lvlIdx = startIdx + i;
         const lvlData = LEVELS[lvlIdx];
-        const y = 110 + i * 45;
+        const y = 42 + i * 22;
         const unlocked = this.unlockedLevels[lvlIdx];
         const active = lvlIdx === this.currentLevelIdx;
 
-        pr.drawRect(w / 2 - 180, y - 18, 360, 36, active ? "rgba(255, 216, 77, 0.2)" : "#101b30", true);
-        pr.drawRect(w / 2 - 180, y - 18, 360, 36, active ? "#FFD84D" : "#233860", false);
+        pr.drawRect(w / 2 - 120, y - 9, 240, 18, active ? "rgba(255, 216, 77, 0.25)" : "#101b30", true);
+        pr.drawRect(w / 2 - 120, y - 9, 240, 18, active ? "#FFD84D" : "#233860", false);
         pr.drawText(
-          `${unlocked ? "✓" : "🔒"} LVL ${lvlIdx + 1}: ${lvlData ? lvlData.title : "Chamber"}`,
+          `${unlocked ? "▶" : "🔒"} LEVEL ${lvlIdx + 1}: ${lvlData ? lvlData.title : "Chamber"}`,
           w / 2,
-          y + 5,
-          { size: 12, color: unlocked ? "#FFFFFF" : "#64748B", align: "center" }
+          y + 3,
+          { size: 10, color: active ? "#FFD84D" : unlocked ? "#FFFFFF" : "#64748B", align: "center" }
         );
       }
 
-      pr.drawText("[ PRESS Z TO START LEVEL ]", w / 2, h - 30, { size: 11, color: "#4DE8E8", align: "center" });
+      pr.drawText("[ ↑/↓ CHOOSE  •  Z / ENTER PLAY ]", w / 2, 162, { size: 9, color: "#4DE8E8", align: "center" });
       renderer.restore();
       return;
     }
