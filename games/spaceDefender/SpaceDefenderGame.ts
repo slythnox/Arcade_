@@ -3,6 +3,7 @@ import type { GameContext } from "../../engine/GameContext";
 import type { Renderer } from "../../engine/rendering/Renderer";
 import type { PixelRenderer } from "../../engine/rendering/PixelRenderer";
 import type { GameAction } from "../../core/types/game";
+import { globalParticles } from "../../engine/particles/ParticleSystem";
 
 interface Bullet {
   x: number;
@@ -77,6 +78,7 @@ export class SpaceDefenderGame implements GameInstance {
   }
 
   public update(dt: number): void {
+    globalParticles.update(dt);
     if (this.gameOver || this.isPaused) return;
 
     // Move player
@@ -99,8 +101,12 @@ export class SpaceDefenderGame implements GameInstance {
           if (a.alive && Math.abs(b.x - a.x) < 22 && Math.abs(b.y - a.y) < 18) {
             a.alive = false;
             this.bullets.splice(i, 1);
-            this.score += (4 - a.row) * 100;
+            const pts = (4 - a.row) * 100;
+            this.score += pts;
             this.ctx.audio.playExplosion();
+
+            globalParticles.emitBurst(a.x, a.y, 20, ["#00F0FF", "#FF5C8A", "#FFD700", "#ffffff"], 80, 260);
+            globalParticles.emitText(`+${pts}`, a.x, a.y - 12, "#FFD700", 14);
             break;
           }
         }
@@ -212,6 +218,9 @@ export class SpaceDefenderGame implements GameInstance {
     // Draw Player Cannon
     pr.drawPixelBlock(this.playerX - 22, 615, 44, "#00FF66", "#FFFFFF", "#047857");
     pr.drawRect(this.playerX - 4, 600, 8, 15, "#00FF66", true);
+
+    // Render Particles & Text Popups
+    globalParticles.render(pr);
 
     // Top status
     pr.drawText(`SCORE: ${this.score}  •  LEVEL: ${this.level}  •  LIVES: ${this.lives}`, w / 2, 28, {

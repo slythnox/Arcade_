@@ -5,6 +5,7 @@ import type { PixelRenderer } from "../../engine/rendering/PixelRenderer";
 import type { GameAction } from "../../core/types/game";
 import type { GridCoord } from "../../core/types/geometry";
 import { getNextSnakeAIMove } from "./SnakeAI";
+import { globalParticles } from "../../engine/particles/ParticleSystem";
 
 export class SnakeGame implements GameInstance {
   private ctx!: GameContext;
@@ -72,23 +73,19 @@ export class SnakeGame implements GameInstance {
     }
   }
 
-  public update(deltaTime: number): void {
+  public update(dt: number): void {
+    globalParticles.update(dt);
     if (this.gameOver || this.isPaused) return;
 
+    this.moveTimer += dt;
+
     if (this.isAIMode) {
-      const aiMove = getNextSnakeAIMove(
-        this.body[0],
-        this.food,
-        this.body,
-        this.cols,
-        this.rows
-      );
-      if (aiMove) {
-        this.handleDirectionInput(aiMove);
-      }
+      const aiDir = getNextSnakeAIMove(this.body[0], this.food, this.body, this.cols, this.rows);
+      if (aiDir) this.direction = aiDir;
+    } else {
+      this.direction = this.nextDirection;
     }
 
-    this.moveTimer += deltaTime;
     if (this.moveTimer >= this.moveInterval) {
       this.moveTimer = 0;
       this.step();
@@ -96,7 +93,6 @@ export class SnakeGame implements GameInstance {
   }
 
   private step(): void {
-    this.direction = this.nextDirection;
     const head = this.body[0];
     const newHead: GridCoord = {
       col: head.col + this.direction.col,
@@ -126,12 +122,28 @@ export class SnakeGame implements GameInstance {
 
     // Food collision
     if (newHead.col === this.food.col && newHead.row === this.food.row) {
-      this.score += 100 * this.level;
+      const inc = 100 * this.level;
+      this.score += inc;
       this.ctx.audio.playCoin();
       if (this.score % 500 === 0) {
         this.level++;
         this.moveInterval = Math.max(0.05, 0.12 - (this.level - 1) * 0.01);
       }
+      globalParticles.emitBurst(
+        (this.food.col + 0.5) * 29 + 10,
+        (this.food.row + 0.5) * 29 + 16,
+        18,
+        ["#ffd84d", "#63e66d", "#ffffff"],
+        60,
+        220
+      );
+      globalParticles.emitText(
+        `+${inc}`,
+        (this.food.col + 0.5) * 29 + 10,
+        this.food.row * 29 + 10,
+        "#ffd84d",
+        16
+      );
       this.spawnFood();
     } else {
       this.body.pop();
@@ -227,7 +239,7 @@ export class SnakeGame implements GameInstance {
     const foodY = offY + this.food.row * cellSize;
     pr.drawPixelBlock(foodX, foodY, cellSize, "#FFB703", "#FFFBEB", "#B45309");
 
-    // Draw Snake Body with bold neon bevels
+    // Draw Snake Body with bold neon bevels and eyes on head
     this.body.forEach((seg, idx) => {
       const sx = offX + seg.col * cellSize;
       const sy = offY + seg.row * cellSize;
@@ -238,7 +250,24 @@ export class SnakeGame implements GameInstance {
       const shadowColor = "#047857";
 
       pr.drawPixelBlock(sx, sy, cellSize, baseColor, highlightColor, shadowColor);
+
+      if (isHead) {
+        // Draw eyes pointing in direction of motion
+        const eyeOffset = 6;
+        const e1X = sx + (this.direction.row !== 0 ? 6 : (this.direction.col > 0 ? 18 : 6));
+        const e1Y = sy + (this.direction.col !== 0 ? 6 : (this.direction.row > 0 ? 18 : 6));
+        const e2X = sx + (this.direction.row !== 0 ? 18 : (this.direction.col > 0 ? 18 : 6));
+        const e2Y = sy + (this.direction.col !== 0 ? 18 : (this.direction.row > 0 ? 18 : 6));
+
+        pr.drawRect(e1X, e1Y, 5, 5, "#000000", true);
+        pr.drawRect(e2X, e2Y, 5, 5, "#000000", true);
+        pr.drawRect(e1X + 1, e1Y + 1, 2, 2, "#FFFFFF", true);
+        pr.drawRect(e2X + 1, e2Y + 1, 2, 2, "#FFFFFF", true);
+      }
     });
+
+    // Render Global Particles & Score Popups
+    globalParticles.render(pr);
 
     // AI Autopilot Floating Indicator
     if (this.isAIMode) {

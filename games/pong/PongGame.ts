@@ -5,8 +5,9 @@ import type { PixelRenderer } from "../../engine/rendering/PixelRenderer";
 import type { GameAction } from "../../core/types/game";
 import { Vector2 } from "../../core/math/vector";
 import type { Rectangle } from "../../core/types/geometry";
-import { clamp } from "../../core/utils";
+import { clamp } from "../../core/math/interpolation";
 import { calculatePongPaddleReflection } from "./PongPhysics";
+import { globalParticles } from "../../engine/particles/ParticleSystem";
 
 export class PongGame implements GameInstance {
   private ctx!: GameContext;
@@ -73,6 +74,7 @@ export class PongGame implements GameInstance {
   }
 
   public update(deltaTime: number): void {
+    globalParticles.update(deltaTime);
     if (this.gameOver || this.isPaused) return;
 
     if (this.serveTimer > 0) {
@@ -136,6 +138,14 @@ export class PongGame implements GameInstance {
         true
       );
       this.ctx.audio.playHit();
+      globalParticles.emitBurst(
+        this.playerPaddle.x + this.playerPaddle.width,
+        this.ballPos.y,
+        14,
+        ["#00F0FF", "#ffffff"],
+        60,
+        200
+      );
     }
 
     // AI paddle collision (Right side)
@@ -155,6 +165,14 @@ export class PongGame implements GameInstance {
         false
       );
       this.ctx.audio.playHit();
+      globalParticles.emitBurst(
+        this.aiPaddle.x,
+        this.ballPos.y,
+        14,
+        ["#FF007F", "#ffffff"],
+        60,
+        200
+      );
     }
 
     // Scoring conditions
@@ -256,6 +274,9 @@ export class PongGame implements GameInstance {
       color: "#FFB703",
       align: "center",
     });
+
+    // Render Particles & Score Text Popups
+    globalParticles.render(pr);
 
     // Game Over Overlay
     if (this.gameOver) {

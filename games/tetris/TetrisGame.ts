@@ -8,6 +8,7 @@ import type { TetrominoType} from "./TetrisPiece";
 import { TetrisPiece, TETROMINO_SHAPES } from "./TetrisPiece";
 import { tryRotateSRS } from "./TetrisRotation";
 import { calculateLineScore, getGravityForLevel } from "./TetrisScoring";
+import { globalParticles } from "../../engine/particles/ParticleSystem";
 
 export class TetrisGame implements GameInstance {
   private ctx!: GameContext;
@@ -93,10 +94,11 @@ export class TetrisGame implements GameInstance {
   }
 
   public update(deltaTime: number): void {
-    if (this.gameOver || this.isPaused || !this.currentPiece) return;
+    globalParticles.update(deltaTime);
+    if (this.gameOver || this.isPaused) return;
 
-    const gravity = getGravityForLevel(this.level);
     this.dropTimer += deltaTime;
+    const gravity = Math.max(0.05, 1.0 - (this.level - 1) * 0.08);
 
     if (this.dropTimer >= gravity) {
       this.dropTimer = 0;
@@ -148,6 +150,18 @@ export class TetrisGame implements GameInstance {
       this.score += pts;
       this.level = Math.floor(this.lines / 10) + 1;
       this.ctx.audio.playLineClear();
+
+      const textLabel = clearedRows.length === 4 ? "TETRIS! +1200" : `+${pts}`;
+      const rowY = clearedRows[0] ? clearedRows[0] * 29 + 100 : 300;
+      globalParticles.emitBurst(
+        300,
+        rowY,
+        clearedRows.length * 16,
+        ["#00F0FF", "#F0A000", "#F00000", "#00F000", "#ffffff"],
+        80,
+        260
+      );
+      globalParticles.emitText(textLabel, 300, rowY - 20, "#FFD700", 22);
     }
 
     this.spawnNextPiece();
@@ -411,6 +425,9 @@ export class TetrisGame implements GameInstance {
     pr.drawText("↑ / Z : ROTATE", previewX + 12, ctrlY + 70, { size: 11, color: "#A3B3A3" });
     pr.drawText("SPACE : HARD DROP", previewX + 12, ctrlY + 92, { size: 11, color: "#A3B3A3" });
     pr.drawText("C / SHIFT : HOLD", previewX + 12, ctrlY + 114, { size: 11, color: "#A3B3A3" });
+
+    // Render Global Particle Explosions & Score Popups
+    globalParticles.render(pr);
 
     // Game Over Overlay
     if (this.gameOver) {

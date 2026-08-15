@@ -1,4 +1,5 @@
-import { clamp } from "../utils";
+import { clamp } from "../utils/index";
+export { clamp };
 
 /**
  * Standard linear interpolation.

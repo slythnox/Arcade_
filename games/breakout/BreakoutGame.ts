@@ -5,10 +5,10 @@ import type { PixelRenderer } from "../../engine/rendering/PixelRenderer";
 import type { GameAction } from "../../core/types/game";
 import { Vector2 } from "../../core/math/vector";
 import type { Rectangle } from "../../core/types/geometry";
-import { clamp } from "../../core/utils";
-import { calculatePaddleReflection, testBallBrickCollision } from "./BreakoutPhysics";
-import type { Brick} from "./BreakoutLevel";
-import { generateBreakoutLevel } from "./BreakoutLevel";
+import { clamp } from "../../core/math/interpolation";
+import { testBallBrickCollision, calculatePaddleReflection } from "./BreakoutPhysics";
+import { generateBreakoutLevel, type Brick } from "./BreakoutLevel";
+import { globalParticles } from "../../engine/particles/ParticleSystem";
 
 export class BreakoutGame implements GameInstance {
   private ctx!: GameContext;
@@ -88,6 +88,7 @@ export class BreakoutGame implements GameInstance {
   }
 
   public update(deltaTime: number): void {
+    globalParticles.update(deltaTime);
     if (this.gameOver || this.isPaused) return;
 
     // Move paddle
@@ -167,8 +168,19 @@ export class BreakoutGame implements GameInstance {
 
       if (test.hit) {
         brick.destroyed = true;
-        this.score += brick.points * this.level;
+        const pts = brick.points * this.level;
+        this.score += pts;
         this.ctx.audio?.playCoin?.();
+
+        globalParticles.emitBurst(
+          brick.x + brick.width / 2,
+          brick.y + brick.height / 2,
+          12,
+          [brick.color || "#FF5C8A", "#FFD700", "#ffffff"],
+          50,
+          200
+        );
+        globalParticles.emitText(`+${pts}`, brick.x + brick.width / 2, brick.y, "#FFD700", 14);
 
         // Reflect ball off collision normal
         if (test.normal.x !== 0) {
@@ -299,6 +311,9 @@ export class BreakoutGame implements GameInstance {
         align: "center",
       });
     }
+
+    // Render Particles & Floating Text
+    globalParticles.render(pr);
 
     // Game Over Overlay
     if (this.gameOver) {
