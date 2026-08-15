@@ -1,18 +1,16 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { Volume2, VolumeX, Maximize2, Minimize2, ChevronDown, Gamepad2, FlaskConical } from "lucide-react";
+import { Volume2, VolumeX, Maximize2, Minimize2 } from "lucide-react";
 import { getAudioManager } from "@/engine/audio/AudioManager";
-import { loadPlayerSettings, savePlayerSettings } from "@/lib/storage/settings";
+import { savePlayerSettings } from "@/lib/storage/settings";
 import { SteamLaunchOverlay } from "@/components/game/SteamLaunchOverlay";
 
 export const SiteHeader: React.FC = () => {
   const [isMuted, setIsMuted] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showSteamTransition, setShowSteamTransition] = useState(false);
-  const [libraryOpen, setLibraryOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const unsubscribeAudio = getAudioManager().subscribeMuteChange((muted) => {
@@ -104,33 +102,6 @@ export const SiteHeader: React.FC = () => {
               ARCADE<span style={{ color: "var(--arcade-pink)" }}>_</span>
             </span>
           </Link>
-
-          {/* Centre nav — Direct Links */}
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <Link
-              href="/games"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "6px",
-                padding: "7px 14px",
-                fontSize: "12px",
-                fontFamily: "var(--font-mono)",
-                fontWeight: 800,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                textDecoration: "none",
-                borderRadius: "6px",
-                border: "1px solid rgba(255,216,77,0.2)",
-                backgroundColor: "rgba(255,216,77,0.06)",
-                color: "#ffd84d",
-                transition: "all 0.15s ease",
-              }}
-            >
-              <Gamepad2 size={14} color="#ffd84d" />
-              GAMES (60)
-            </Link>
-          </div>
 
           {/* Quick Hardware Controls */}
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
