@@ -77,5 +77,5 @@ Provides clean navigational breadcrumb trails in Google Search results:
 
 `sitemap.ts` dynamically maps the entire repository into a standardized XML sitemap:
 - High priority ($1.0$) for the homepage `/`
-- Priority $0.8$ for all 62 `/games/{slug}` routes
+- Priority $0.8$ for all 61 `/games/{slug}` routes
 - Priority $0.7$ for `/about` and `/faq`

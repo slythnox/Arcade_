@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **HOTLAP (`hotlap`):** High-precision Formula time-trial racer with 2D vector tire kinematics ($v_{\text{long}}, v_{\text{lat}}$), 10 distinct circuits, Catmull-Rom spline arc-length projection, 20Hz ghost replays, live $\pm\Delta$ timing HUD, crash barrier mechanics, and 8-way mobile touch controls.
-- **62 Verified Game Cartridges:** Complete library spanning Classics, Action, Racing, Platformers, Physics, Shooters, Strategy, and Experimental Labs.
+- **61 verified Game Cartridges:** Complete library spanning Classics, Action, Racing, Platformers, Physics, Shooters, Strategy, and Experimental Labs.
 - **Custom Deterministic 2D Engine:**
   - `GameLoop`: 60Hz fixed accumulator with delta clamping to prevent lag spirals.
   - `PixelRenderer`: Quantized integer grid rendering with retro bevel lighting.
@@ -23,8 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Mobile Controls:**
   - 8-Way & 4-Way radial directional touch navigation dial with directional vector chevrons and pointer capture.
   - Dual action button cluster (A, B, ROT) with 75/25 responsive screen ratio.
-- **Client-Side Fuzzy Search:** Multi-attribute weighted ranking engine with normalized Levenshtein similarity across 62 cartridges.
-- **Automated Test Suite:** Vitest test suite with 230 passing tests (62 cartridge smoke tests, input fuzzing, physics safety, and math unit tests).
+- **Client-Side Fuzzy Search:** Multi-attribute weighted ranking engine with normalized Levenshtein similarity across 61 cartridges.
+- **Automated Test Suite:** Vitest test suite with 227 passing tests (61 cartridge smoke tests, input fuzzing, physics safety, and math unit tests).
 - **SEO & Schema.org Markup:** Dynamic OpenGraph metadata, `SoftwareApplication` JSON-LD schemas, breadcrumbs, and automated XML sitemap.
 - **Comprehensive Documentation Suite:** Complete technical architecture docs, engine internals, mathematical derivations, design system, and contribution guides.
 

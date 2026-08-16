@@ -7,7 +7,7 @@ import type { GameAction } from "../../core/types/game";
 enum Tile {
   EMPTY = 0,
   SOIL = 1,
-  ROCK = 2
+  ROCK = 2,
 }
 
 interface Enemy {
@@ -19,239 +19,353 @@ interface Enemy {
   moveTimer: number;
 }
 
+interface Particle {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;
+  color: string;
+}
+
 export class CaveHunterGame implements GameInstance {
   private ctx!: GameContext;
   private isPaused: boolean = false;
   private gameOver: boolean = false;
+  private isWon: boolean = false;
   private score: number = 0;
   private level: number = 1;
   private lives: number = 3;
-  
+
   private grid: Tile[][] = [];
-  private cols = 20;
-  private rows = 14;
-  private tileSize = 32;
-  
-  private playerX: number = 0;
-  private playerY: number = 0;
-  private playerMoveTimer: number = 0;
-  
+  private readonly cols = 18;
+  private readonly rows = 18;
+  private readonly tileSize = 32;
+
+  private playerX: number = 9;
+  private playerY: number = 2;
+  private playerFacing: "left" | "right" | "up" | "down" = "right";
+
   private enemies: Enemy[] = [];
-  
-  private rockFallTimers: Map<string, number> = new Map();
-  
+  private particles: Particle[] = [];
+  private animTime: number = 0;
+
   public init(ctx: GameContext): void {
     this.ctx = ctx;
     this.reset();
   }
-  
+
   public reset(seed?: number): void {
     if (seed !== undefined) this.ctx.random.reset(seed);
     this.isPaused = false;
     this.gameOver = false;
+    this.isWon = false;
     this.score = 0;
     this.level = 1;
     this.lives = 3;
+    this.particles = [];
     this.loadLevel();
   }
-  
+
   private loadLevel(): void {
     this.grid = [];
     for (let r = 0; r < this.rows; r++) {
-      this.grid[r] = [];
+      const row: Tile[] = [];
       for (let c = 0; c < this.cols; c++) {
-        if (r < 2) this.grid[r][c] = Tile.EMPTY;
-        else this.grid[r][c] = (this.ctx.random.nextFloat() < 0.1) ? Tile.ROCK : Tile.SOIL;
+        if (r === 0) row.push(Tile.EMPTY); // Sky surface
+        else row.push(Tile.SOIL);
       }
+      this.grid.push(row);
     }
-    
-    this.playerX = 10;
+
+    // Starting player tunnel
+    this.playerX = 9;
     this.playerY = 1;
-    
+    this.grid[1][9] = Tile.EMPTY;
+    this.grid[2][9] = Tile.EMPTY;
+
+    // Scatter rocks
+    for (let i = 0; i < 4; i++) {
+      const rx = Math.floor(this.ctx.random.next() * (this.cols - 2)) + 1;
+      const ry = Math.floor(this.ctx.random.next() * (this.rows - 6)) + 3;
+      this.grid[ry][rx] = Tile.ROCK;
+    }
+
+    // Spawn enemies in pre-dug pockets
     this.enemies = [];
-    const numEnemies = 3 + this.level;
-    for (let i = 0; i < numEnemies; i++) {
-      const ex = Math.floor(this.ctx.random.nextFloat() * this.cols);
-      const ey = 3 + Math.floor(this.ctx.random.nextFloat() * (this.rows - 3));
-      this.grid[ey][ex] = Tile.EMPTY; // Clear spawn
+    const count = 3 + Math.min(4, this.level);
+    for (let i = 0; i < count; i++) {
+      const ex = Math.floor(this.ctx.random.next() * (this.cols - 4)) + 2;
+      const ey = Math.floor(this.ctx.random.next() * (this.rows - 6)) + 4;
+      this.grid[ey][ex] = Tile.EMPTY;
+      this.grid[ey][Math.min(this.cols - 1, ex + 1)] = Tile.EMPTY;
       this.enemies.push({
-        x: ex, y: ey, dirX: 1, dirY: 0, inflation: 0, moveTimer: 0
+        x: ex,
+        y: ey,
+        dirX: 1,
+        dirY: 0,
+        inflation: 0,
+        moveTimer: 0,
       });
     }
   }
-  
-  public update(deltaTime: number): void {
-    if (this.isPaused || this.gameOver) return;
-    
-    // Deflate enemies
+
+  private addParticles(x: number, y: number, color: string, count = 8): void {
+    for (let i = 0; i < count; i++) {
+      const ang = this.ctx.random.next() * Math.PI * 2;
+      const spd = 30 + this.ctx.random.next() * 90;
+      this.particles.push({
+        x,
+        y,
+        vx: Math.cos(ang) * spd,
+        vy: Math.sin(ang) * spd,
+        life: 0.4,
+        color,
+      });
+    }
+  }
+
+  public update(dt: number): void {
+    if (this.gameOver || this.isWon || this.isPaused) return;
+    this.animTime += dt;
+
+    // Deflate enemies over time
     for (const e of this.enemies) {
       if (e.inflation > 0) {
-        e.inflation -= deltaTime * 0.5;
-        if (e.inflation < 0) e.inflation = 0;
+        e.inflation = Math.max(0, e.inflation - dt * 0.8);
       } else {
-        // Move enemy
-        e.moveTimer += deltaTime;
-        if (e.moveTimer > 0.5) {
+        // Enemy AI movement
+        e.moveTimer += dt;
+        if (e.moveTimer >= 0.45) {
           e.moveTimer = 0;
-          // Simple wandering through empty tiles
-          const dirs = [{x:1,y:0}, {x:-1,y:0}, {x:0,y:1}, {x:0,y:-1}];
-          this.ctx.random.shuffle(dirs);
-          for (const d of dirs) {
-            const nx = e.x + d.x;
-            const ny = e.y + d.y;
-            if (nx >= 0 && nx < this.cols && ny >= 0 && ny < this.rows && this.grid[ny][nx] === Tile.EMPTY) {
+          const dirs = [
+            { x: 1, y: 0 },
+            { x: -1, y: 0 },
+            { x: 0, y: 1 },
+            { x: 0, y: -1 },
+          ];
+          const d = dirs[Math.floor(this.ctx.random.next() * dirs.length)];
+          const nx = e.x + d.x;
+          const ny = e.y + d.y;
+
+          if (nx >= 0 && nx < this.cols && ny >= 1 && ny < this.rows) {
+            // Can move freely in dug tunnels or slowly burrow through soil
+            if (this.grid[ny][nx] !== Tile.ROCK) {
               e.x = nx;
               e.y = ny;
-              break;
             }
           }
         }
       }
-    }
-    
-    // Player - Enemy collision
-    for (const e of this.enemies) {
-      if (e.x === this.playerX && e.y === this.playerY && e.inflation === 0) {
-        this.die();
-        return;
-      }
-    }
-    
-    // Rock falling
-    for (let r = this.rows - 2; r >= 0; r--) {
-      for (let c = 0; c < this.cols; c++) {
-        if (this.grid[r][c] === Tile.ROCK) {
-          if (this.grid[r+1][c] === Tile.EMPTY) {
-            const key = `${c},${r}`;
-            let t = this.rockFallTimers.get(key) || 0;
-            t += deltaTime;
-            if (t > 0.5) {
-              this.grid[r][c] = Tile.EMPTY;
-              this.grid[r+1][c] = Tile.ROCK;
-              this.rockFallTimers.delete(key);
-              
-              // Crush check
-              if (this.playerX === c && this.playerY === r+1) {
-                this.die();
-                return;
-              }
-              for (let i = this.enemies.length - 1; i >= 0; i--) {
-                const e = this.enemies[i];
-                if (e.x === c && e.y === r+1) {
-                  this.enemies.splice(i, 1);
-                  this.score += 1000;
-                }
-              }
-              
-            } else {
-              this.rockFallTimers.set(key, t);
-            }
-          }
+
+      // Check collision with player
+      if (e.inflation === 0 && e.x === this.playerX && e.y === this.playerY) {
+        this.lives--;
+        this.ctx.audio.playExplosion();
+        if (this.lives <= 0) {
+          this.gameOver = true;
+          this.ctx.session.setStatus("game-over");
+        } else {
+          this.playerX = 9;
+          this.playerY = 1;
         }
       }
     }
-    
+
+    // Check level win
     if (this.enemies.length === 0) {
+      this.isWon = true;
+      this.score += 2500 * this.level;
+      this.ctx.audio.playVictory();
       this.level++;
-      this.loadLevel();
+      setTimeout(() => this.loadLevel(), 1500);
+    }
+
+    // Update Particles
+    for (let i = this.particles.length - 1; i >= 0; i--) {
+      const p = this.particles[i];
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.life -= dt;
+      if (p.life <= 0) this.particles.splice(i, 1);
     }
   }
-  
-  private die(): void {
-    this.lives--;
-    this.ctx.audio.playGameOver();
-    if (this.lives <= 0) {
-      this.gameOver = true;
-      this.ctx.session.setStatus("game-over");
-    } else {
-      this.playerX = 10;
-      this.playerY = 1;
-    }
-  }
-  
+
   public handleInput(action: GameAction, isPressed: boolean): void {
-    if (!isPressed || this.gameOver || this.isPaused) return;
-    
-    const tryMove = (dx: number, dy: number) => {
+    if (!isPressed || this.gameOver || this.isPaused) {
+      if (action === "RESTART" && isPressed) this.reset();
+      return;
+    }
+
+    const tryMove = (dx: number, dy: number, facing: "left" | "right" | "up" | "down") => {
+      this.playerFacing = facing;
       const nx = this.playerX + dx;
       const ny = this.playerY + dy;
-      if (nx >= 0 && nx < this.cols && ny >= 0 && ny < this.rows) {
+
+      if (nx >= 0 && nx < this.cols && ny >= 1 && ny < this.rows) {
         if (this.grid[ny][nx] !== Tile.ROCK) {
-          this.grid[ny][nx] = Tile.EMPTY;
+          if (this.grid[ny][nx] === Tile.SOIL) {
+            this.grid[ny][nx] = Tile.EMPTY;
+            this.score += 20;
+            const ox = 12 + nx * this.tileSize + 16;
+            const oy = 64 + ny * this.tileSize + 16;
+            this.addParticles(ox, oy, "#B45309", 4);
+          }
           this.playerX = nx;
           this.playerY = ny;
           this.ctx.audio.playMove();
         }
       }
     };
-    
+
     switch (action) {
-      case "MOVE_LEFT": tryMove(-1, 0); break;
-      case "MOVE_RIGHT": tryMove(1, 0); break;
-      case "MOVE_UP": tryMove(0, -1); break;
-      case "MOVE_DOWN": tryMove(0, 1); break;
+      case "MOVE_LEFT": tryMove(-1, 0, "left"); break;
+      case "MOVE_RIGHT": tryMove(1, 0, "right"); break;
+      case "MOVE_UP": tryMove(0, -1, "up"); break;
+      case "MOVE_DOWN": tryMove(0, 1, "down"); break;
       case "ACTION_PRIMARY":
-        // Inflate enemy in adjacent cell
+        // Pump hose forward
+        let hx = this.playerX;
+        let hy = this.playerY;
+        if (this.playerFacing === "left") hx--;
+        if (this.playerFacing === "right") hx++;
+        if (this.playerFacing === "up") hy--;
+        if (this.playerFacing === "down") hy++;
+
         for (const e of this.enemies) {
-          const dist = Math.abs(e.x - this.playerX) + Math.abs(e.y - this.playerY);
-          if (dist === 1) {
+          if (e.x === hx && e.y === hy) {
             e.inflation += 1.0;
-            this.ctx.audio.playRotate();
-            if (e.inflation >= 3) {
-              this.enemies = this.enemies.filter(en => en !== e);
-              this.score += 400;
-              this.ctx.audio.playLineClear();
+            this.ctx.audio.playHit();
+            const ox = 12 + e.x * this.tileSize + 16;
+            const oy = 64 + e.y * this.tileSize + 16;
+            this.addParticles(ox, oy, "#FFD84D", 6);
+
+            if (e.inflation >= 3.0) {
+              this.enemies = this.enemies.filter((en) => en !== e);
+              this.score += 500;
+              this.addParticles(ox, oy, "#EF4444", 16);
+              this.ctx.audio.playExplosion();
             }
             break;
           }
         }
         break;
+      case "RESTART":
+        this.reset();
+        break;
     }
   }
-  
-  public render(renderer: Renderer): void {
-    const pr = renderer as PixelRenderer;
-    pr.clear("#000");
-    
-    const ox = (pr.getWidth() - this.cols * this.tileSize) / 2;
-    const oy = (pr.getHeight() - this.rows * this.tileSize) / 2 + 20;
-    
-    for (let r = 0; r < this.rows; r++) {
-      for (let c = 0; c < this.cols; c++) {
-        const x = ox + c * this.tileSize;
-        const y = oy + r * this.tileSize;
-        if (this.grid[r][c] === Tile.SOIL) {
-          pr.drawPixelBlock(x, y, this.tileSize, "#8B4513", "#A0522D", "#5C2E0B");
-        } else if (this.grid[r][c] === Tile.ROCK) {
-          pr.drawPixelBlock(x, y, this.tileSize, "#696969", "#808080", "#404040");
-        }
-      }
-    }
-    
-    // Player
-    pr.drawPixelBlock(ox + this.playerX * this.tileSize + 4, oy + this.playerY * this.tileSize + 4, 24, "#0F0", "#5F5", "#050");
-    
-    // Enemies
-    for (const e of this.enemies) {
-      let color = "#F00";
-      if (e.inflation > 1) color = "#F55";
-      if (e.inflation > 2) color = "#FAA";
-      pr.drawPixelBlock(ox + e.x * this.tileSize + 4, oy + e.y * this.tileSize + 4, 24 + e.inflation*2, color);
-    }
-    
-    pr.drawText(`Score: ${this.score}`, 10, 20, { size: 16, color: "#FFF" });
-    pr.drawText(`Lives: ${this.lives}`, pr.getWidth() - 100, 20, { size: 16, color: "#FFF" });
-    pr.drawText(`Level: ${this.level}`, pr.getWidth() / 2, 20, { size: 16, color: "#FFF", align: "center" });
-    
-    if (this.gameOver) {
-      pr.drawText("GAME OVER", pr.getWidth() / 2, pr.getHeight() / 2, { size: 32, color: "#F00", align: "center" });
-    }
-  }
-  
+
   public pause(): void { this.isPaused = true; }
   public resume(): void { this.isPaused = false; }
   public destroy(): void {}
   public getScore(): number { return this.score; }
   public getLevel(): number { return this.level; }
   public getLives(): number { return this.lives; }
+
+  public render(renderer: Renderer): void {
+    const pr = renderer as PixelRenderer;
+    pr.clear("#040714");
+
+    const w = renderer.getWidth();
+    const h = renderer.getHeight();
+
+    const ox = 12;
+    const oy = 64;
+
+    // 1. Sky Surface Layer (Row 0)
+    pr.drawRect(ox, oy, this.cols * this.tileSize, this.tileSize, "#0284C7", true);
+    pr.drawCircle(ox + 40, oy + 16, 12, "#FEF08A", true); // Sun
+
+    // 2. Underground Soil Strata Layers
+    for (let r = 1; r < this.rows; r++) {
+      for (let c = 0; c < this.cols; c++) {
+        const x = ox + c * this.tileSize;
+        const y = oy + r * this.tileSize;
+        const tile = this.grid[r][c];
+
+        if (tile === Tile.SOIL) {
+          // 4 Underground Strata Colors (Yellow-Orange, Orange, Rust, Deep Brown)
+          let soilBase = "#d97706";
+          let soilHigh = "#fde68a";
+          let soilShad = "#78350f";
+
+          if (r > 13) {
+            soilBase = "#451a03";
+            soilHigh = "#78350f";
+            soilShad = "#1c0a00";
+          } else if (r > 9) {
+            soilBase = "#9a3412";
+            soilHigh = "#fdba74";
+            soilShad = "#431407";
+          } else if (r > 5) {
+            soilBase = "#b45309";
+            soilHigh = "#fcd34d";
+            soilShad = "#78350f";
+          }
+
+          pr.drawPixelBlock(x, y, this.tileSize, soilBase, soilHigh, soilShad);
+        } else if (tile === Tile.ROCK) {
+          // Bolder Rock
+          pr.drawPixelBlock(x + 2, y + 2, this.tileSize - 4, "#64748B", "#94A3B8", "#1E293B");
+          pr.drawCircle(x + this.tileSize / 2, y + this.tileSize / 2, 6, "#334155", true);
+        } else {
+          // Dug Out Tunnel
+          pr.drawRect(x, y, this.tileSize, this.tileSize, "#080e1c", true);
+        }
+      }
+    }
+
+    // 3. Particles
+    for (const p of this.particles) {
+      pr.drawCircle(p.x, p.y, 2, p.color, true);
+    }
+
+    // 4. Draw Enemies (Pooka Goggles Monster)
+    for (const e of this.enemies) {
+      const ex = ox + e.x * this.tileSize + 16;
+      const ey = oy + e.y * this.tileSize + 16;
+      const sz = 12 + e.inflation * 6;
+
+      pr.drawCircle(ex, ey, sz, e.inflation > 1.5 ? "#FCA5A5" : "#EF4444", true);
+      // Yellow Swimming Goggles
+      pr.drawRect(ex - 8, ey - 4, 16, 6, "#FEF08A", true);
+      pr.drawCircle(ex - 4, ey - 1, 2, "#000000", true);
+      pr.drawCircle(ex + 4, ey - 1, 2, "#000000", true);
+    }
+
+    // 5. Draw Dig Dug Miner Player
+    const px = ox + this.playerX * this.tileSize + 16;
+    const py = oy + this.playerY * this.tileSize + 16;
+    pr.drawPixelBlock(px - 10, py - 10, 20, "#FFFFFF", "#E0F2FE", "#0284C7");
+    pr.drawRect(px - 6, py - 14, 12, 6, "#0284C7", true); // Blue visor helmet
+
+    // Draw Pump Hose when facing
+    let hx = px;
+    let hy = py;
+    if (this.playerFacing === "left") hx -= 20;
+    if (this.playerFacing === "right") hx += 20;
+    if (this.playerFacing === "up") hy -= 20;
+    if (this.playerFacing === "down") hy += 20;
+    pr.drawLine(px, py, hx, hy, "#FFD84D", 3);
+
+    // 6. Top HUD
+    pr.drawRect(0, 0, w, 52, "#080e1c", true);
+    pr.drawLine(0, 52, w, 52, "#1e293b", 1);
+    pr.drawText(`SCORE: ${this.score}`, 20, 32, { size: 13, color: "#ffd84d", font: "monospace" });
+    pr.drawText(`CAVE HUNTER • LVL ${this.level}`, w / 2, 32, { size: 13, color: "#4de8e8", align: "center", font: "monospace" });
+    pr.drawText(`LIVES: ${"♥".repeat(Math.max(0, this.lives))}`, w - 20, 32, { size: 13, color: "#f43f5e", align: "right", font: "monospace" });
+
+    if (this.gameOver) {
+      pr.drawRect(0, h / 2 - 45, w, 90, "rgba(8,14,28,0.95)", true);
+      pr.drawRect(0, h / 2 - 45, w, 90, "#FF3366", false);
+      pr.drawText("MINER SQUASHED — GAME OVER", w / 2, h / 2 - 10, { size: 20, color: "#FF3366", align: "center", font: "monospace" });
+      pr.drawText("PRESS [R] TO DIG AGAIN", w / 2, h / 2 + 18, { size: 12, color: "#cbd5e1", align: "center", font: "monospace" });
+    } else if (this.isWon) {
+      pr.drawRect(0, h / 2 - 45, w, 90, "rgba(8,14,28,0.95)", true);
+      pr.drawRect(0, h / 2 - 45, w, 90, "#22C55E", false);
+      pr.drawText(`SECTOR ${this.level - 1} CLEARED!`, w / 2, h / 2 - 10, { size: 20, color: "#22C55E", align: "center", font: "monospace" });
+      pr.drawText("DIGGING DEEPER INTO CAVE...", w / 2, h / 2 + 18, { size: 12, color: "#cbd5e1", align: "center", font: "monospace" });
+    }
+  }
 }

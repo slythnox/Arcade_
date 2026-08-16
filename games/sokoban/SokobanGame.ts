@@ -285,46 +285,89 @@ export class SokobanGame implements GameInstance {
     pr.clear("#04060c");
 
     const tileSize = 44;
-    const offsetX = Math.floor((renderer.getWidth() - this.grid[0].length * tileSize) / 2);
-    const offsetY = Math.floor((renderer.getHeight() - 60 - this.grid.length * tileSize) / 2);
+    const maxR = this.grid.length;
+    const maxC = this.grid[0].length;
+    const originX = Math.floor((renderer.getWidth() - maxC * tileSize) / 2);
+    const originY = Math.floor((renderer.getHeight() - 60 - maxR * tileSize) / 2);
+    const grid = this.grid;
 
-    for (let y = 0; y < this.grid.length; y++) {
-      for (let x = 0; x < this.grid[y].length; x++) {
-        const px = offsetX + x * tileSize;
-        const py = offsetY + y * tileSize;
-        const tile = this.grid[y][x];
+    // Draw Board Tiles
+    for (let r = 0; r < maxR; r++) {
+      for (let c = 0; c < maxC; c++) {
+        const tile = grid[r]?.[c] || " ";
+        const px = originX + c * tileSize;
+        const py = originY + r * tileSize;
 
         if (tile === Tile.WALL) {
-          pr.drawRect(px, py, tileSize, tileSize, "#1e3060", true);
+          // 3D Stone Wall Block with brick lines
+          pr.drawPixelBlock(px, py, tileSize, "#1e293b", "#334155", "#0f172a");
+          // Inner brick seam lines
+          pr.drawLine(px, py + tileSize / 2, px + tileSize, py + tileSize / 2, "#0f172a", 1);
+          pr.drawLine(px + tileSize / 2, py, px + tileSize / 2, py + tileSize / 2, "#0f172a", 1);
         } else if (tile !== " ") {
-          pr.drawRect(px, py, tileSize, tileSize, "#0d1b3a", true);
+          // Warehouse Floor Tile
+          pr.drawRect(px, py, tileSize, tileSize, (r + c) % 2 === 0 ? "#0c1527" : "#09101e", true);
+          pr.drawRect(px, py, tileSize, tileSize, "rgba(255,255,255,0.03)", false);
         }
 
+        // Goal Target (Glowing Star / Ring)
         if (tile === Tile.GOAL || tile === Tile.PLAYER_ON_GOAL || tile === Tile.BOX_ON_GOAL) {
-          pr.drawRect(px + 16, py + 16, 12, 12, "#ffd84d", true);
+          const isSatisfied = tile === Tile.BOX_ON_GOAL;
+          const goalCol = isSatisfied ? "#63e66d" : "#ffd84d";
+          pr.drawCircle(px + tileSize / 2, py + tileSize / 2, 10, goalCol, false);
+          pr.drawCircle(px + tileSize / 2, py + tileSize / 2, 4, goalCol, true);
         }
 
+        // Box / Crate (Wood texture with corner iron rivets)
         if (tile === Tile.BOX || tile === Tile.BOX_ON_GOAL) {
-          pr.drawRect(px + 6, py + 6, tileSize - 12, tileSize - 12, tile === Tile.BOX_ON_GOAL ? "#63e66d" : "#ff9f43", true);
+          const isDone = tile === Tile.BOX_ON_GOAL;
+          const boxBase = isDone ? "#22c55e" : "#d97706";
+          const boxHigh = isDone ? "#86efac" : "#fbbf24";
+          const boxShadow = isDone ? "#15803d" : "#92400e";
+
+          pr.drawPixelBlock(px + 4, py + 4, tileSize - 8, boxBase, boxHigh, boxShadow);
+          // Crate cross brace (X)
+          pr.drawLine(px + 8, py + 8, px + tileSize - 8, py + tileSize - 8, boxShadow, 2);
+          pr.drawLine(px + tileSize - 8, py + 8, px + 8, py + tileSize - 8, boxShadow, 2);
+          // Center rivet
+          pr.drawCircle(px + tileSize / 2, py + tileSize / 2, 3, boxHigh, true);
         }
 
+        // Player (Warehouse Keeper Sprite)
         if (tile === Tile.PLAYER || tile === Tile.PLAYER_ON_GOAL) {
-          pr.drawRect(px + 10, py + 10, tileSize - 20, tileSize - 20, "#ff5c8a", true);
+          const cx = px + tileSize / 2;
+          const cy = py + tileSize / 2;
+          // Body (Blue overalls)
+          pr.drawRect(cx - 10, cy - 4, 20, 16, "#3b82f6", true);
+          // Belt & Buckle
+          pr.drawRect(cx - 10, cy + 2, 20, 3, "#1e293b", true);
+          pr.drawRect(cx - 3, cy + 1, 6, 5, "#ffd84d", true);
+          // Head (Skin tone)
+          pr.drawCircle(cx, cy - 10, 8, "#fed7aa", true);
+          // Red Worker Cap
+          pr.drawRect(cx - 10, cy - 18, 20, 6, "#ef4444", true);
+          pr.drawRect(cx - 13, cy - 13, 8, 3, "#b91c1c", true); // Cap visor
+          // Eyes
+          pr.drawCircle(cx - 3, cy - 10, 1.5, "#0f172a", true);
+          pr.drawCircle(cx + 3, cy - 10, 1.5, "#0f172a", true);
         }
       }
     }
 
-    // HUD
+    // HUD Bar
     const h = renderer.getHeight();
     const w = renderer.getWidth();
-    pr.drawRect(0, h - 60, w, 60, "#080e1c", true);
-    pr.drawText(`SOKOBAN | Level: ${this.currentLevel + 1}/${levels.length} | Moves: ${this.moves} | Score: ${this.score}`, 16, h - 36, {
+    pr.drawRect(0, h - 56, w, 56, "#080e1c", true);
+    pr.drawLine(0, h - 56, w, h - 56, "#1e293b", 1);
+    pr.drawText(`SOKOBAN | LEVEL ${this.currentLevel + 1}/${levels.length} | MOVES: ${this.moves} | SCORE: ${this.score}`, 20, h - 32, {
       color: "#ffd84d",
-      size: 11,
+      size: 13,
+      font: "monospace",
     });
-    pr.drawText("[ARROWS] Move  [Z / SHIFT] Undo  [R] Restart Level", 16, h - 16, {
-      color: "#4de8e8",
-      size: 9,
+    pr.drawText("[ARROWS] Move  [Z / SHIFT] Undo Move  [R] Restart Puzzle", 20, h - 14, {
+      color: "#94a3b8",
+      size: 10,
+      font: "monospace",
     });
   }
 

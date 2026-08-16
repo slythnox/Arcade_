@@ -80,7 +80,7 @@ export function createMockRenderer(): Renderer {
 ## 3. Automated Smoke Test Suites (`tests/smoke/`)
 
 ### 1. All-Cartridge Gauntlet (`tests/smoke/allGames.smoke.test.ts`)
-Iterates over all 62 entries in `arcadeRegistry` and verifies:
+Iterates over all 61 entries in `arcadeRegistry` and verifies:
 1. `def.createGame()` factory resolves without throwing.
 2. `instance.init(ctx)` succeeds.
 3. 60 consecutive simulation ticks (`update(1/60)`) execute without error.

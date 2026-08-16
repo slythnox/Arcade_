@@ -20,7 +20,7 @@ npm run build
 ```
 
 During `npm run build`:
-- `generateStaticParams()` iterates over all 62 cartridges in `gameRegistry` and generates static HTML files for `/games/[slug]`.
+- `generateStaticParams()` iterates over all 61 cartridges in `gameRegistry` and generates static HTML files for `/games/[slug]`.
 - Asynchronous chunks are created for each game cartridge via dynamic `import()`.
 - Static assets, CSS bundles, and fonts are minified and hashed with immutable cache headers.
 

@@ -44,7 +44,7 @@ export function setStorageItem<T>(key: string, value: T): void {
 
 ## 3. Player Stats & High Scores (`lib/storage/gameProgress.ts`)
 
-`PlayerStats` tracks cumulative metrics across all 62 cartridges:
+`PlayerStats` tracks cumulative metrics across all 61 cartridges:
 
 ```typescript
 export interface PlayerStats {

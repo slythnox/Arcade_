@@ -39,8 +39,8 @@ ARCADE_ is designed around a strict unidirectional dependency hierarchy. The bro
                                     ▼
 ┌────────────────────────────────────────────────────────────────────────┐
 │ GAME IMPLEMENTATION LAYER (Cartridges)                                 │
-│   ├── 62 Autonomous Game Implementations (Implements GameInstance)     │
-│   └── 62 Metadata Definitions & Lazy Dynamic Import Factories          │
+│   ├── 61 Autonomous Game Implementations (Implements GameInstance)     │
+│   └── 61 Metadata Definitions & Lazy Dynamic Import Factories          │
 └───────────────────────────────────┬────────────────────────────────────┘
                                     │ imports
                                     ▼
@@ -210,7 +210,7 @@ export const gameRegistry: readonly GameDefinition[] = [
   breakoutDefinition,
   pongDefinition,
   minesweeperDefinition,
-  // ... all 62 verified cartridges
+  // ... all 61 verified cartridges
 ];
 ```
 

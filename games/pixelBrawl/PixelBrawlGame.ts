@@ -44,7 +44,7 @@ export class PixelBrawlGame implements GameInstance {
   private combo = 0;
   private paused = false;
   
-  private groundY = 300;
+  private groundY = 540;
   
   // Input states
   private keys = { left: false, right: false, up: false, down: false, block: false };
@@ -56,7 +56,7 @@ export class PixelBrawlGame implements GameInstance {
   
   public reset(seed?: number): void {
     this.p1 = {
-      x: 150, y: this.groundY, vy: 0,
+      x: 160, y: this.groundY, vy: 0,
       hp: FIGHTERS[0].health, maxHp: FIGHTERS[0].health,
       state: 'idle', currentMove: null, frame: 0, facing: 1, wins: 0,
       archetype: FIGHTERS[0]

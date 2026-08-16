@@ -17,15 +17,24 @@ interface ForestObstacle {
   size: number;
 }
 
+interface Particle {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;
+  color: string;
+}
+
 export class InfiniteForestGame implements GameInstance {
   private ctx!: GameContext;
   private noise!: ValueNoise;
   private scrollX = 0;
-  private playerX = 120;
-  private playerY = 300;
+  private playerX = 140;
+  private playerY = 400;
   private playerVy = 0;
   private isGrounded = true;
-  private speed = 260;
+  private speed = 280;
   private score = 0;
   private level = 1;
   private distance = 0;
@@ -33,6 +42,8 @@ export class InfiniteForestGame implements GameInstance {
   private isPaused = false;
   private orbs: ForestOrb[] = [];
   private obstacles: ForestObstacle[] = [];
+  private particles: Particle[] = [];
+  private animTime = 0;
 
   public init(ctx: GameContext): void {
     this.ctx = ctx;
@@ -43,11 +54,11 @@ export class InfiniteForestGame implements GameInstance {
     if (seed !== undefined) this.ctx.random.reset(seed);
     this.noise = new ValueNoise(seed || 1337);
     this.scrollX = 0;
-    this.playerX = 120;
-    this.playerY = 300;
+    this.playerX = 140;
+    this.playerY = 400;
     this.playerVy = 0;
     this.isGrounded = true;
-    this.speed = 260;
+    this.speed = 280;
     this.score = 0;
     this.level = 1;
     this.distance = 0;
@@ -55,97 +66,122 @@ export class InfiniteForestGame implements GameInstance {
     this.isPaused = false;
     this.orbs = [];
     this.obstacles = [];
+    this.particles = [];
 
     // Pre-generate initial orbs & obstacles
-    for (let x = 400; x < 3000; x += 150) {
-      const terrainY = this.getTerrainHeight(x);
-      if (this.ctx.random.next() < 0.6) {
-        this.orbs.push({ worldX: x, worldY: terrainY - 30, collected: false });
-      } else {
-        this.obstacles.push({ worldX: x, worldY: terrainY, size: 20 });
+    for (let x = 500; x < 4000; x += 160) {
+      const groundY = this.getGroundHeight(x);
+      if (this.ctx.random.next() > 0.4) {
+        this.orbs.push({ worldX: x, worldY: groundY - 45 - this.ctx.random.next() * 50, collected: false });
+      }
+      if (this.ctx.random.next() > 0.65) {
+        this.obstacles.push({ worldX: x + 80, worldY: groundY - 24, size: 24 });
       }
     }
   }
 
-  private getTerrainHeight(worldX: number): number {
-    // 1D Continuous Procedural Forest Hills
-    const base = 420;
-    const hill1 = this.noise.noise1D(worldX * 0.003) * 90;
-    const hill2 = this.noise.noise1D(worldX * 0.01) * 35;
-    return base + hill1 + hill2;
+  private getGroundHeight(worldX: number): number {
+    const n = this.noise.noise1D(worldX * 0.002);
+    const n2 = this.noise.noise1D(worldX * 0.008) * 0.3;
+    return 440 + (n + n2) * 110;
+  }
+
+  private addParticles(x: number, y: number, color: string, count = 6): void {
+    for (let i = 0; i < count; i++) {
+      const ang = this.ctx.random.next() * Math.PI * 2;
+      const spd = 30 + this.ctx.random.next() * 80;
+      this.particles.push({
+        x,
+        y,
+        vx: Math.cos(ang) * spd,
+        vy: Math.sin(ang) * spd,
+        life: 0.4,
+        color,
+      });
+    }
   }
 
   public update(dt: number): void {
     if (this.gameOver || this.isPaused) return;
+    this.animTime += dt;
 
     this.scrollX += this.speed * dt;
-    this.distance = this.scrollX;
-    this.score += Math.floor(this.speed * dt * 0.1);
-    this.speed = 260 + (this.level - 1) * 20;
-    this.level = Math.min(20, Math.floor(this.distance / 1500) + 1);
+    this.distance += this.speed * dt;
+    this.score = Math.floor(this.distance / 10);
 
-    const worldPlayerX = this.scrollX + this.playerX;
-    const groundY = this.getTerrainHeight(worldPlayerX);
-
-    // Physics
+    // Gravity & Ground physics
+    this.playerVy += 1400 * dt;
     this.playerY += this.playerVy * dt;
-    if (!this.isGrounded) {
-      this.playerVy += 980 * dt; // Gravity
-      if (this.playerY >= groundY - 14) {
-        this.playerY = groundY - 14;
-        this.playerVy = 0;
-        this.isGrounded = true;
-      }
+
+    const currentGround = this.getGroundHeight(this.scrollX + this.playerX);
+    if (this.playerY >= currentGround - 16) {
+      this.playerY = currentGround - 16;
+      this.playerVy = 0;
+      this.isGrounded = true;
     } else {
-      this.playerY = groundY - 14;
+      this.isGrounded = false;
     }
 
     // Check Orbs
     for (const orb of this.orbs) {
-      if (!orb.collected && Math.abs(orb.worldX - worldPlayerX) < 24 && Math.abs(orb.worldY - this.playerY) < 28) {
+      if (orb.collected) continue;
+      const screenX = orb.worldX - this.scrollX;
+      if (Math.hypot(screenX - this.playerX, orb.worldY - this.playerY) < 28) {
         orb.collected = true;
-        this.score += 200;
-        this.ctx.audio?.playCoin?.();
+        this.score += 250;
+        this.addParticles(screenX, orb.worldY, "#FFD84D", 8);
+        this.ctx.audio.playCoin();
       }
     }
 
-    // Check Obstacles
+    // Check Obstacles (Ancient Totems / Spikes)
     for (const obs of this.obstacles) {
-      if (Math.abs(obs.worldX - worldPlayerX) < 18 && Math.abs(obs.worldY - (this.playerY + 14)) < 20) {
+      const screenX = obs.worldX - this.scrollX;
+      if (Math.abs(screenX - this.playerX) < 18 && Math.abs(obs.worldY - this.playerY) < 22) {
         this.gameOver = true;
-        this.ctx.audio?.playExplosion?.();
-        return;
+        this.addParticles(screenX, obs.worldY, "#EF4444", 20);
+        this.ctx.audio.playExplosion();
+        this.ctx.session.setStatus("game-over");
+        break;
       }
     }
 
-    // Generate upcoming terrain items
+    // Spawn more orbs & obstacles ahead
+    const maxWorldX = this.scrollX + 800;
     const lastOrbX = this.orbs.length > 0 ? this.orbs[this.orbs.length - 1].worldX : 0;
-    if (lastOrbX < worldPlayerX + 1200) {
-      const nextX = lastOrbX + 160 + this.ctx.random.next() * 100;
-      const terrainY = this.getTerrainHeight(nextX);
-      if (this.ctx.random.next() < 0.6) {
-        this.orbs.push({ worldX: nextX, worldY: terrainY - 35, collected: false });
-      } else {
-        this.obstacles.push({ worldX: nextX, worldY: terrainY, size: 22 });
+    if (lastOrbX < maxWorldX) {
+      const nextX = lastOrbX + 160;
+      const gY = this.getGroundHeight(nextX);
+      if (this.ctx.random.next() > 0.4) {
+        this.orbs.push({ worldX: nextX, worldY: gY - 45 - this.ctx.random.next() * 50, collected: false });
       }
+      if (this.ctx.random.next() > 0.6) {
+        this.obstacles.push({ worldX: nextX + 75, worldY: gY - 24, size: 24 });
+      }
+    }
+
+    // Clean up old orbs
+    this.orbs = this.orbs.filter((o) => o.worldX > this.scrollX - 200);
+    this.obstacles = this.obstacles.filter((o) => o.worldX > this.scrollX - 200);
+
+    // Update Particles
+    for (let i = this.particles.length - 1; i >= 0; i--) {
+      const p = this.particles[i];
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.life -= dt;
+      if (p.life <= 0) this.particles.splice(i, 1);
     }
   }
 
   public handleInput(action: GameAction, isPressed: boolean): void {
-    if (!isPressed || this.isPaused) return;
-
-    if (this.gameOver) {
-      if (action === "ACTION_PRIMARY" || action === "RESTART") this.reset();
-      return;
-    }
-
-    if ((action === "MOVE_UP" || action === "ACTION_PRIMARY") && this.isGrounded) {
-      this.playerVy = -480;
+    if (!isPressed) return;
+    if ((action === "ACTION_PRIMARY" || action === "MOVE_UP") && this.isGrounded) {
+      this.playerVy = -580;
       this.isGrounded = false;
-      this.ctx.audio?.playRotate?.();
-    } else if (action === "RESTART") {
-      this.reset();
+      this.ctx.audio.playMove();
     }
+    if (action === "RESTART") this.reset();
   }
 
   public pause(): void { this.isPaused = true; }
@@ -156,58 +192,84 @@ export class InfiniteForestGame implements GameInstance {
 
   public render(renderer: Renderer): void {
     const pr = renderer as PixelRenderer;
-    pr.clear("#030712");
+    pr.clear("#050914");
+
     const w = renderer.getWidth();
     const h = renderer.getHeight();
 
-    // Render Procedural Hills Ground
-    for (let screenX = 0; screenX < w; screenX += 4) {
-      const worldX = this.scrollX + screenX;
-      const groundY = this.getTerrainHeight(worldX);
-      pr.drawRect(screenX, groundY, 4, h - groundY, "#14532d", true);
-      pr.drawRect(screenX, groundY, 4, 4, "#22c55e", true);
+    // 1. Distant Mountain Silhouette (Parallax Factor 0.15)
+    for (let x = 0; x < w; x += 4) {
+      const mx = (x + this.scrollX * 0.15);
+      const my = 260 + this.noise.noise1D(mx * 0.001) * 80;
+      pr.drawRect(x, my, 4, h - my, "#0c152a", true);
     }
 
-    // Render Orbs
+    // 2. Mid-Range Pine Forest Layer (Parallax Factor 0.4)
+    for (let x = 0; x < w; x += 36) {
+      const fx = x - ((this.scrollX * 0.4) % 36);
+      const fy = 340 + this.noise.noise1D((x + this.scrollX * 0.4) * 0.003) * 60;
+      // Pine tree triangle silhouette
+      pr.drawRect(fx + 14, fy, 8, 80, "#064e3b", true);
+      pr.drawCircle(fx + 18, fy - 16, 20, "#065f46", true);
+    }
+
+    // 3. Foreground Terrain (ValueNoise Heightmap)
+    for (let x = 0; x < w; x += 4) {
+      const wx = this.scrollX + x;
+      const gy = this.getGroundHeight(wx);
+      // Grassy top crust
+      pr.drawRect(x, gy, 4, 10, "#22c55e", true);
+      // Earth soil body
+      pr.drawRect(x, gy + 10, 4, h - gy - 10, "#166534", true);
+    }
+
+    // 4. Draw Ancient Totem Obstacles
+    for (const obs of this.obstacles) {
+      const sx = obs.worldX - this.scrollX;
+      if (sx < -40 || sx > w + 40) continue;
+      pr.drawPixelBlock(sx - 12, obs.worldY - 20, 24, "#475569", "#94A3B8", "#1E293B");
+      pr.drawRect(sx - 3, obs.worldY - 14, 6, 4, "#EF4444", true); // glowing red rune
+    }
+
+    // 5. Draw Magical Light Orbs
     for (const orb of this.orbs) {
       if (orb.collected) continue;
-      const screenX = orb.worldX - this.scrollX;
-      if (screenX >= -20 && screenX <= w + 20) {
-        pr.drawCircle(screenX, orb.worldY, 6, "#ffd84d", true);
-        pr.drawCircle(screenX, orb.worldY, 8, "rgba(255, 216, 77, 0.4)", false);
-      }
+      const sx = orb.worldX - this.scrollX;
+      if (sx < -40 || sx > w + 40) continue;
+      const pulse = Math.sin(this.animTime * 6 + sx) * 3;
+      pr.drawCircle(sx, orb.worldY, 10 + pulse, "rgba(255, 216, 77, 0.2)", true);
+      pr.drawCircle(sx, orb.worldY, 6, "#FFD84D", true);
+      pr.drawCircle(sx, orb.worldY, 2.5, "#FFFFFF", true);
     }
 
-    // Render Obstacles (Rocks/Stumps)
-    for (const obs of this.obstacles) {
-      const screenX = obs.worldX - this.scrollX;
-      if (screenX >= -20 && screenX <= w + 20) {
-        pr.drawRect(screenX - 10, obs.worldY - obs.size, 20, obs.size, "#78350f", true);
-        pr.drawRect(screenX - 10, obs.worldY - obs.size, 20, obs.size, "#ff5c8a", false);
-      }
+    // 6. Draw Particles
+    for (const p of this.particles) {
+      pr.drawCircle(p.x, p.y, 2.5, p.color, true);
     }
 
-    // Render Player
-    pr.drawRect(this.playerX - 10, this.playerY - 14, 20, 28, "#4de8e8", true);
-    pr.drawRect(this.playerX - 10, this.playerY - 14, 20, 28, "#ffffff", false);
+    // 7. Draw Player Character (Forest Spirit Runner with Animated Scarf)
+    const px = this.playerX;
+    const py = this.playerY;
+    // Cloak Body
+    pr.drawPixelBlock(px - 10, py - 16, 20, "#38BDF8", "#E0F2FE", "#0284C7");
+    // Trailing Wind Scarf
+    const scarfWave = Math.sin(this.animTime * 14) * 6;
+    pr.drawLine(px - 8, py - 12, px - 26, py - 8 + scarfWave, "#F43F5E", 4);
+    // Glowing Spirit Eyes
+    pr.drawCircle(px + 4, py - 10, 2, "#FFFFFF", true);
 
-    // Header HUD
-    pr.drawText(`INFINITE FOREST  •  LVL ${this.level}  •  DIST: ${Math.floor(this.distance)}M`, w / 2, 30, {
-      size: 12,
-      color: "#63e66d",
-      align: "center",
-    });
-    pr.drawText(`[UP / SPACE / A] JUMP ACROSS PROCEDURAL CANOPY AND COLLECT GLOWING EMBERS`, w / 2, 52, {
-      size: 9,
-      color: "#94a3b8",
-      align: "center",
-    });
+    // 8. Top HUD
+    pr.drawRect(0, 0, w, 52, "#080e1c", true);
+    pr.drawLine(0, 52, w, 52, "#1e293b", 1);
+    pr.drawText(`DISTANCE: ${Math.floor(this.distance / 10)}m`, 20, 32, { size: 13, color: "#ffd84d", font: "monospace" });
+    pr.drawText(`SCORE: ${this.score}`, w / 2, 32, { size: 13, color: "#4de8e8", align: "center", font: "monospace" });
+    pr.drawText(`SPEED: ${Math.floor(this.speed)}`, w - 20, 32, { size: 13, color: "#22c55e", align: "right", font: "monospace" });
 
     if (this.gameOver) {
-      pr.drawRect(0, h / 2 - 45, w, 90, "rgba(6, 11, 24, 0.95)", true);
-      pr.drawRect(0, h / 2 - 45, w, 90, "#ff5c8a", false);
-      pr.drawText("FOREST RUN ENDED", w / 2, h / 2 - 10, { size: 18, color: "#ff5c8a", align: "center" });
-      pr.drawText("PRESS SPACE TO RESTART", w / 2, h / 2 + 18, { size: 11, color: "#e2e8f0", align: "center" });
+      pr.drawRect(0, h / 2 - 45, w, 90, "rgba(8,14,28,0.95)", true);
+      pr.drawRect(0, h / 2 - 45, w, 90, "#FF3366", false);
+      pr.drawText("FOREST SPIRIT FALTERED — GAME OVER", w / 2, h / 2 - 10, { size: 20, color: "#FF3366", align: "center", font: "monospace" });
+      pr.drawText("PRESS [R] OR [SPACE] TO RUN AGAIN", w / 2, h / 2 + 18, { size: 12, color: "#cbd5e1", align: "center", font: "monospace" });
     }
   }
 }

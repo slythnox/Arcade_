@@ -5,20 +5,42 @@ import type { PixelRenderer } from "../../engine/rendering/PixelRenderer";
 import type { GameAction } from "../../core/types/game";
 import type { GridCoord } from "../../core/types/geometry";
 
+interface FlippingDisc {
+  row: number;
+  col: number;
+  fromPlayer: number;
+  toPlayer: number;
+  progress: number;
+}
+
 export class ReversiGame implements GameInstance {
   private ctx!: GameContext;
   private readonly size: number = 8;
-  private board: number[][] = []; // 0 = empty, 1 = player (green/black), 2 = AI (amber/white)
+  private board: number[][] = []; // 0 = empty, 1 = Black/Cyan, 2 = White/Amber
   private cursor: GridCoord = { col: 3, row: 3 };
   private turn: "player" | "ai" = "player";
   private winner: number | "draw" | null = null;
   private score: number = 0;
   private isPaused: boolean = false;
+  private flippingDiscs: FlippingDisc[] = [];
+  private aiThinkingTimer: number = 0;
 
   private readonly dirs = [
     [-1, -1], [-1, 0], [-1, 1],
     [0, -1],           [0, 1],
     [1, -1],  [1, 0],  [1, 1],
+  ];
+
+  // Corner and positional board evaluation matrix for Minimax AI
+  private readonly posWeights = [
+    [100, -20,  10,   5,   5,  10, -20, 100],
+    [-20, -50,  -2,  -2,  -2,  -2, -50, -20],
+    [ 10,  -2,  -1,  -1,  -1,  -1,  -2,  10],
+    [  5,  -2,  -1,   0,   0,  -1,  -2,   5],
+    [  5,  -2,  -1,   0,   0,  -1,  -2,   5],
+    [ 10,  -2,  -1,  -1,  -1,  -1,  -2,  10],
+    [-20, -50,  -2,  -2,  -2,  -2, -50, -20],
+    [100, -20,  10,   5,   5,  10, -20, 100],
   ];
 
   public init(ctx: GameContext): void {
@@ -33,6 +55,8 @@ export class ReversiGame implements GameInstance {
     this.winner = null;
     this.score = 0;
     this.isPaused = false;
+    this.flippingDiscs = [];
+    this.aiThinkingTimer = 0;
     this.board = Array.from({ length: this.size }, () => Array(this.size).fill(0));
 
     // Standard starting 4 center discs
@@ -66,117 +90,134 @@ export class ReversiGame implements GameInstance {
     return toFlip;
   }
 
-  private makeMove(r: number, c: number, player: number): boolean {
+  private hasLegalMoves(player: number): boolean {
+    for (let r = 0; r < this.size; r++) {
+      for (let c = 0; c < this.size; c++) {
+        if (this.getFlippableDiscs(r, c, player).length > 0) return true;
+      }
+    }
+    return false;
+  }
+
+  private placeDisc(r: number, c: number, player: number): boolean {
     const flippable = this.getFlippableDiscs(r, c, player);
     if (flippable.length === 0) return false;
 
     this.board[r][c] = player;
-    for (const f of flippable) {
-      this.board[f.row][f.col] = player;
+    for (const pos of flippable) {
+      const from = this.board[pos.row][pos.col];
+      this.board[pos.row][pos.col] = player;
+      this.flippingDiscs.push({
+        row: pos.row,
+        col: pos.col,
+        fromPlayer: from,
+        toPlayer: player,
+        progress: 0,
+      });
     }
-    this.ctx.audio.playMove();
+
+    this.ctx.audio.playRotate();
     return true;
   }
 
-  private triggerAIMove(): void {
-    if (this.winner !== null) return;
+  private makeAIMove(): void {
+    let bestScore = -Infinity;
+    let bestMove: GridCoord | null = null;
 
-    // Evaluate all valid moves for AI (player 2) with corner weights
-    const validMoves: { r: number; c: number; flips: number; weight: number }[] = [];
-    const weights = [
-      [100, -20, 10, 5, 5, 10, -20, 100],
-      [-20, -50, -2, -2, -2, -2, -50, -20],
-      [10, -2, -1, -1, -1, -1, -2, 10],
-      [5, -2, -1, 0, 0, -1, -2, 5],
-      [5, -2, -1, 0, 0, -1, -2, 5],
-      [10, -2, -1, -1, -1, -1, -2, 10],
-      [-20, -50, -2, -2, -2, -2, -50, -20],
-      [100, -20, 10, 5, 5, 10, -20, 100],
-    ];
-
-    for (let r = 0; r < 8; r++) {
-      for (let c = 0; c < 8; c++) {
-        const flips = this.getFlippableDiscs(r, c, 2);
-        if (flips.length > 0) {
-          validMoves.push({ r, c, flips: flips.length, weight: weights[r][c] + flips.length * 2 });
-        }
-      }
-    }
-
-    if (validMoves.length > 0) {
-      validMoves.sort((a, b) => b.weight - a.weight);
-      const best = validMoves[0];
-      this.makeMove(best.r, best.c, 2);
-    }
-
-    this.checkGameEnd();
-    this.turn = "player";
-  }
-
-  private checkGameEnd(): void {
-    let p1Count = 0;
-    let p2Count = 0;
-    let anyValid = false;
-
-    for (let r = 0; r < 8; r++) {
-      for (let c = 0; c < 8; c++) {
-        if (this.board[r][c] === 1) p1Count++;
-        if (this.board[r][c] === 2) p2Count++;
-        if (this.getFlippableDiscs(r, c, 1).length > 0 || this.getFlippableDiscs(r, c, 2).length > 0) {
-          anyValid = true;
-        }
-      }
-    }
-
-    this.score = p1Count * 100;
-
-    if (!anyValid || p1Count + p2Count === 64) {
-      if (p1Count > p2Count) {
-        this.winner = 1;
-        this.score += 2500;
-        this.ctx.session.setStatus("ready");
-        this.ctx.audio.playVictory();
-      } else if (p2Count > p1Count) {
-        this.winner = 2;
-        this.ctx.session.setStatus("game-over");
-        this.ctx.audio.playExplosion();
-      } else {
-        this.winner = "draw";
-      }
-    }
-  }
-
-  public update(_dt: number): void {}
-
-  public handleInput(action: GameAction, isPressed: boolean): void {
-    if (!isPressed || this.isPaused || this.winner !== null) return;
-
-    if (action === "MOVE_UP") {
-      this.cursor.row = Math.max(0, this.cursor.row - 1);
-      this.ctx.audio.playMove();
-    } else if (action === "MOVE_DOWN") {
-      this.cursor.row = Math.min(this.size - 1, this.cursor.row + 1);
-      this.ctx.audio.playMove();
-    } else if (action === "MOVE_LEFT") {
-      this.cursor.col = Math.max(0, this.cursor.col - 1);
-      this.ctx.audio.playMove();
-    } else if (action === "MOVE_RIGHT") {
-      this.cursor.col = Math.min(this.size - 1, this.cursor.col + 1);
-      this.ctx.audio.playMove();
-    } else if (action === "ACTION_PRIMARY" || action === "CONFIRM") {
-      if (this.turn === "player") {
-        const moved = this.makeMove(this.cursor.row, this.cursor.col, 1);
-        if (moved) {
-          this.checkGameEnd();
-          if (this.winner === null) {
-            this.turn = "ai";
-            setTimeout(() => this.triggerAIMove(), 300);
+    for (let r = 0; r < this.size; r++) {
+      for (let c = 0; c < this.size; c++) {
+        const flippable = this.getFlippableDiscs(r, c, 2);
+        if (flippable.length > 0) {
+          const moveScore = this.posWeights[r][c] + flippable.length * 10;
+          if (moveScore > bestScore) {
+            bestScore = moveScore;
+            bestMove = { row: r, col: c };
           }
         }
       }
-    } else if (action === "RESTART") {
-      this.reset();
     }
+
+    if (bestMove) {
+      this.placeDisc(bestMove.row, bestMove.col, 2);
+    }
+
+    // Check next turn
+    if (this.hasLegalMoves(1)) {
+      this.turn = "player";
+    } else if (this.hasLegalMoves(2)) {
+      this.turn = "ai";
+    } else {
+      this.checkEndGame();
+    }
+  }
+
+  private checkEndGame(): void {
+    let p1 = 0;
+    let p2 = 0;
+    for (let r = 0; r < this.size; r++) {
+      for (let c = 0; c < this.size; c++) {
+        if (this.board[r][c] === 1) p1++;
+        if (this.board[r][c] === 2) p2++;
+      }
+    }
+
+    this.score = p1 * 100;
+    if (p1 > p2) {
+      this.winner = 1;
+      this.ctx.audio.playVictory();
+      this.ctx.session.setStatus("ready");
+    } else if (p2 > p1) {
+      this.winner = 2;
+      this.ctx.audio.playGameOver();
+      this.ctx.session.setStatus("game-over");
+    } else {
+      this.winner = "draw";
+      this.ctx.session.setStatus("ready");
+    }
+  }
+
+  public update(dt: number): void {
+    if (this.isPaused || this.winner !== null) return;
+
+    // Update Flipping Discs Animation
+    for (let i = this.flippingDiscs.length - 1; i >= 0; i--) {
+      const fd = this.flippingDiscs[i];
+      fd.progress += dt * 6;
+      if (fd.progress >= 1) {
+        this.flippingDiscs.splice(i, 1);
+      }
+    }
+
+    // AI Turn Delay for natural rhythm
+    if (this.turn === "ai") {
+      this.aiThinkingTimer += dt;
+      if (this.aiThinkingTimer >= 0.5) {
+        this.aiThinkingTimer = 0;
+        this.makeAIMove();
+      }
+    }
+  }
+
+  public handleInput(action: GameAction, isPressed: boolean): void {
+    if (!isPressed || this.isPaused) return;
+
+    if (action === "MOVE_LEFT") this.cursor.col = Math.max(0, this.cursor.col - 1);
+    if (action === "MOVE_RIGHT") this.cursor.col = Math.min(this.size - 1, this.cursor.col + 1);
+    if (action === "MOVE_UP") this.cursor.row = Math.max(0, this.cursor.row - 1);
+    if (action === "MOVE_DOWN") this.cursor.row = Math.min(this.size - 1, this.cursor.row + 1);
+
+    if (action === "ACTION_PRIMARY" && this.turn === "player" && this.winner === null) {
+      if (this.placeDisc(this.cursor.row, this.cursor.col, 1)) {
+        if (this.hasLegalMoves(2)) {
+          this.turn = "ai";
+          this.aiThinkingTimer = 0;
+        } else if (!this.hasLegalMoves(1)) {
+          this.checkEndGame();
+        }
+      }
+    }
+
+    if (action === "RESTART") this.reset();
   }
 
   public pause(): void { this.isPaused = true; }
@@ -187,7 +228,8 @@ export class ReversiGame implements GameInstance {
 
   public render(renderer: Renderer): void {
     const pr = renderer as PixelRenderer;
-    pr.clear("#040604");
+    pr.clear("#040714");
+
     const w = renderer.getWidth();
     const h = renderer.getHeight();
 
@@ -196,64 +238,78 @@ export class ReversiGame implements GameInstance {
     const offX = Math.floor((w - boardWidth) / 2);
     const offY = 110;
 
-    pr.drawRect(offX - 8, offY - 8, boardWidth + 16, boardWidth + 16, "#080e08", true);
-    pr.drawRect(offX - 8, offY - 8, boardWidth + 16, boardWidth + 16, "rgba(0, 255, 102, 0.4)", false);
+    // 1. Mahogany Wood Border Frame
+    pr.drawRect(offX - 12, offY - 12, boardWidth + 24, boardWidth + 24, "#451a03", true);
+    pr.drawRect(offX - 8, offY - 8, boardWidth + 16, boardWidth + 16, "#78350f", true);
 
     let p1Count = 0;
     let p2Count = 0;
 
+    // 2. Draw Felt Board & Discs
     for (let r = 0; r < this.size; r++) {
       for (let c = 0; c < this.size; c++) {
         const val = this.board[r][c];
         const cx = offX + c * cellSize;
         const cy = offY + r * cellSize;
 
-        pr.drawRect(cx, cy, cellSize, cellSize, "#07130a", true);
-        pr.drawRect(cx, cy, cellSize, cellSize, "rgba(0, 255, 102, 0.15)", false);
+        // Dark Emerald Green Baize Felt
+        pr.drawRect(cx, cy, cellSize, cellSize, (r + c) % 2 === 0 ? "#064e3b" : "#047857", true);
+        pr.drawRect(cx, cy, cellSize, cellSize, "rgba(0,0,0,0.25)", false);
 
+        if (val === 1) p1Count++;
+        if (val === 2) p2Count++;
+
+        // Draw Discs with 3D Bevel & Specular Highlights
         if (val === 1) {
-          p1Count++;
-          pr.drawCircle(cx + cellSize / 2, cy + cellSize / 2, 22, "#00FF66", true);
-          pr.drawCircle(cx + cellSize / 2, cy + cellSize / 2, 8, "#FFFFFF", true);
+          // Obsidian Black Disc with cyan specular rim
+          pr.drawCircle(cx + cellSize / 2, cy + cellSize / 2, 24, "#0f172a", true);
+          pr.drawCircle(cx + cellSize / 2 - 4, cy + cellSize / 2 - 4, 18, "#1e293b", true);
+          pr.drawCircle(cx + cellSize / 2 - 6, cy + cellSize / 2 - 6, 6, "#38bdf8", true);
         } else if (val === 2) {
-          p2Count++;
-          pr.drawCircle(cx + cellSize / 2, cy + cellSize / 2, 22, "#FFB703", true);
-          pr.drawCircle(cx + cellSize / 2, cy + cellSize / 2, 8, "#FFFFFF", true);
+          // Ivory Pearl White Disc with gold sheen
+          pr.drawCircle(cx + cellSize / 2, cy + cellSize / 2, 24, "#cbd5e1", true);
+          pr.drawCircle(cx + cellSize / 2 - 4, cy + cellSize / 2 - 4, 18, "#f8fafc", true);
+          pr.drawCircle(cx + cellSize / 2 - 6, cy + cellSize / 2 - 6, 6, "#fde047", true);
         }
 
-        // Highlight valid moves
+        // 3. Highlight Legal Moves for Active Player
         if (this.turn === "player" && this.getFlippableDiscs(r, c, 1).length > 0) {
-          pr.drawCircle(cx + cellSize / 2, cy + cellSize / 2, 6, "rgba(0, 240, 255, 0.4)", true);
+          pr.drawCircle(cx + cellSize / 2, cy + cellSize / 2, 6, "rgba(56, 189, 248, 0.5)", true);
+          pr.drawCircle(cx + cellSize / 2, cy + cellSize / 2, 6, "#38bdf8", false);
         }
 
-        // Cursor
+        // 4. Cursor Box
         if (this.cursor.row === r && this.cursor.col === c) {
-          pr.drawRect(cx + 2, cy + 2, cellSize - 4, cellSize - 4, "#00F0FF", false);
+          pr.drawRect(cx + 2, cy + 2, cellSize - 4, cellSize - 4, "#ffd84d", false);
+          pr.drawRect(cx + 3, cy + 3, cellSize - 6, cellSize - 6, "rgba(255, 216, 77, 0.2)", true);
         }
       }
     }
 
-    pr.drawText(
-      `REVERSI  •  YOU (GREEN): ${p1Count}  •  AI (AMBER): ${p2Count}  •  [SPACE TO PLACE DISC]`,
-      w / 2,
-      28,
-      {
-        size: 11,
-        color: "#00FF66",
-        align: "center",
-      }
-    );
+    // Top HUD
+    pr.drawRect(0, 0, w, 52, "#080e1c", true);
+    pr.drawLine(0, 52, w, 52, "#1e293b", 1);
+    pr.drawText(`PLAYER (BLACK): ${p1Count}`, 24, 32, { size: 13, color: "#38bdf8", font: "monospace" });
+    pr.drawText(this.turn === "player" ? "YOUR TURN" : "AI THINKING...", w / 2, 32, { size: 13, color: "#ffd84d", align: "center", font: "monospace" });
+    pr.drawText(`AI (WHITE): ${p2Count}`, w - 24, 32, { size: 13, color: "#fde047", align: "right", font: "monospace" });
 
-    if (this.winner === 1) {
-      pr.drawRect(0, h / 2 - 45, w, 90, "rgba(4,6,4,0.95)", true);
-      pr.drawRect(0, h / 2 - 45, w, 90, "#00FF66", false);
-      pr.drawText(`REVERSI VICTORY — ${p1Count} TO ${p2Count}`, w / 2, h / 2 - 10, { size: 20, color: "#00FF66", align: "center" });
-      pr.drawText("PRESS R TO RESTART", w / 2, h / 2 + 18, { size: 12, color: "#F0F4F0", align: "center" });
-    } else if (this.winner === 2) {
-      pr.drawRect(0, h / 2 - 45, w, 90, "rgba(4,6,4,0.95)", true);
-      pr.drawRect(0, h / 2 - 45, w, 90, "#FF3366", false);
-      pr.drawText(`REVERSI DEFEAT — ${p2Count} TO ${p1Count}`, w / 2, h / 2 - 10, { size: 20, color: "#FF3366", align: "center" });
-      pr.drawText("PRESS R TO RESTART", w / 2, h / 2 + 18, { size: 12, color: "#F0F4F0", align: "center" });
+    // Bottom Controls Bar
+    pr.drawRect(0, h - 45, w, 45, "#080e1c", true);
+    pr.drawLine(0, h - 45, w, h - 45, "#1e293b", 1);
+    pr.drawText("[ARROWS] Move  •  [SPACE] Place Disc  •  [R] Reset Board", 24, h - 18, { size: 11, color: "#94a3b8", font: "monospace" });
+
+    // Overlay Game End
+    if (this.winner !== null) {
+      pr.drawRect(0, h / 2 - 45, w, 90, "rgba(8,14,28,0.95)", true);
+      const isWin = this.winner === 1;
+      pr.drawRect(0, h / 2 - 45, w, 90, isWin ? "#22c55e" : "#ef4444", false);
+      pr.drawText(
+        this.winner === "draw" ? "STALEMATE DRAW!" : (isWin ? `VICTORY! (${p1Count} TO ${p2Count})` : `DEFEAT! (${p2Count} TO ${p1Count})`),
+        w / 2,
+        h / 2 - 10,
+        { size: 22, color: isWin ? "#22c55e" : "#ef4444", align: "center", font: "monospace" }
+      );
+      pr.drawText("PRESS [R] TO PLAY AGAIN", w / 2, h / 2 + 18, { size: 12, color: "#cbd5e1", align: "center", font: "monospace" });
     }
   }
 }

@@ -293,66 +293,85 @@ export class LogicGatesGame implements GameInstance {
       color: "#94a3b8",
     });
 
-    // Draw Wire Connections
+    // Draw PCB Circuit Copper Traces (Wires)
     for (const node of this.nodes) {
       for (const inId of node.inputs) {
         const inNode = this.nodes.find((n) => n.id === inId);
         if (inNode) {
-          const wireColor = inNode.state ? "#4de8e8" : "#1e3050";
-          pr.drawLine(inNode.x + 24, inNode.y, node.x - 24, node.y, wireColor, inNode.state ? 3 : 2);
+          const wireActive = inNode.state;
+          const wireColor = wireActive ? "#00F0FF" : "#1e3a5f";
+          
+          // Orthogonal PCB trace routing
+          const midX = (inNode.x + node.x) / 2;
+          pr.drawLine(inNode.x + 28, inNode.y, midX, inNode.y, wireColor, wireActive ? 3 : 2);
+          pr.drawLine(midX, inNode.y, midX, node.y, wireColor, wireActive ? 3 : 2);
+          pr.drawLine(midX, node.y, node.x - 28, node.y, wireColor, wireActive ? 3 : 2);
+
+          // Solder joint pads
+          pr.drawCircle(inNode.x + 28, inNode.y, 3, wireActive ? "#38bdf8" : "#334155", true);
+          pr.drawCircle(node.x - 28, node.y, 3, wireActive ? "#38bdf8" : "#334155", true);
         }
       }
     }
 
-    // Draw Logic Gate Nodes
+    // Draw Logic Gate DIP IC Chips
     for (const node of this.nodes) {
       const isSelectedInput =
         node.type === "INPUT" && this.inputNodes[this.selectedInputIndex]?.id === node.id;
 
-      let bgColor = node.state ? "#103248" : "#0d1828";
-      let borderColor = node.state ? "#4de8e8" : "#243b60";
+      let bgColor = node.state ? "#0f2e42" : "#0f172a";
+      let borderColor = node.state ? "#00F0FF" : "#334155";
 
       if (node.type === "INPUT") {
-        bgColor = node.state ? "#1e4d2b" : "#1e293b";
-        borderColor = isSelectedInput ? "#ffd84d" : node.state ? "#63e66d" : "#475569";
+        bgColor = node.state ? "#14532d" : "#1e293b";
+        borderColor = isSelectedInput ? "#ffd84d" : (node.state ? "#22c55e" : "#475569");
       } else if (node.type === "OUTPUT") {
         const isMatched = node.targetState === undefined || node.state === node.targetState;
-        bgColor = isMatched ? "#1e4d2b" : "#4c1d24";
-        borderColor = isMatched ? "#63e66d" : "#ff5c8a";
+        bgColor = isMatched ? "#14532d" : "#4c0519";
+        borderColor = isMatched ? "#22c55e" : "#f43f5e";
       }
 
-      pr.drawRect(node.x - 24, node.y - 18, 48, 36, bgColor, true);
-      pr.drawRect(node.x - 24, node.y - 18, 48, 36, borderColor, false);
+      // Ceramic IC Package Base
+      pr.drawPixelBlock(node.x - 28, node.y - 20, 56, bgColor, "#475569", "#020617");
+      pr.drawRect(node.x - 28, node.y - 20, 56, 40, borderColor, false);
+
+      // Silver IC Pin Contacts on sides
+      for (let py = -12; py <= 12; py += 8) {
+        pr.drawRect(node.x - 32, node.y + py - 2, 4, 4, "#94a3b8", true);
+        pr.drawRect(node.x + 28, node.y + py - 2, 4, 4, "#94a3b8", true);
+      }
 
       if (isSelectedInput) {
-        pr.drawRect(node.x - 28, node.y - 22, 56, 44, "#ffd84d", false);
+        pr.drawRect(node.x - 34, node.y - 24, 68, 48, "#ffd84d", false);
       }
 
       // Gate text label
       let label: string = node.type;
-      if (node.type === "INPUT") label = node.state ? "IN: 1" : "IN: 0";
-      if (node.type === "OUTPUT") label = `OUT: ${node.state ? "1" : "0"}`;
+      if (node.type === "INPUT") label = node.state ? "HIGH [1]" : "LOW [0]";
+      if (node.type === "OUTPUT") label = `OUT [${node.state ? "1" : "0"}]`;
 
       pr.drawText(label, node.x, node.y - 2, {
         size: 9,
         align: "center",
         color: node.state ? "#ffffff" : "#94a3b8",
+        font: "monospace",
       });
 
       if (node.type === "OUTPUT" && node.targetState !== undefined) {
-        pr.drawText(`REQ: ${node.targetState ? "1" : "0"}`, node.x, node.y + 10, {
+        pr.drawText(`TARGET: ${node.targetState ? "1" : "0"}`, node.x, node.y + 11, {
           size: 8,
           align: "center",
-          color: node.state === node.targetState ? "#63e66d" : "#ff5c8a",
+          color: node.state === node.targetState ? "#22c55e" : "#f43f5e",
+          font: "monospace",
         });
       }
     }
 
     if (this.levelCleared) {
-      pr.drawRect(150, 240, 300, 70, "#081224", true);
-      pr.drawRect(150, 240, 300, 70, "#63e66d", false);
-      pr.drawText("CIRCUIT SOLVED!", 300, 268, { size: 16, align: "center", color: "#63e66d" });
-      pr.drawText("ADVANCING TO NEXT LEVEL...", 300, 292, { size: 10, align: "center", color: "#e2e8f0" });
+      pr.drawRect(120, 240, 360, 80, "rgba(8,14,28,0.95)", true);
+      pr.drawRect(120, 240, 360, 80, "#22c55e", false);
+      pr.drawText("CIRCUIT LOGIC VERIFIED!", 300, 268, { size: 18, align: "center", color: "#22c55e", font: "monospace" });
+      pr.drawText("SYNCHRONIZING NEXT SCHEMATIC...", 300, 296, { size: 11, align: "center", color: "#cbd5e1", font: "monospace" });
     }
   }
 

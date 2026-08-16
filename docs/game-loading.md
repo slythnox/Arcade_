@@ -1,12 +1,12 @@
 # Game Loading & Dynamic Code Splitting
 
-This document details how **ARCADE_** loads 62 game cartridges dynamically, isolates JavaScript bundles via Next.js code splitting, and mounts game instances inside the React lifecycle.
+This document details how **ARCADE_** loads 61 game cartridges dynamically, isolates JavaScript bundles via Next.js code splitting, and mounts game instances inside the React lifecycle.
 
 ---
 
 ## 1. The Monolithic Bundle Problem
 
-If all 62 game engines (thousands of lines of physics, procedural generation, and sprite logic) were imported statically on the homepage:
+If all 61 game engines (thousands of lines of physics, procedural generation, and sprite logic) were imported statically on the homepage:
 - Initial JavaScript bundle size would exceed **3.8 MB**.
 - Mobile parse/compile time would degrade by **400-800ms**.
 - Unplayed cartridges would occupy memory unnecessarily.
@@ -49,7 +49,7 @@ export function generateStaticParams() {
 }
 ```
 
-1. `generateStaticParams()` pre-renders static HTML shells for all 62 game slugs at build time.
+1. `generateStaticParams()` pre-renders static HTML shells for all 61 game slugs at build time.
 2. `generateMetadata()` generates tailored OpenGraph tags and JSON-LD schema on the server.
 3. The page renders `<GameShell gameSlug={slug} />`, which initiates the client-side engine boot sequence.
 
