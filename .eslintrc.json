@@ -26,5 +26,5 @@
     "no-case-declarations": "off",
     "no-constant-condition": "off"
   },
-  "ignorePatterns": ["node_modules", ".next", "*.js"]
+  "ignorePatterns": ["node_modules", ".next", "*.js", "dist"]
 }

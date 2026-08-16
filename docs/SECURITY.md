@@ -4,8 +4,8 @@
 
 | Version | Supported |
 |---|---|
-| 1.0.x (Latest) | :white_check_mark: |
-| < 1.0.0 | :x: |
+| 1.2.x (Latest) | :white_check_mark: |
+| < 1.2.0 | :x: |
 
 ---
 
@@ -14,14 +14,15 @@
 If you discover a security vulnerability in the ARCADE_ engine or web shell, please do **NOT** file a public GitHub issue.
 
 Please report vulnerabilities privately to the maintainers via:
-- **Email:** `security@arcade.games` (or via GitHub Private Vulnerability Reporting)
+- **Discord:** Direct Message on Discord to the maintainer (`slythnox`)
+- **GitHub:** [GitHub Private Vulnerability Reporting](https://github.com/slythnox/Arcade_/security/advisories/new)
 
 Please include:
 1. Detailed description of the vulnerability.
 2. Steps or proof-of-concept to reproduce the behavior.
 3. Potential impact on client integrity or cross-site scripting (XSS).
 
-We will acknowledge your report within 48 hours and work on a fix promptly.
+We will review your report and work on a fix promptly.
 
 ---
 

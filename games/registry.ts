@@ -1,3 +1,4 @@
+/** ARCADE_ v1.2.2 */
 import type { GameDefinition, GameInstance } from "./types";
 import type { GamePlatform, GameGenre } from "../core/types/game";
 

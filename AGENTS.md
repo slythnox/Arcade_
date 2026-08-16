@@ -1,3 +1,4 @@
+<!-- ARCADE_ v1.2.2 AGENTS -->
 <!-- BEGIN:nextjs-agent-rules -->
 
 # This is NOT the Next.js you know

@@ -1,3 +1,4 @@
+/** ARCADE_ v1.2.2 */
 import type { Metadata } from "next";
 import type { GameDefinition } from "../../games/types";
 

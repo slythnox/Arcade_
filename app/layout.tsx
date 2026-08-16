@@ -1,3 +1,4 @@
+/** ARCADE_ v1.2.2 */
 import type { Metadata } from "next";
 import "@/styles/globals.css";
 import { Analytics } from "@vercel/analytics/next";

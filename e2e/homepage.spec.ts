@@ -1,3 +1,4 @@
+/** ARCADE_ v1.2.2 */
 import { test, expect } from "@playwright/test";
 
 test.describe("Homepage — arcade shell", () => {

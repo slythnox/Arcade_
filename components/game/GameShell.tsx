@@ -1,3 +1,4 @@
+/** ARCADE_ v1.2.2 */
 "use client";
 
 import React, { useRef, useState, useEffect, useCallback } from "react";

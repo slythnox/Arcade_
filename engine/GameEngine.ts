@@ -1,3 +1,4 @@
+/** ARCADE_ v1.2.2 */
 import { GameSession } from "./GameSession";
 import { GameLoop } from "./GameLoop";
 import { InputManager } from "./input/InputManager";

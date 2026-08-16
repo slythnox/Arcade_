@@ -1,3 +1,4 @@
+/** ARCADE_ v1.2.2 */
 import type { GameContext } from "../../engine/GameContext";
 import { RandomSource } from "../../core/math/random";
 import type { Renderer } from "../../engine/rendering/Renderer";

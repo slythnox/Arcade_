@@ -1,3 +1,4 @@
+/** ARCADE_ v1.2.2 */
 /**
  * Timing constants for the deterministic game loop and runtime.
  */

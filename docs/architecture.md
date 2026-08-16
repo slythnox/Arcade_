@@ -1,3 +1,4 @@
+<!-- ARCADE_ v1.2.2 -->
 # System Architecture & Technical Design
 
 This document details the architectural boundaries, system layers, dependency rules, data flows, and lifecycle contracts of the **ARCADE_** platform.

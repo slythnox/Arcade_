@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.0.0] - 2026-08-16 — Public Beta Release
+## [1.2.2] - 2026-08-16 — Public Beta Release
 
 ### Added
 - **61 Verified Game Cartridges:** Complete library spanning Classics, Action, Platformers, Physics, Shooters, Strategy, and Experimental Labs.
@@ -32,6 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated Privacy Policy to transparently disclose Vercel Analytics usage for anonymous aggregate page views.
 - Fixed contact form error state handling to display inline alerts rather than silent redirects.
 - Removed dead placeholder repository links (`href="#"`) and wired them to the public repository.
+- Reorganized documentation structure: consolidated all technical docs into `docs/`.
 
 ### Removed
 - Deprecated `/contact` form and API endpoints in favor of direct GitHub repository issue tracking.
+- Removed unused and redundant root files.
