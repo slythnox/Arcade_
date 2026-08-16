@@ -132,6 +132,10 @@ export class AudioManager {
     this.playTone(150, "square", 80, 0.25, 80);
   }
 
+  public playJump(): void {
+    this.playTone(280, "square", 80, 0.2, 540);
+  }
+
   public playCoin(): void {
     this.playTone(987.77, "square", 70, 0.2);
     setTimeout(() => {

@@ -567,7 +567,7 @@ export class RaySectorGame implements GameInstance {
       }
     }
 
-    // 4. Render 3D Enemies (Drones, Soldiers, Bosses)
+    // 4. Render 3D Enemies (Drones, Soldiers, Bosses) with Detailed Procedural Sprites
     const sortedEnemies = [...this.enemies].sort((a, b) => {
       return (b.x - this.posX) ** 2 + (b.y - this.posY) ** 2 - ((a.x - this.posX) ** 2 + (a.y - this.posY) ** 2);
     });
@@ -583,7 +583,7 @@ export class RaySectorGame implements GameInstance {
 
       if (transformY > 0.2) {
         const screenX = Math.floor((w / 2) * (1 + transformX / transformY));
-        const szScale = e.type === "boss" ? 1.1 : 0.65;
+        const szScale = e.type === "boss" ? 1.3 : 0.75;
         const spriteH = Math.abs(Math.floor(((h - 50) / transformY) * szScale));
         const spriteW = spriteH;
 
@@ -598,24 +598,41 @@ export class RaySectorGame implements GameInstance {
         for (let stripe = startX; stripe < endX; stripe++) {
           if (stripe >= 0 && stripe < w && transformY < zBuffer[stripe]) {
             const u = (stripe - startX) / spriteW;
+            const stripeH = endY - startY;
 
-            // Draw multi-frame enemy character sprite
             if (e.type === "drone") {
-              // Floating Robotic Drone Sphere
-              pr.drawRect(stripe, startY, 1, endY - startY, u > 0.35 && u < 0.65 ? "#EF4444" : "#475569", true);
+              // Spherical Floating Drone with Thrusters & Cyan Optic Eye
+              const isCenter = u > 0.25 && u < 0.75;
+              const isEye = u > 0.4 && u < 0.6;
+              const col = isEye ? "#00F0FF" : isCenter ? "#64748B" : "#334155";
+              pr.drawRect(stripe, startY + stripeH * 0.15, 1, stripeH * 0.7, col, true);
+              // Twin Jet Thruster Flames
+              if ((u > 0.15 && u < 0.28) || (u > 0.72 && u < 0.85)) {
+                pr.drawRect(stripe, startY + stripeH * 0.75, 1, stripeH * 0.25, "#F59E0B", true);
+              }
             } else if (e.type === "boss") {
-              // Giant Heavy Cyber Mech Boss
-              pr.drawRect(stripe, startY, 1, endY - startY, u > 0.25 && u < 0.75 ? "#991B1B" : "#1E293B", true);
+              // Massive Dread Mech (Purple & Ruby Armor, Quad Red Visor Eyes)
+              const isCore = u > 0.42 && u < 0.58;
+              const isShoulder = (u > 0.1 && u < 0.25) || (u > 0.75 && u < 0.9);
+              const col = isCore ? "#A855F7" : isShoulder ? "#DC2626" : "#1E293B";
+              pr.drawRect(stripe, startY, 1, stripeH, col, true);
+              // Glowing Red Eye Slits
+              if (u > 0.35 && u < 0.65) {
+                pr.drawRect(stripe, startY + stripeH * 0.25, 1, stripeH * 0.08, "#EF4444", true);
+              }
             } else {
-              // Cybernetic Soldier
-              pr.drawRect(stripe, startY, 1, endY - startY, u > 0.3 && u < 0.7 ? "#0284C7" : "#334155", true);
+              // Cybernetic Soldier (Blue Titanium Chest Armor & Cyan Visor)
+              const isHelmet = u > 0.35 && u < 0.65;
+              const isVisor = u > 0.42 && u < 0.58;
+              const col = isVisor ? "#00F0FF" : isHelmet ? "#0284C7" : "#334155";
+              pr.drawRect(stripe, startY, 1, stripeH, col, true);
             }
           }
         }
 
         // Enemy Health Bar above head
         if (screenX >= 20 && screenX < w - 20 && transformY < zBuffer[screenX]) {
-          const hpW = Math.max(16, spriteW * 0.8);
+          const hpW = Math.max(20, spriteW * 0.8);
           const hpPct = Math.max(0, e.hp / e.maxHp);
           pr.drawRect(screenX - hpW / 2, startY - 8, hpW, 4, "#0f172a", true);
           pr.drawRect(screenX - hpW / 2, startY - 8, hpW * hpPct, 4, e.type === "boss" ? "#A855F7" : "#EF4444", true);
@@ -633,12 +650,12 @@ export class RaySectorGame implements GameInstance {
 
       if (transformY > 0.2) {
         const screenX = Math.floor((w / 2) * (1 + transformX / transformY));
-        const sz = Math.abs(Math.floor((h - 50) / transformY * 0.15));
+        const sz = Math.abs(Math.floor((h - 50) / transformY * 0.18));
         const sy = (h - 50) / 2;
 
         if (screenX >= 0 && screenX < w && transformY < zBuffer[screenX]) {
-          pr.drawCircle(screenX, sy, Math.max(3, sz), "#EF4444", true);
-          pr.drawCircle(screenX, sy, Math.max(1, sz * 0.5), "#FFFFFF", true);
+          pr.drawCircle(screenX, sy, Math.max(4, sz), "#EF4444", true);
+          pr.drawCircle(screenX, sy, Math.max(2, sz * 0.5), "#FFFFFF", true);
         }
       }
     }
@@ -648,23 +665,27 @@ export class RaySectorGame implements GameInstance {
       pr.drawRect(0, 0, w, h - 50, "rgba(239, 68, 68, 0.35)", true);
     }
 
-    // 7. Weapon Plasma Rifle with Animated Recoil, Sway, and Muzzle Flash
+    // 7. Hand-Drawn Plasma Rifle with Animated Recoil, Heat Coils, and Muzzle Flash
     const swayX = Math.sin(this.swayTimer) * 6;
     const swayY = Math.abs(Math.cos(this.swayTimer)) * 4;
-    const recoil = this.muzzleFlash > 0 ? 12 : 0;
+    const recoil = this.muzzleFlash > 0 ? 14 : 0;
     const gunX = w / 2 + swayX;
     const gunY = h - 110 + swayY + recoil;
 
-    // Heavy Metal Plasma Cannon Barrel
-    pr.drawPixelBlock(gunX - 22, gunY, 44, "#334155", "#64748B", "#0F172A");
-    pr.drawRect(gunX - 10, gunY - 24, 20, 28, "#1E293B", true);
-    pr.drawRect(gunX - 6, gunY - 32, 12, 14, "#00F0FF", true); // Glowing plasma core
+    // Heavy Metal Receiver & Stock
+    pr.drawPixelBlock(gunX - 26, gunY, 52, "#1E293B", "#475569", "#0F172A");
+    pr.drawRect(gunX - 12, gunY - 32, 24, 38, "#334155", true);
 
-    // Muzzle Flash
+    // Glowing Cyan Energy Coils & Ammo LED
+    pr.drawRect(gunX - 8, gunY - 26, 16, 6, "#00F0FF", true);
+    pr.drawRect(gunX - 8, gunY - 14, 16, 6, "#00F0FF", true);
+    pr.drawRect(gunX - 10, gunY + 8, 20, 8, "#0284C7", true); // Ammo Battery Magazine
+
+    // Muzzle Flash Blast
     if (this.muzzleFlash > 0) {
-      pr.drawCircle(gunX, gunY - 38, 20, "rgba(0, 240, 255, 0.4)", true);
-      pr.drawCircle(gunX, gunY - 38, 12, "#00F0FF", true);
-      pr.drawCircle(gunX, gunY - 38, 5, "#FFFFFF", true);
+      pr.drawCircle(gunX, gunY - 42, 24, "rgba(0, 240, 255, 0.4)", true);
+      pr.drawCircle(gunX, gunY - 42, 14, "#00F0FF", true);
+      pr.drawCircle(gunX, gunY - 42, 6, "#FFFFFF", true);
     }
 
     // 8. Crosshair Reticle

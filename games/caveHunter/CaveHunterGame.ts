@@ -321,33 +321,53 @@ export class CaveHunterGame implements GameInstance {
       pr.drawCircle(p.x, p.y, 2, p.color, true);
     }
 
-    // 4. Draw Enemies (Pooka Goggles Monster)
-    for (const e of this.enemies) {
+    // 4. Draw Enemies (Pooka Goggles Monster & Fygar Fire Dragon)
+    for (let idx = 0; idx < this.enemies.length; idx++) {
+      const e = this.enemies[idx];
       const ex = ox + e.x * this.tileSize + 16;
       const ey = oy + e.y * this.tileSize + 16;
       const sz = 12 + e.inflation * 6;
+      const isFygar = idx % 2 === 1;
 
-      pr.drawCircle(ex, ey, sz, e.inflation > 1.5 ? "#FCA5A5" : "#EF4444", true);
-      // Yellow Swimming Goggles
-      pr.drawRect(ex - 8, ey - 4, 16, 6, "#FEF08A", true);
-      pr.drawCircle(ex - 4, ey - 1, 2, "#000000", true);
-      pr.drawCircle(ex + 4, ey - 1, 2, "#000000", true);
+      if (isFygar) {
+        // Fygar Green Fire Dragon
+        pr.drawCircle(ex, ey, sz, e.inflation > 1.5 ? "#BBF7D0" : "#16A34A", true);
+        // Wings & Spikes
+        pr.drawRect(ex - sz, ey - 4, 4, 8, "#FACC15", true);
+        pr.drawRect(ex + sz - 4, ey - 4, 4, 8, "#FACC15", true);
+        pr.drawCircle(ex - 4, ey - 2, 2, "#FFFFFF", true);
+        pr.drawCircle(ex + 4, ey - 2, 2, "#FFFFFF", true);
+      } else {
+        // Pooka Red Monster with Swimming Goggles
+        pr.drawCircle(ex, ey, sz, e.inflation > 1.5 ? "#FCA5A5" : "#EF4444", true);
+        // Yellow Swimming Goggles
+        pr.drawRect(ex - 9, ey - 5, 18, 7, "#FEF08A", true);
+        pr.drawCircle(ex - 4, ey - 1, 2, "#000000", true);
+        pr.drawCircle(ex + 4, ey - 1, 2, "#000000", true);
+        // Cute Orange Feet
+        pr.drawRect(ex - 6, ey + sz - 2, 4, 3, "#F97316", true);
+        pr.drawRect(ex + 2, ey + sz - 2, 4, 3, "#F97316", true);
+      }
     }
 
-    // 5. Draw Dig Dug Miner Player
+    // 5. Draw Detailed Dig Dug Miner Player
     const px = ox + this.playerX * this.tileSize + 16;
     const py = oy + this.playerY * this.tileSize + 16;
-    pr.drawPixelBlock(px - 10, py - 10, 20, "#FFFFFF", "#E0F2FE", "#0284C7");
-    pr.drawRect(px - 6, py - 14, 12, 6, "#0284C7", true); // Blue visor helmet
 
-    // Draw Pump Hose when facing
+    // Miner White Suit & Blue Helmet
+    pr.drawPixelBlock(px - 10, py - 8, 20, "#F8FAFC", "#FFFFFF", "#94A3B8");
+    pr.drawRect(px - 8, py - 14, 16, 7, "#0284C7", true); // Hard Hat
+    pr.drawRect(px - 6, py - 12, 12, 4, "#38BDF8", true); // Visor
+
+    // Miner drill / pump tool
     let hx = px;
     let hy = py;
-    if (this.playerFacing === "left") hx -= 20;
-    if (this.playerFacing === "right") hx += 20;
-    if (this.playerFacing === "up") hy -= 20;
-    if (this.playerFacing === "down") hy += 20;
-    pr.drawLine(px, py, hx, hy, "#FFD84D", 3);
+    if (this.playerFacing === "left") hx -= 24;
+    if (this.playerFacing === "right") hx += 24;
+    if (this.playerFacing === "up") hy -= 24;
+    if (this.playerFacing === "down") hy += 24;
+    pr.drawLine(px, py, hx, hy, "#FACC15", 3);
+    pr.drawCircle(hx, hy, 4, "#EF4444", true); // Hose nozzle
 
     // 6. Top HUD
     pr.drawRect(0, 0, w, 52, "#080e1c", true);

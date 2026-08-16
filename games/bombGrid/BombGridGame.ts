@@ -261,10 +261,39 @@ export class BombGridGame implements GameInstance {
       pr.drawCircle(cx + 4, cy - bounce - 2, 1, "#000", true);
     }
     
+    // Draw Detailed Pixel-Art Bomberman Hero
     const pcx = offsetX + this.player.x * cellSize + cellSize / 2;
     const pcy = offsetY + this.player.y * cellSize + cellSize / 2;
-    pr.drawRect(pcx - 8, pcy - 4, 16, 12, "#3b82f6", true);
-    pr.drawCircle(pcx, pcy - 10, 7, "#fca5a5", true);
+    const walkBob = Math.sin(this.time * 12) * 2;
+
+    // 1. Antenna Bobble
+    pr.drawCircle(pcx, pcy - 18 + walkBob, 3, "#FF5C8A", true);
+    pr.drawRect(pcx - 1, pcy - 15 + walkBob, 2, 4, "#FFFFFF", true);
+
+    // 2. White Helmet Head
+    pr.drawCircle(pcx, pcy - 8 + walkBob, 10, "#FFFFFF", true);
+    pr.drawCircle(pcx, pcy - 8 + walkBob, 10, "#94A3B8", false);
+
+    // 3. Pink Face Visor & Eyes
+    pr.drawRect(pcx - 6, pcy - 10 + walkBob, 12, 6, "#FCA5A5", true);
+    const eyeOffX = this.player.dir === 3 ? -2 : this.player.dir === 1 ? 2 : 0;
+    const eyeOffY = this.player.dir === 0 ? -1 : this.player.dir === 2 ? 1 : 0;
+    pr.drawRect(pcx - 4 + eyeOffX, pcy - 9 + walkBob + eyeOffY, 2, 4, "#000000", true);
+    pr.drawRect(pcx + 2 + eyeOffX, pcy - 9 + walkBob + eyeOffY, 2, 4, "#000000", true);
+
+    // 4. Blue Bodysuit & White Collar
+    pr.drawRect(pcx - 7, pcy + 2, 14, 10, "#2563EB", true);
+    pr.drawRect(pcx - 5, pcy + 1, 10, 3, "#FFFFFF", true);
+    pr.drawRect(pcx - 3, pcy + 8, 6, 3, "#FACC15", true); // Gold Belt Buckle
+
+    // 5. White Gloves (Hands)
+    pr.drawCircle(pcx - 8, pcy + 6, 3, "#FFFFFF", true);
+    pr.drawCircle(pcx + 8, pcy + 6, 3, "#FFFFFF", true);
+
+    // 6. Pink Boots with Step Animation
+    const legOffset = Math.sin(this.time * 14) * 3;
+    pr.drawRect(pcx - 6, pcy + 12 + legOffset, 5, 4, "#FF5C8A", true);
+    pr.drawRect(pcx + 1, pcy + 12 - legOffset, 5, 4, "#FF5C8A", true);
     
     pr.drawRect(0, 0, renderer.getWidth(), 40, "#111", true);
     pr.drawText(`♥ ${this.lives}   ★ SCORE: ${this.score}   🚩 LVL: ${this.level}`, renderer.getWidth() / 2, 25, {

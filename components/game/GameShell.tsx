@@ -884,7 +884,7 @@ export const GameShell: React.FC<GameShellProps> = ({ gameSlug, mode = "arcade" 
               textAlign: "center",
             }}
           >
-            {game.name.toUpperCase()} • YEAR {game.year}
+            {game.name.toUpperCase()} • ARCADE EDITION
           </div>
         </aside>
       )}

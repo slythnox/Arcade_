@@ -3,338 +3,335 @@ import type { GameContext } from "../../engine/GameContext";
 import type { Renderer } from "../../engine/rendering/Renderer";
 import type { PixelRenderer } from "../../engine/rendering/PixelRenderer";
 import type { GameAction } from "../../core/types/game";
+import { globalParticles } from "../../engine/particles/ParticleSystem";
+import { drawSpaceshipSprite } from "../../engine/rendering/spaceshipSprite";
+
+type FormationMode = "delta" | "spear" | "diamond" | "pincer";
+
+interface SquadronMember {
+  offsetX: number;
+  offsetY: number;
+  targetOffsetX: number;
+  targetOffsetY: number;
+  hp: number;
+}
+
+interface Dreadnought {
+  x: number;
+  y: number;
+  hp: number;
+  maxHp: number;
+  width: number;
+  height: number;
+  turrets: { offsetX: number; offsetY: number; angle: number; timer: number }[];
+}
+
+interface Projectile {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  fromPlayer: boolean;
+  damage: number;
+  isMegaBeam?: boolean;
+}
 
 export class StarFormationGame implements GameInstance {
   private ctx!: GameContext;
-  
+
   private score: number = 0;
   private level: number = 1;
   private lives: number = 3;
   private gameOver: boolean = false;
   private isPaused: boolean = false;
-  
-  private player = { x: 300, y: 600, vx: 0, cooldown: 0 };
-  private bullets: { x: number, y: number, vy: number, isEnemy: boolean }[] = [];
-  private enemies: { x: number, y: number, startX: number, startY: number, row: number, hp: number, isDiving: boolean, time: number }[] = [];
-  
-  private stars: {x: number, y: number, speed: number, size: number}[] = [];
-  private particles: {x: number, y: number, vx: number, vy: number, life: number, color: string}[] = [];
-  
-  private formationDx: number = 1;
-  private formationX: number = 0;
-  private formationY: number = 0;
-  private time: number = 0;
-  
+
+  private leaderX: number = 300;
+  private leaderY: number = 580;
+  private movingLeft: boolean = false;
+  private movingRight: boolean = false;
+  private movingUp: boolean = false;
+  private movingDown: boolean = false;
+
+  private formationMode: FormationMode = "delta";
+  private squadron: SquadronMember[] = [
+    { offsetX: 0, offsetY: 0, targetOffsetX: 0, targetOffsetY: 0, hp: 100 },      // Leader
+    { offsetX: -45, offsetY: 25, targetOffsetX: -45, targetOffsetY: 25, hp: 100 }, // Wingman Left
+    { offsetX: 45, offsetY: 25, targetOffsetX: 45, targetOffsetY: 25, hp: 100 },   // Wingman Right
+    { offsetX: 0, offsetY: 50, targetOffsetX: 0, targetOffsetY: 50, hp: 100 },     // Rear Guard
+  ];
+
+  private dreadnought: Dreadnought | null = null;
+  private projectiles: Projectile[] = [];
+  private shootCooldown: number = 0;
+  private shieldAngle: number = 0;
+  private stars: { x: number; y: number; speed: number; size: number; color: string }[] = [];
+
   public init(ctx: GameContext): void {
     this.ctx = ctx;
+    this.initStars();
     this.reset();
   }
 
+  private initStars(): void {
+    this.stars = [];
+    const cols = ["#FFFFFF", "#93C5FD", "#FDE047", "#C084FC", "#67E8F9"];
+    for (let i = 0; i < 75; i++) {
+      this.stars.push({
+        x: Math.random() * 600,
+        y: Math.random() * 700,
+        speed: 40 + Math.random() * 120,
+        size: Math.random() > 0.8 ? 2 : 1,
+        color: cols[Math.floor(Math.random() * cols.length)],
+      });
+    }
+  }
+
   public reset(seed?: number): void {
+    if (seed !== undefined) this.ctx.random.reset(seed);
     this.score = 0;
     this.level = 1;
     this.lives = 3;
     this.gameOver = false;
     this.isPaused = false;
-    this.time = 0;
-    
-    this.stars = [];
-    for (let i = 0; i < 80; i++) {
-      this.stars.push({
-        x: Math.random() * 600,
-        y: Math.random() * 700,
-        speed: 0.5 + Math.random() * 1.5,
-        size: 1 + Math.random() * 2
-      });
-    }
-    this.particles = [];
-    this.spawnWave();
-  }
-  
-  private spawnWave(): void {
-    this.enemies = [];
-    this.bullets = [];
-    this.formationX = 50;
-    this.formationY = 80;
-    this.formationDx = 1 + this.level * 0.2;
-    this.player.x = 300;
-    
-    for (let row = 0; row < 5; row++) {
-      for (let col = 0; col < 10; col++) {
-        this.enemies.push({
-          startX: col * 45,
-          startY: row * 40,
-          x: col * 45 + this.formationX,
-          y: row * 40 + this.formationY,
-          row: row,
-          hp: row === 0 ? 3 : 1, // Boss row takes 3 hits
-          isDiving: false,
-          time: 0
-        });
-      }
-    }
+    this.leaderX = 300;
+    this.leaderY = 580;
+    this.projectiles = [];
+    this.setFormation("delta");
+    this.spawnDreadnought();
   }
 
-  private spawnExplosion(x: number, y: number, color: string): void {
-    this.ctx.audio.playExplosion();
-    for (let i = 0; i < 15; i++) {
-      const ang = Math.random() * Math.PI * 2;
-      const speed = 50 + Math.random() * 150;
-      this.particles.push({
-        x, y,
-        vx: Math.cos(ang) * speed,
-        vy: Math.sin(ang) * speed,
-        life: 0.3 + Math.random() * 0.5,
-        color: color
-      });
+  private setFormation(mode: FormationMode): void {
+    this.formationMode = mode;
+    this.ctx.audio?.playRotate?.();
+
+    if (mode === "delta") {
+      // Wide Delta Wing (Wide Area Sweep)
+      this.squadron[0].targetOffsetX = 0; this.squadron[0].targetOffsetY = 0;
+      this.squadron[1].targetOffsetX = -50; this.squadron[1].targetOffsetY = 25;
+      this.squadron[2].targetOffsetX = 50; this.squadron[2].targetOffsetY = 25;
+      this.squadron[3].targetOffsetX = 0; this.squadron[3].targetOffsetY = 50;
+    } else if (mode === "spear") {
+      // Phalanx Spear (Heavy Concentrated Piercing Column)
+      this.squadron[0].targetOffsetX = 0; this.squadron[0].targetOffsetY = -30;
+      this.squadron[1].targetOffsetX = 0; this.squadron[1].targetOffsetY = 0;
+      this.squadron[2].targetOffsetX = 0; this.squadron[2].targetOffsetY = 30;
+      this.squadron[3].targetOffsetX = 0; this.squadron[3].targetOffsetY = 60;
+    } else if (mode === "diamond") {
+      // Diamond Defense (Reflective Energy Shield)
+      this.squadron[0].targetOffsetX = 0; this.squadron[0].targetOffsetY = -30;
+      this.squadron[1].targetOffsetX = -35; this.squadron[1].targetOffsetY = 0;
+      this.squadron[2].targetOffsetX = 35; this.squadron[2].targetOffsetY = 0;
+      this.squadron[3].targetOffsetX = 0; this.squadron[3].targetOffsetY = 30;
+    } else if (mode === "pincer") {
+      // Twin Pincer (Inward Angled Cross-Fire)
+      this.squadron[0].targetOffsetX = -60; this.squadron[0].targetOffsetY = 0;
+      this.squadron[1].targetOffsetX = -60; this.squadron[1].targetOffsetY = 40;
+      this.squadron[2].targetOffsetX = 60; this.squadron[2].targetOffsetY = 0;
+      this.squadron[3].targetOffsetX = 60; this.squadron[3].targetOffsetY = 40;
     }
+
+    globalParticles.emitBurst(this.leaderX, this.leaderY, 12, ["#00F0FF", "#ffd84d"], 50, 180);
+  }
+
+  private cycleFormation(): void {
+    const modes: FormationMode[] = ["delta", "spear", "diamond", "pincer"];
+    const nextIdx = (modes.indexOf(this.formationMode) + 1) % modes.length;
+    this.setFormation(modes[nextIdx]);
+  }
+
+  private spawnDreadnought(): void {
+    const hp = 800 + this.level * 400;
+    this.dreadnought = {
+      x: 300,
+      y: 120,
+      hp,
+      maxHp: hp,
+      width: 240,
+      height: 90,
+      turrets: [
+        { offsetX: -80, offsetY: 20, angle: Math.PI / 2, timer: 0.5 },
+        { offsetX: -30, offsetY: 35, angle: Math.PI / 2, timer: 1.0 },
+        { offsetX: 30, offsetY: 35, angle: Math.PI / 2, timer: 1.5 },
+        { offsetX: 80, offsetY: 20, angle: Math.PI / 2, timer: 2.0 },
+      ],
+    };
   }
 
   public update(dt: number): void {
-    if (this.gameOver || this.isPaused) return;
-
-    this.time += dt;
+    globalParticles.update(dt);
 
     for (const s of this.stars) {
-      s.y += s.speed * dt * 60;
+      s.y += s.speed * dt;
       if (s.y > 700) {
         s.y = 0;
         s.x = Math.random() * 600;
       }
     }
 
-    for (let i = this.particles.length - 1; i >= 0; i--) {
-      const p = this.particles[i];
-      p.x += p.vx * dt;
-      p.y += p.vy * dt;
-      p.life -= dt;
-      if (p.life <= 0) this.particles.splice(i, 1);
+    if (this.gameOver || this.isPaused) return;
+
+    this.shieldAngle += dt * 4;
+    this.shootCooldown = Math.max(0, this.shootCooldown - dt);
+
+    // Smooth movement
+    const spd = 340;
+    if (this.movingLeft) this.leaderX = Math.max(80, this.leaderX - spd * dt);
+    if (this.movingRight) this.leaderX = Math.min(520, this.leaderX + spd * dt);
+    if (this.movingUp) this.leaderY = Math.max(320, this.leaderY - spd * dt);
+    if (this.movingDown) this.leaderY = Math.min(640, this.leaderY + spd * dt);
+
+    // Smooth formation interpolation
+    for (const member of this.squadron) {
+      member.offsetX += (member.targetOffsetX - member.offsetX) * 12 * dt;
+      member.offsetY += (member.targetOffsetY - member.offsetY) * 12 * dt;
     }
 
-    this.player.x += this.player.vx * 350 * dt;
-    if (this.player.x < 20) this.player.x = 20;
-    if (this.player.x > 580) this.player.x = 580;
-    
-    if (this.player.cooldown > 0) this.player.cooldown -= dt;
-    
-    for (let i = this.bullets.length - 1; i >= 0; i--) {
-      const b = this.bullets[i];
-      b.y += b.vy * dt;
-      if (b.y < -10 || b.y > 710) {
-        this.bullets.splice(i, 1);
+    // Dreadnought Boss AI
+    if (this.dreadnought) {
+      this.dreadnought.x = 300 + Math.sin(this.shieldAngle * 0.4) * 120;
+
+      for (const t of this.dreadnought.turrets) {
+        t.timer -= dt;
+        if (t.timer <= 0) {
+          t.timer = Math.max(0.6, 1.6 - this.level * 0.1);
+          const tx = this.dreadnought.x + t.offsetX;
+          const ty = this.dreadnought.y + t.offsetY;
+          const aimAngle = Math.atan2(this.leaderY - ty, this.leaderX - tx);
+          this.projectiles.push({
+            x: tx,
+            y: ty,
+            vx: Math.cos(aimAngle) * 240,
+            vy: Math.sin(aimAngle) * 240,
+            fromPlayer: false,
+            damage: 20,
+          });
+          this.ctx.audio?.playLaser?.();
+        }
+      }
+    }
+
+    // Update projectiles
+    for (let i = this.projectiles.length - 1; i >= 0; i--) {
+      const p = this.projectiles[i];
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+
+      if (p.y < 10 || p.y > 690 || p.x < 10 || p.x > 590) {
+        this.projectiles.splice(i, 1);
         continue;
       }
-      
-      if (!b.isEnemy) {
-        for (let j = this.enemies.length - 1; j >= 0; j--) {
-          const e = this.enemies[j];
-          if (Math.abs(b.x - e.x) < 20 && Math.abs(b.y - e.y) < 20) {
-            e.hp--;
-            this.bullets.splice(i, 1);
-            if (e.hp <= 0) {
-              this.score += (e.row === 0) ? 150 : (50 - e.row * 10);
-              this.spawnExplosion(e.x, e.y, e.row === 0 ? "#FF00FF" : (e.row < 3 ? "#00FFFF" : "#00FF00"));
-              this.enemies.splice(j, 1);
-            } else {
-              this.ctx.audio.playHit();
+
+      if (p.fromPlayer) {
+        // Hit Boss
+        if (
+          this.dreadnought &&
+          Math.abs(p.x - this.dreadnought.x) < this.dreadnought.width / 2 &&
+          Math.abs(p.y - this.dreadnought.y) < this.dreadnought.height / 2
+        ) {
+          this.dreadnought.hp -= p.damage;
+          this.score += 50 * this.level;
+          this.ctx.audio?.playHit?.();
+          globalParticles.emitBurst(p.x, p.y, 6, ["#00F0FF", "#ffd84d", "#FFFFFF"], 40, 160);
+          this.projectiles.splice(i, 1);
+
+          if (this.dreadnought.hp <= 0) {
+            // Boss destroyed!
+            this.ctx.audio?.playExplosion?.();
+            globalParticles.emitBurst(this.dreadnought.x, this.dreadnought.y, 40, ["#EF4444", "#F59E0B", "#ffd84d"], 120, 360);
+            this.score += 5000 * this.level;
+            this.level++;
+            this.dreadnought = null;
+            setTimeout(() => this.spawnDreadnought(), 1200);
+          }
+          continue;
+        }
+      } else {
+        // Enemy projectile: Check Diamond Shield reflection
+        if (this.formationMode === "diamond") {
+          const distToLeader = Math.hypot(p.x - this.leaderX, p.y - this.leaderY);
+          if (distToLeader < 48) {
+            // Reflect!
+            p.fromPlayer = true;
+            p.vy = -Math.abs(p.vy) * 1.5;
+            p.vx *= -1;
+            p.damage = 40;
+            this.ctx.audio?.playPowerUp?.();
+            globalParticles.emitBurst(p.x, p.y, 10, ["#00F0FF", "#FFFFFF"], 50, 180);
+            continue;
+          }
+        }
+
+        // Check hit on squadron fighters
+        for (const member of this.squadron) {
+          const mx = this.leaderX + member.offsetX;
+          const my = this.leaderY + member.offsetY;
+          if (Math.hypot(p.x - mx, p.y - my) < 18) {
+            this.projectiles.splice(i, 1);
+            this.lives--;
+            this.ctx.audio?.playGameOver?.();
+            globalParticles.emitBurst(mx, my, 20, ["#EF4444", "#F59E0B", "#FFFFFF"], 80, 260);
+
+            if (this.lives <= 0) {
+              this.gameOver = true;
+              this.ctx.session.setStatus("game-over");
             }
             break;
           }
         }
-      } else {
-        if (Math.abs(b.x - this.player.x) < 12 && Math.abs(b.y - this.player.y) < 12) {
-          this.bullets.splice(i, 1);
-          this.die();
-        }
       }
-    }
-    
-    this.formationX += this.formationDx * 50 * dt;
-    let hitEdge = false;
-    if (this.formationX > 150 || this.formationX < 20) hitEdge = true;
-    
-    if (hitEdge) {
-      this.formationDx *= -1;
-      this.formationY += 10;
-    }
-    
-    let isAllDead = true;
-    for (let j = this.enemies.length - 1; j >= 0; j--) {
-      const e = this.enemies[j];
-      isAllDead = false;
-      
-      if (!e.isDiving) {
-        const offsetY = Math.sin(this.time * 2 + e.startX * 0.05) * 5;
-        e.x = e.startX + this.formationX;
-        e.y = e.startY + this.formationY + offsetY;
-        
-        if (Math.random() < 0.0005 * this.level) {
-          e.isDiving = true;
-          e.time = 0;
-        }
-      } else {
-        e.time += dt;
-        e.y += 180 * dt;
-        e.x += Math.sin(e.time * 5) * 120 * dt;
-        
-        if (e.y > 720) {
-          e.isDiving = false;
-          e.y = e.startY + this.formationY - 50;
-        }
-      }
-      
-      if (Math.random() < 0.001) {
-        this.bullets.push({ x: e.x, y: e.y + 10, vy: 350, isEnemy: true });
-        this.ctx.audio.playLaser();
-        if (e.row === 0) {
-          this.bullets.push({ x: e.x - 12, y: e.y + 10, vy: 350, isEnemy: true });
-          this.bullets.push({ x: e.x + 12, y: e.y + 10, vy: 350, isEnemy: true });
-        }
-      }
-      
-      if (Math.abs(e.x - this.player.x) < 20 && Math.abs(e.y - this.player.y) < 20) {
-        this.die();
-      }
-    }
-    
-    if (isAllDead) {
-      this.level++;
-      this.ctx.audio.playVictory();
-      this.spawnWave();
-    }
-  }
-  
-  private die(): void {
-    this.spawnExplosion(this.player.x, this.player.y, "#4de8e8");
-    this.lives--;
-    if (this.lives <= 0) {
-      this.gameOver = true;
-      this.ctx.session.setStatus("game-over");
-      this.ctx.audio.playGameOver();
-    } else {
-      this.player.x = 300;
-      this.bullets = [];
     }
   }
 
-  public render(renderer: Renderer): void {
-    const pr = renderer as PixelRenderer;
-    const rawCtx = pr.getContext();
-    renderer.clear("#000810");
-    
-    // Background Stars
-    for (const s of this.stars) {
-      const col = Math.floor(100 + s.size * 50);
-      renderer.drawRect(s.x, s.y, s.size, s.size, `rgb(${col},${col},${col})`);
-    }
+  private fireTacticalBarrage(): void {
+    if (this.shootCooldown > 0 || this.gameOver || this.isPaused) return;
+    this.shootCooldown = 0.18;
+    this.ctx.audio?.playLaser?.();
 
-    // Particles
-    for (const p of this.particles) {
-      rawCtx.globalAlpha = p.life;
-      renderer.drawCircle(p.x, p.y, 2, p.color, true);
-      rawCtx.globalAlpha = 1.0;
-    }
-    
-    // Draw enemies
-    for (const e of this.enemies) {
-      rawCtx.save();
-      rawCtx.translate(e.x, e.y);
-      if (e.row === 0) {
-        // Boss
-        rawCtx.fillStyle = "#FF00FF";
-        rawCtx.fillRect(-15, -5, 30, 10);
-        rawCtx.fillRect(-5, -15, 10, 30);
-        renderer.drawCircle(0, 0, 8, "#FFFFFF", true);
-      } else if (e.row < 3) {
-        // Middle diamond
-        rawCtx.fillStyle = "#00FFFF";
-        rawCtx.beginPath();
-        rawCtx.moveTo(0, -12); rawCtx.lineTo(12, 0); rawCtx.lineTo(0, 12); rawCtx.lineTo(-12, 0);
-        rawCtx.fill();
-      } else {
-        // Bottom X-wing style
-        rawCtx.fillStyle = "#00FF00";
-        rawCtx.fillRect(-10, -10, 20, 6);
-        rawCtx.fillRect(-10, 4, 20, 6);
-        rawCtx.fillRect(-4, -6, 8, 12);
+    if (this.formationMode === "delta") {
+      // Wide sweeping barrage from all 4 fighters
+      for (const m of this.squadron) {
+        this.projectiles.push({
+          x: this.leaderX + m.offsetX,
+          y: this.leaderY + m.offsetY - 16,
+          vx: 0,
+          vy: -600,
+          fromPlayer: true,
+          damage: 25,
+        });
       }
-      rawCtx.restore();
-    }
-    
-    // Draw bullets
-    for (const b of this.bullets) {
-      if (b.isEnemy) {
-        renderer.drawCircle(b.x, b.y, 4, "#ff8000", true);
-      } else {
-        renderer.drawRect(b.x - 1, b.y - 8, 2, 16, "#00FFFF", true);
-      }
-    }
-    
-    // Draw player ship
-    if (!this.gameOver || this.lives > 0) {
-      const px = this.player.x;
-      const py = this.player.y;
-      
-      // Ship shape
-      rawCtx.beginPath();
-      rawCtx.moveTo(px, py - 16);
-      rawCtx.lineTo(px - 12, py + 12);
-      rawCtx.lineTo(px - 4, py + 8);
-      rawCtx.lineTo(px, py + 12);
-      rawCtx.lineTo(px + 4, py + 8);
-      rawCtx.lineTo(px + 12, py + 12);
-      rawCtx.closePath();
-      rawCtx.fillStyle = '#4de8e8';
-      rawCtx.fill();
-      
-      // Engine glow
-      rawCtx.beginPath();
-      rawCtx.arc(px, py + 10, 3 + Math.sin(this.time * 15) * 1.5, 0, Math.PI * 2);
-      rawCtx.fillStyle = '#ff6030';
-      rawCtx.fill();
-    }
-    
-    // HUD
-    renderer.drawText(`SCORE: ${this.score}`, 20, 30, {color: "#FFF", size: 18});
-    
-    // Draw life icons
-    for (let i = 0; i < this.lives; i++) {
-      const lx = renderer.getWidth() - 30 - i * 25;
-      const ly = 25;
-      rawCtx.beginPath();
-      rawCtx.moveTo(lx, ly - 8);
-      rawCtx.lineTo(lx - 6, ly + 6);
-      rawCtx.lineTo(lx - 2, ly + 4);
-      rawCtx.lineTo(lx, ly + 6);
-      rawCtx.lineTo(lx + 2, ly + 4);
-      rawCtx.lineTo(lx + 6, ly + 6);
-      rawCtx.fillStyle = '#4de8e8';
-      rawCtx.fill();
-    }
-    
-    if (this.gameOver) {
-      renderer.drawText("GAME OVER", renderer.getWidth()/2, renderer.getHeight()/2, {color: "#F00", size: 40, align: "center"});
-      renderer.drawText("PRESS R TO RESTART", renderer.getWidth()/2, renderer.getHeight()/2 + 40, {color: "#FFF", size: 16, align: "center"});
+    } else if (this.formationMode === "spear") {
+      // Concentrated Phalanx Mega-Beam
+      this.projectiles.push({
+        x: this.leaderX,
+        y: this.leaderY - 40,
+        vx: 0,
+        vy: -750,
+        fromPlayer: true,
+        damage: 80,
+        isMegaBeam: true,
+      });
+    } else if (this.formationMode === "pincer") {
+      // Inward crossing laser salvo
+      this.projectiles.push({ x: this.leaderX - 60, y: this.leaderY - 10, vx: 120, vy: -580, fromPlayer: true, damage: 30 });
+      this.projectiles.push({ x: this.leaderX - 60, y: this.leaderY + 30, vx: 120, vy: -580, fromPlayer: true, damage: 30 });
+      this.projectiles.push({ x: this.leaderX + 60, y: this.leaderY - 10, vx: -120, vy: -580, fromPlayer: true, damage: 30 });
+      this.projectiles.push({ x: this.leaderX + 60, y: this.leaderY + 30, vx: -120, vy: -580, fromPlayer: true, damage: 30 });
     }
   }
 
   public handleInput(action: GameAction, isPressed: boolean): void {
-    if (this.gameOver || this.isPaused) {
-      if (action === "RESTART" && isPressed && this.gameOver) this.reset();
-      return;
-    }
+    if (action === "MOVE_LEFT") this.movingLeft = isPressed;
+    if (action === "MOVE_RIGHT") this.movingRight = isPressed;
+    if (action === "MOVE_UP") this.movingUp = isPressed;
+    if (action === "MOVE_DOWN") this.movingDown = isPressed;
 
-    if (action === "MOVE_LEFT") {
-      this.player.vx = isPressed ? -1 : 0;
-    } else if (action === "MOVE_RIGHT") {
-      this.player.vx = isPressed ? 1 : 0;
-    } else if (action === "ACTION_PRIMARY" && isPressed) {
-      if (this.player.cooldown <= 0) {
-        this.bullets.push({ x: this.player.x, y: this.player.y - 20, vy: -700, isEnemy: false });
-        this.player.cooldown = 0.2;
-        this.ctx.audio.playLaser();
-      }
+    if (action === "ACTION_PRIMARY" && isPressed) {
+      this.fireTacticalBarrage();
     }
+    if (action === "ACTION_SECONDARY" && isPressed) {
+      this.cycleFormation();
+    }
+    if (action === "RESTART" && isPressed) this.reset();
   }
 
   public pause(): void { this.isPaused = true; }
@@ -343,4 +340,125 @@ export class StarFormationGame implements GameInstance {
   public getScore(): number { return this.score; }
   public getLevel(): number { return this.level; }
   public getLives(): number { return this.lives; }
+
+  public render(renderer: Renderer): void {
+    const pr = renderer as PixelRenderer;
+    pr.clear("#040612");
+    const w = renderer.getWidth();
+    const h = renderer.getHeight();
+
+    // 1. Cosmic Nebula Backdrop & Starfield
+    pr.drawCircle(480, 260, 160, "rgba(99, 102, 241, 0.08)", true);
+    pr.drawCircle(140, 480, 180, "rgba(236, 72, 153, 0.08)", true);
+
+    for (const s of this.stars) {
+      pr.drawRect(s.x, s.y, s.size, s.size, s.color, true);
+    }
+
+    // 2. Stage outer border
+    pr.drawRect(8, 8, w - 16, h - 16, "#1e293b", false);
+
+    // 3. Draw Alien Dreadnought Battlecruiser
+    if (this.dreadnought) {
+      const bx = this.dreadnought.x;
+      const by = this.dreadnought.y;
+      const bw = this.dreadnought.width;
+      const bh = this.dreadnought.height;
+
+      // Heavy Armor Hull
+      pr.drawPixelRect(bx - bw / 2, by - bh / 2, bw, bh, "#1E293B", "#475569", "#0F172A");
+      pr.drawPixelRect(bx - bw / 2 + 20, by - bh / 2 + 10, bw - 40, bh - 20, "#334155", "#94A3B8", "#020617");
+
+      // Glowing Reactor Core
+      pr.drawCircle(bx, by, 18, "#EF4444", true);
+      pr.drawCircle(bx, by, 10, "#FCA5A5", true);
+
+      // Turrets
+      for (const t of this.dreadnought.turrets) {
+        const tx = bx + t.offsetX;
+        const ty = by + t.offsetY;
+        pr.drawCircle(tx, ty, 8, "#DC2626", true);
+        pr.drawCircle(tx, ty, 4, "#FDE047", true);
+      }
+
+      // Boss Health Bar
+      const hpPct = Math.max(0, this.dreadnought.hp / this.dreadnought.maxHp);
+      pr.drawRect(bx - 120, by - bh / 2 - 18, 240, 8, "#0F172A", true);
+      pr.drawRect(bx - 120, by - bh / 2 - 18, 240 * hpPct, 8, "#EF4444", true);
+      pr.drawRect(bx - 120, by - bh / 2 - 18, 240, 8, "#94A3B8", false);
+      pr.drawText(`DREADNOUGHT CLASS ${this.level}`, bx, by - bh / 2 - 24, { size: 10, color: "#F87171", align: "center", font: "monospace" });
+    }
+
+    // 4. Draw Projectiles
+    for (const p of this.projectiles) {
+      if (p.fromPlayer) {
+        if (p.isMegaBeam) {
+          pr.drawRect(p.x - 4, p.y - 12, 8, 24, "#00F0FF", true);
+          pr.drawRect(p.x - 2, p.y - 10, 4, 20, "#FFFFFF", true);
+        } else {
+          pr.drawRect(p.x - 2, p.y - 6, 4, 12, "#00F0FF", true);
+        }
+      } else {
+        pr.drawCircle(p.x, p.y, 5, "#EF4444", true);
+        pr.drawCircle(p.x, p.y, 2, "#FFFFFF", true);
+      }
+    }
+
+    // 5. Draw Squadron Formation Energy Tether & Fighters
+    if (this.formationMode === "diamond") {
+      // Rotating Energy Barrier Shield
+      pr.drawCircle(this.leaderX, this.leaderY, 48, "rgba(0, 240, 255, 0.25)", true);
+      pr.drawCircle(this.leaderX, this.leaderY, 48, "#00F0FF", false);
+    }
+
+    // Draw all 4 reference starfighters in formation
+    for (let idx = 0; idx < this.squadron.length; idx++) {
+      const m = this.squadron[idx];
+      const isLeader = idx === 0;
+      drawSpaceshipSprite(
+        pr,
+        this.leaderX + m.offsetX,
+        this.leaderY + m.offsetY,
+        isLeader ? 36 : 28,
+        0,
+        isLeader ? "#00F0FF" : "#38BDF8"
+      );
+    }
+
+    // Render Particles & Popups
+    globalParticles.render(pr);
+
+    // Top Tactical HUD
+    pr.drawRect(12, 12, w - 24, 32, "rgba(8, 14, 28, 0.8)", true);
+    pr.drawRect(12, 12, w - 24, 32, "#1e293b", false);
+    pr.drawText(
+      `FORMATION: [ ${this.formationMode.toUpperCase()} ]  •  SCORE: ${this.score}  •  LIVES: ${"♥ ".repeat(Math.max(0, this.lives))}`,
+      w / 2,
+      26,
+      {
+        size: 11,
+        color: "#00F0FF",
+        align: "center",
+        font: "monospace",
+      }
+    );
+    pr.drawText(
+      `[SPACE / C: CHANGE FORMATION: DELTA (SPREAD) • SPEAR (BEAM) • DIAMOND (SHIELD) • PINCER (CROSS)]`,
+      w / 2,
+      40,
+      {
+        size: 8,
+        color: "#94A3B8",
+        align: "center",
+        font: "monospace",
+      }
+    );
+
+    if (this.gameOver) {
+      pr.drawRect(0, h / 2 - 45, w, 90, "rgba(8, 14, 28, 0.95)", true);
+      pr.drawRect(0, h / 2 - 45, w, 90, "#FF3366", false);
+      pr.drawText("SQUADRON WIPED OUT — GAME OVER", w / 2, h / 2 - 10, { size: 22, color: "#FF3366", align: "center", font: "monospace" });
+      pr.drawText("PRESS [R] TO RESTART", w / 2, h / 2 + 18, { size: 12, color: "#cbd5e1", align: "center", font: "monospace" });
+    }
+  }
 }

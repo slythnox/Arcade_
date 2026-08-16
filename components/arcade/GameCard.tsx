@@ -61,16 +61,6 @@ export const GameCard: React.FC<GameCardProps> = ({ game, basePath = "/games" })
           >
             {game.genre}
           </span>
-          <span
-            style={{
-              fontSize: "11px",
-              fontFamily: "var(--font-mono)",
-              color: "var(--color-text-muted)",
-              letterSpacing: "0.05em",
-            }}
-          >
-            {game.year}
-          </span>
         </div>
 
         {/* Central Saturated Pixel Art Illustration */}

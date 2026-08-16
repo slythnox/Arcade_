@@ -7,6 +7,12 @@ import type { GridCoord } from "../../core/types/geometry";
 import { getNextSnakeAIMove } from "./SnakeAI";
 import { globalParticles } from "../../engine/particles/ParticleSystem";
 
+interface PestMonster {
+  col: number;
+  row: number;
+  timer: number;
+}
+
 export class SnakeGame implements GameInstance {
   private ctx!: GameContext;
   private cols: number = 20;
@@ -14,13 +20,14 @@ export class SnakeGame implements GameInstance {
 
   private body: GridCoord[] = [];
   private direction: GridCoord = { col: 1, row: 0 };
-  private nextDirection: GridCoord = { col: 1, row: 0 };
+  private inputQueue: GridCoord[] = [];
   private food: GridCoord = { col: 10, row: 10 };
+  private pests: PestMonster[] = [];
 
   private score: number = 0;
   private level: number = 1;
   private moveTimer: number = 0;
-  private moveInterval: number = 0.12;
+  private moveInterval: number = 0.11;
   private gameOver: boolean = false;
   private isPaused: boolean = false;
   public isAIMode: boolean = false;
@@ -41,9 +48,10 @@ export class SnakeGame implements GameInstance {
     this.gameOver = false;
     this.isPaused = false;
     this.direction = { col: 1, row: 0 };
-    this.nextDirection = { col: 1, row: 0 };
+    this.inputQueue = [];
     this.moveTimer = 0;
-    this.moveInterval = 0.12;
+    this.moveInterval = 0.11;
+    this.pests = [];
 
     const startCol = 6;
     const startRow = 11;
@@ -58,11 +66,14 @@ export class SnakeGame implements GameInstance {
 
   private spawnFood(): void {
     const emptyCells: GridCoord[] = [];
-    const bodySet = new Set(this.body.map((b) => `${b.col},${b.row}`));
+    const occupied = new Set(this.body.map((b) => `${b.col},${b.row}`));
+    for (const p of this.pests) {
+      occupied.add(`${p.col},${p.row}`);
+    }
 
     for (let r = 0; r < this.rows; r++) {
       for (let c = 0; c < this.cols; c++) {
-        if (!bodySet.has(`${c},${r}`)) {
+        if (!occupied.has(`${c},${r}`)) {
           emptyCells.push({ col: c, row: r });
         }
       }
@@ -79,14 +90,66 @@ export class SnakeGame implements GameInstance {
 
     this.moveTimer += dt;
 
+    // Check pest monster spawns when body length >= 5
+    if (this.body.length >= 5 && this.pests.length === 0) {
+      this.pests.push({ col: this.cols - 2, row: 2, timer: 0 });
+    }
+    if (this.body.length >= 10 && this.pests.length === 1) {
+      this.pests.push({ col: 2, row: this.rows - 3, timer: 0 });
+    }
+
+    // Update Pest AI (hunt food)
+    for (const pest of this.pests) {
+      pest.timer += dt;
+      if (pest.timer >= 0.28) {
+        pest.timer = 0;
+        const dx = this.food.col - pest.col;
+        const dy = this.food.row - pest.row;
+        if (Math.abs(dx) > Math.abs(dy)) {
+          pest.col += dx > 0 ? 1 : -1;
+        } else if (dy !== 0) {
+          pest.row += dy > 0 ? 1 : -1;
+        } else if (dx !== 0) {
+          pest.col += dx > 0 ? 1 : -1;
+        }
+
+        // Clamp
+        pest.col = Math.max(0, Math.min(this.cols - 1, pest.col));
+        pest.row = Math.max(0, Math.min(this.rows - 1, pest.row));
+
+        // Pest steals food!
+        if (pest.col === this.food.col && pest.row === this.food.row) {
+          this.ctx.audio.playExplosion();
+          globalParticles.emitBurst(
+            (this.food.col + 0.5) * 29 + 10,
+            (this.food.row + 0.5) * 29 + 16,
+            12,
+            ["#EF4444", "#991B1B", "#F59E0B"],
+            50,
+            180
+          );
+          globalParticles.emitText(
+            "STOLEN!",
+            (this.food.col + 0.5) * 29 + 10,
+            this.food.row * 29 + 10,
+            "#EF4444",
+            14
+          );
+          this.spawnFood();
+        }
+      }
+    }
+
     if (this.isAIMode) {
       const aiMove = getNextSnakeAIMove(this.body[0], this.food, this.body, this.cols, this.rows);
       if (aiMove) this.handleDirectionInput(aiMove);
     }
-    this.direction = this.nextDirection;
 
     if (this.moveTimer >= this.moveInterval) {
       this.moveTimer = 0;
+      if (this.inputQueue.length > 0) {
+        this.direction = this.inputQueue.shift()!;
+      }
       this.step();
     }
   }
@@ -109,12 +172,29 @@ export class SnakeGame implements GameInstance {
       return;
     }
 
-    // Self collision
+    // Self collision (ignore tail end since it will vacate unless eating food)
     for (let i = 0; i < this.body.length - 1; i++) {
       if (this.body[i].col === newHead.col && this.body[i].row === newHead.row) {
         this.triggerGameOver();
         return;
       }
+    }
+
+    // Pest collision: Snake squashes the pest for big bonus!
+    const pestIdx = this.pests.findIndex((p) => p.col === newHead.col && p.row === newHead.row);
+    if (pestIdx !== -1) {
+      this.score += 300;
+      this.ctx.audio.playPowerUp();
+      globalParticles.emitBurst(
+        (newHead.col + 0.5) * 29 + 10,
+        (newHead.row + 0.5) * 29 + 16,
+        20,
+        ["#F59E0B", "#FBBF24", "#FFFFFF"],
+        80,
+        260
+      );
+      globalParticles.emitText("+300 PEST CRUSH", (newHead.col + 0.5) * 29 + 10, newHead.row * 29 + 10, "#F59E0B", 16);
+      this.pests.splice(pestIdx, 1);
     }
 
     this.body.unshift(newHead);
@@ -126,13 +206,13 @@ export class SnakeGame implements GameInstance {
       this.ctx.audio.playCoin();
       if (this.score % 500 === 0) {
         this.level++;
-        this.moveInterval = Math.max(0.05, 0.12 - (this.level - 1) * 0.01);
+        this.moveInterval = Math.max(0.06, 0.11 - (this.level - 1) * 0.008);
       }
       globalParticles.emitBurst(
         (this.food.col + 0.5) * 29 + 10,
         (this.food.row + 0.5) * 29 + 16,
         18,
-        ["#ffd84d", "#63e66d", "#ffffff"],
+        ["#ffd84d", "#10b981", "#ffffff"],
         60,
         220
       );
@@ -156,27 +236,26 @@ export class SnakeGame implements GameInstance {
   }
 
   private handleDirectionInput(action: GameAction): void {
+    const lastDir = this.inputQueue.length > 0 ? this.inputQueue[this.inputQueue.length - 1] : this.direction;
+    let next: GridCoord | null = null;
+
     switch (action) {
       case "MOVE_UP":
-        if (this.direction.row !== 1) {
-          this.nextDirection = { col: 0, row: -1 };
-        }
+        if (lastDir.row !== 1 && lastDir.row !== -1) next = { col: 0, row: -1 };
         break;
       case "MOVE_DOWN":
-        if (this.direction.row !== -1) {
-          this.nextDirection = { col: 0, row: 1 };
-        }
+        if (lastDir.row !== -1 && lastDir.row !== 1) next = { col: 0, row: 1 };
         break;
       case "MOVE_LEFT":
-        if (this.direction.col !== 1) {
-          this.nextDirection = { col: -1, row: 0 };
-        }
+        if (lastDir.col !== 1 && lastDir.col !== -1) next = { col: -1, row: 0 };
         break;
       case "MOVE_RIGHT":
-        if (this.direction.col !== -1) {
-          this.nextDirection = { col: 1, row: 0 };
-        }
+        if (lastDir.col !== -1 && lastDir.col !== 1) next = { col: 1, row: 0 };
         break;
+    }
+
+    if (next && this.inputQueue.length < 3) {
+      this.inputQueue.push(next);
     }
   }
 
@@ -184,7 +263,6 @@ export class SnakeGame implements GameInstance {
     if (!isPressed || this.gameOver || this.isPaused) return;
 
     if (action === "ACTION_SECONDARY") {
-      // Toggle AI autopilot
       this.isAIMode = !this.isAIMode;
       return;
     }
@@ -200,9 +278,7 @@ export class SnakeGame implements GameInstance {
     this.isPaused = false;
   }
 
-  public destroy(): void {
-    this.body = [];
-  }
+  public destroy(): void {}
 
   public getScore(): number {
     return this.score;
@@ -214,45 +290,56 @@ export class SnakeGame implements GameInstance {
 
   public render(renderer: Renderer): void {
     const pr = renderer as PixelRenderer;
-    pr.clear("#040604");
+    pr.clear("#050a16");
 
     const w = renderer.getWidth();
     const h = renderer.getHeight();
 
-    // Large high-visibility arena filling the box edge-to-edge
     const cellSize = 29;
-    const boardWidth = this.cols * cellSize; // 580
-    const boardHeight = this.rows * cellSize; // 667
-    const offX = Math.floor((w - boardWidth) / 2); // 10
-    const offY = Math.floor((h - boardHeight) / 2); // 16
+    const boardWidth = this.cols * cellSize;
+    const boardHeight = this.rows * cellSize;
+    const offX = Math.floor((w - boardWidth) / 2);
+    const offY = Math.floor((h - boardHeight) / 2);
 
-    // Board background & illuminated border
-    pr.drawRect(offX - 3, offY - 3, boardWidth + 6, boardHeight + 6, "#080e08", true);
-    pr.drawRect(offX - 3, offY - 3, boardWidth + 6, boardHeight + 6, "rgba(0, 255, 102, 0.55)", false);
+    // Outer cyber arena frame
+    pr.drawRect(offX - 4, offY - 4, boardWidth + 8, boardHeight + 8, "#1e293b", true);
+    pr.drawRect(offX - 2, offY - 2, boardWidth + 4, boardHeight + 4, "#0f172a", true);
+    pr.drawRect(offX - 2, offY - 2, boardWidth + 4, boardHeight + 4, "#00F0FF", false);
 
     // Subtle neon grid
-    pr.drawGrid(this.cols, this.rows, cellSize, "rgba(0, 255, 102, 0.08)", offX, offY);
+    pr.drawGrid(this.cols, this.rows, cellSize, "rgba(0, 240, 255, 0.05)", offX, offY);
 
-    // Draw Food (glowing golden pixel orb)
+    // Draw Apple Food (Ruby Red Apple with Emerald Leaf)
     const foodX = offX + this.food.col * cellSize;
     const foodY = offY + this.food.row * cellSize;
-    pr.drawPixelBlock(foodX, foodY, cellSize, "#FFB703", "#FFFBEB", "#B45309");
+    pr.drawPixelBlock(foodX + 2, foodY + 4, cellSize - 4, "#EF4444", "#FCA5A5", "#991B1B");
+    pr.drawRect(foodX + cellSize / 2 - 1, foodY + 1, 3, 4, "#10B981", true); // Leaf
 
-    // Draw Snake Body with bold neon bevels and eyes on head
+    // Draw Pest Monsters (Purple-Red Roaming Bugs with Glowing Yellow Eyes)
+    for (const pest of this.pests) {
+      const px = offX + pest.col * cellSize;
+      const py = offY + pest.row * cellSize;
+      pr.drawPixelBlock(px + 2, py + 2, cellSize - 4, "#A855F7", "#E9D5FF", "#581C87");
+      // Devil horns & eyes
+      pr.drawRect(px + 6, py + 7, 4, 4, "#FACC15", true);
+      pr.drawRect(px + cellSize - 10, py + 7, 4, 4, "#FACC15", true);
+      pr.drawRect(px + 7, py + 8, 2, 2, "#000000", true);
+      pr.drawRect(px + cellSize - 9, py + 8, 2, 2, "#000000", true);
+    }
+
+    // Draw Snake Body with Emerald/Cyan Scales & Animated Eyes
     this.body.forEach((seg, idx) => {
       const sx = offX + seg.col * cellSize;
       const sy = offY + seg.row * cellSize;
       const isHead = idx === 0;
 
-      const baseColor = isHead ? "#00FF66" : "#10B981";
-      const highlightColor = isHead ? "#FFFFFF" : "#6EE7B7";
-      const shadowColor = "#047857";
+      const baseColor = isHead ? "#10B981" : "#059669";
+      const highlightColor = isHead ? "#6EE7B7" : "#34D399";
+      const shadowColor = "#064E3B";
 
-      pr.drawPixelBlock(sx, sy, cellSize, baseColor, highlightColor, shadowColor);
+      pr.drawPixelBlock(sx + 1, sy + 1, cellSize - 2, baseColor, highlightColor, shadowColor);
 
       if (isHead) {
-        // Draw eyes pointing in direction of motion
-        const eyeOffset = 6;
         const e1X = sx + (this.direction.row !== 0 ? 6 : (this.direction.col > 0 ? 18 : 6));
         const e1Y = sy + (this.direction.col !== 0 ? 6 : (this.direction.row > 0 ? 18 : 6));
         const e2X = sx + (this.direction.row !== 0 ? 18 : (this.direction.col > 0 ? 18 : 6));
@@ -260,8 +347,8 @@ export class SnakeGame implements GameInstance {
 
         pr.drawRect(e1X, e1Y, 5, 5, "#000000", true);
         pr.drawRect(e2X, e2Y, 5, 5, "#000000", true);
-        pr.drawRect(e1X + 1, e1Y + 1, 2, 2, "#FFFFFF", true);
-        pr.drawRect(e2X + 1, e2Y + 1, 2, 2, "#FFFFFF", true);
+        pr.drawRect(e1X + 1, e1Y + 1, 2, 2, "#ffd84d", true);
+        pr.drawRect(e2X + 1, e2Y + 1, 2, 2, "#ffd84d", true);
       }
     });
 
@@ -270,28 +357,31 @@ export class SnakeGame implements GameInstance {
 
     // AI Autopilot Floating Indicator
     if (this.isAIMode) {
-      pr.drawRect(offX + 10, offY + 10, 220, 26, "rgba(4, 6, 4, 0.85)", true);
-      pr.drawRect(offX + 10, offY + 10, 220, 26, "rgba(0, 255, 102, 0.4)", false);
-      pr.drawText("[ BFS AI: ACTIVE ]", offX + 120, offY + 28, {
+      pr.drawRect(offX + 10, offY + 10, 220, 26, "rgba(8, 14, 28, 0.9)", true);
+      pr.drawRect(offX + 10, offY + 10, 220, 26, "#00F0FF", false);
+      pr.drawText("[ BFS AUTOPILOT: ACTIVE ]", offX + 120, offY + 28, {
         size: 11,
-        color: "#00FF66",
+        color: "#00F0FF",
         align: "center",
+        font: "monospace",
       });
     }
 
     // Game Over Overlay
     if (this.gameOver) {
-      pr.drawRect(0, h / 2 - 45, w, 90, "rgba(4, 6, 4, 0.95)", true);
+      pr.drawRect(0, h / 2 - 45, w, 90, "rgba(8, 14, 28, 0.95)", true);
       pr.drawRect(0, h / 2 - 45, w, 90, "#FF3366", false);
       pr.drawText("GAME OVER", w / 2, h / 2 - 10, {
         size: 28,
         color: "#FF3366",
         align: "center",
+        font: "monospace",
       });
-      pr.drawText("PRESS R TO RESTART", w / 2, h / 2 + 18, {
+      pr.drawText("PRESS [R] TO RESTART", w / 2, h / 2 + 18, {
         size: 13,
-        color: "#F0F4F0",
+        color: "#cbd5e1",
         align: "center",
+        font: "monospace",
       });
     }
   }

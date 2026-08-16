@@ -93,16 +93,31 @@ export class MazeChaserGame implements GameInstance {
           this.player.dy = 0;
           this.player.nextDx = 0;
           this.player.nextDy = 0;
-        } else if (cell === 'G') {
-          this.ghosts.push({
-            x, y, startX: x, startY: y,
-            type: ghostTypes++ % 4,
-            state: 'scatter',
-            timer: 0,
-            dx: 1, dy: 0
-          });
         }
       }
+    }
+
+    // Spawn 6 hunting monsters (Blinky, Pinky, Inky, Clyde, Shadow, Specter)
+    const ghostConfigs = [
+      { x: 11, y: 12, type: 0 },
+      { x: 10, y: 12, type: 1 },
+      { x: 12, y: 12, type: 2 },
+      { x: 11, y: 10, type: 3 },
+      { x: 9, y: 10, type: 4 },
+      { x: 13, y: 10, type: 5 },
+    ];
+    for (const gc of ghostConfigs) {
+      this.ghosts.push({
+        x: gc.x,
+        y: gc.y,
+        startX: gc.x,
+        startY: gc.y,
+        type: gc.type,
+        state: 'scatter',
+        timer: 0,
+        dx: (gc.type % 2 === 0) ? 1 : -1,
+        dy: 0,
+      });
     }
   }
 
@@ -353,8 +368,8 @@ export class MazeChaserGame implements GameInstance {
     rawCtx.fill();
     rawCtx.restore();
     
-    // Ghosts
-    const ghostColors = ["#FF0000", "#FFB8FF", "#00FFFF", "#FFB852"];
+    // Ghosts (6 distinct colors)
+    const ghostColors = ["#FF0000", "#FFB8FF", "#00FFFF", "#FFB852", "#A855F7", "#FACC15"];
     const drawGhost = (ctx2d: CanvasRenderingContext2D, cx: number, cy: number, size: number, color: string, scared: boolean) => {
       const s = size / 2;
       ctx2d.beginPath();

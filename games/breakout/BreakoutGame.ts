@@ -167,21 +167,6 @@ export class BreakoutGame implements GameInstance {
       );
 
       if (test.hit) {
-        brick.destroyed = true;
-        const pts = brick.points * this.level;
-        this.score += pts;
-        this.ctx.audio?.playCoin?.();
-
-        globalParticles.emitBurst(
-          brick.x + brick.width / 2,
-          brick.y + brick.height / 2,
-          12,
-          [brick.color || "#FF5C8A", "#FFD700", "#ffffff"],
-          50,
-          200
-        );
-        globalParticles.emitText(`+${pts}`, brick.x + brick.width / 2, brick.y, "#FFD700", 14);
-
         // Reflect ball off collision normal
         if (test.normal.x !== 0) {
           this.ballVel.x = Math.abs(this.ballVel.x) * test.normal.x;
@@ -190,12 +175,53 @@ export class BreakoutGame implements GameInstance {
           this.ballVel.y = Math.abs(this.ballVel.y) * test.normal.y;
         }
 
+        if (brick.isStone) {
+          // Unbreakable stone obstacle
+          this.ctx.audio?.playHit?.();
+          globalParticles.emitBurst(
+            brick.x + brick.width / 2,
+            brick.y + brick.height / 2,
+            6,
+            ["#94A3B8", "#E2E8F0", "#64748B"],
+            40,
+            160
+          );
+        } else if (brick.hitsRemaining && brick.hitsRemaining > 1) {
+          // Multi-hit reinforced brick
+          brick.hitsRemaining--;
+          this.ctx.audio?.playHit?.();
+          globalParticles.emitBurst(
+            brick.x + brick.width / 2,
+            brick.y + brick.height / 2,
+            8,
+            ["#CBD5E1", "#FFFFFF", "#94A3B8"],
+            50,
+            180
+          );
+        } else {
+          // Breakable brick destroyed
+          brick.destroyed = true;
+          const pts = brick.points;
+          this.score += pts;
+          this.ctx.audio?.playCoin?.();
+
+          globalParticles.emitBurst(
+            brick.x + brick.width / 2,
+            brick.y + brick.height / 2,
+            14,
+            [brick.color || "#FF5C8A", "#FFD700", "#ffffff"],
+            60,
+            240
+          );
+          globalParticles.emitText(`+${pts}`, brick.x + brick.width / 2, brick.y, "#FFD700", 14);
+        }
+
         break;
       }
     }
 
-    // Check level clear
-    const remainingBricks = this.bricks.filter((b) => !b.destroyed).length;
+    // Check level clear (ignoring stone obstacles)
+    const remainingBricks = this.bricks.filter((b) => !b.destroyed && !b.isStone).length;
     if (remainingBricks === 0) {
       this.level++;
       this.score += 500 * this.level;

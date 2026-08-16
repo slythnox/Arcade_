@@ -3,11 +3,13 @@ import type { GameContext } from "../../engine/GameContext";
 import type { Renderer } from "../../engine/rendering/Renderer";
 import type { PixelRenderer } from "../../engine/rendering/PixelRenderer";
 import type { GameAction } from "../../core/types/game";
+import { globalParticles } from "../../engine/particles/ParticleSystem";
 
 interface Marble {
   color: string;
+  glow: string;
   colorIdx: number;
-  t: number;
+  dist: number; // distance in pixels along track
 }
 
 interface Projectile {
@@ -16,16 +18,8 @@ interface Projectile {
   vx: number;
   vy: number;
   color: string;
+  glow: string;
   colorIdx: number;
-}
-
-interface Particle {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  life: number;
-  color: string;
 }
 
 export class MarbleRushGame implements GameInstance {
@@ -33,23 +27,87 @@ export class MarbleRushGame implements GameInstance {
   private score = 0;
   private level = 1;
   private lives = 3;
+  private combo = 0;
   private gameOver = false;
   private isWon = false;
   private isPaused = false;
+
   private aimAngle = -Math.PI / 2;
   private aimDir = 0;
   private marbles: Marble[] = [];
   private projectiles: Projectile[] = [];
-  private particles: Particle[] = [];
-  private path: { x: number; y: number }[] = [];
-  private readonly colors = ["#EF4444", "#3B82F6", "#22C55E", "#EAB308", "#A855F7", "#F97316"];
-  private currentColors: string[] = [];
+  private pathPoints: { x: number; y: number }[] = [];
+  private totalPathLength = 0;
+  private readonly marbleRadius = 13;
+  private readonly marbleDiameter = 26;
+
+  private readonly marblePalette = [
+    { color: "#EF4444", glow: "#FCA5A5" }, // Ruby Red
+    { color: "#3B82F6", glow: "#93C5FD" }, // Sapphire Blue
+    { color: "#10B981", glow: "#6EE7B7" }, // Emerald Green
+    { color: "#F59E0B", glow: "#FDE047" }, // Amber Gold
+    { color: "#A855F7", glow: "#E9D5FF" }, // Amethyst Purple
+  ];
+
+  private currentColors: typeof this.marblePalette = [];
   private nextColorIdx = 0;
   private animTime = 0;
+  private boundPointerMove?: (e: MouseEvent | PointerEvent) => void;
+  private boundPointerDown?: (e: MouseEvent | PointerEvent) => void;
 
   public init(ctx: GameContext): void {
     this.ctx = ctx;
+    this.initPath();
     this.reset();
+    this.attachMouseAim();
+  }
+
+  private initPath(): void {
+    this.pathPoints = [];
+    const cx = 300;
+    const cy = 350;
+    const steps = 180;
+
+    for (let i = 0; i <= steps; i++) {
+      const p = i / steps;
+      const angle = p * Math.PI * 4.8;
+      const r = 260 * (1 - p * 0.72);
+      this.pathPoints.push({
+        x: cx + Math.cos(angle) * r,
+        y: cy + Math.sin(angle) * r,
+      });
+    }
+
+    // Compute total length
+    this.totalPathLength = 0;
+    for (let i = 1; i < this.pathPoints.length; i++) {
+      this.totalPathLength += Math.hypot(
+        this.pathPoints[i].x - this.pathPoints[i - 1].x,
+        this.pathPoints[i].y - this.pathPoints[i - 1].y
+      );
+    }
+  }
+
+  private attachMouseAim(): void {
+    const canvas = (this.ctx.renderer as PixelRenderer).getContext?.()?.canvas;
+    if (!canvas) return;
+
+    this.boundPointerMove = (e: MouseEvent | PointerEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const mx = (e.clientX - rect.left) * scaleX;
+      const my = (e.clientY - rect.top) * scaleY;
+      this.aimAngle = Math.atan2(my - 350, mx - 300);
+    };
+
+    this.boundPointerDown = (e: MouseEvent | PointerEvent) => {
+      if (this.isPaused || this.gameOver || this.isWon) return;
+      this.shootMarble();
+    };
+
+    canvas.addEventListener("pointermove", this.boundPointerMove);
+    canvas.addEventListener("pointerdown", this.boundPointerDown);
   }
 
   public reset(seed?: number): void {
@@ -57,91 +115,73 @@ export class MarbleRushGame implements GameInstance {
     this.score = 0;
     this.level = 1;
     this.lives = 3;
+    this.combo = 0;
     this.gameOver = false;
     this.isWon = false;
     this.isPaused = false;
-    this.particles = [];
     this.initLevel();
   }
 
   private initLevel(): void {
-    // Generate curved spiral track fitting 600x700
-    this.path = [];
-    const cx = 300;
-    const cy = 350;
-    const steps = 80;
-
-    for (let i = 0; i <= steps; i++) {
-      const p = i / steps;
-      // Inward spiral path
-      const angle = p * Math.PI * 5;
-      const r = 260 * (1 - p * 0.7);
-      this.path.push({
-        x: cx + Math.cos(angle) * r,
-        y: cy + Math.sin(angle) * r,
-      });
-    }
-
-    const colorCount = Math.min(4 + Math.floor(this.level / 3), 6);
-    this.currentColors = this.colors.slice(0, colorCount);
+    const colorCount = Math.min(3 + Math.floor((this.level - 1) / 2), this.marblePalette.length);
+    this.currentColors = this.marblePalette.slice(0, colorCount);
     this.marbles = [];
+    this.projectiles = [];
+    this.combo = 0;
 
     const chainLen = 16 + this.level * 3;
     for (let i = 0; i < chainLen; i++) {
       const cIdx = Math.floor(this.ctx.random.next() * colorCount);
       this.marbles.push({
-        color: this.currentColors[cIdx],
+        color: this.currentColors[cIdx].color,
+        glow: this.currentColors[cIdx].glow,
         colorIdx: cIdx,
-        t: (chainLen - 1 - i) * 0.014,
+        dist: (chainLen - 1 - i) * this.marbleDiameter,
       });
     }
 
     this.nextColorIdx = Math.floor(this.ctx.random.next() * colorCount);
-    this.projectiles = [];
   }
 
-  private addParticles(x: number, y: number, color: string, count = 8): void {
-    for (let i = 0; i < count; i++) {
-      const ang = this.ctx.random.next() * Math.PI * 2;
-      const spd = 40 + this.ctx.random.next() * 100;
-      this.particles.push({
-        x,
-        y,
-        vx: Math.cos(ang) * spd,
-        vy: Math.sin(ang) * spd,
-        life: 0.45,
-        color,
-      });
-    }
-  }
-
-  private getPathPoint(t: number): { x: number; y: number } {
-    if (t <= 0) return this.path[0];
-    if (t >= 1) return this.path[this.path.length - 1];
-
-    const p = t * (this.path.length - 1);
-    const i = Math.floor(p);
-    const f = p - i;
-    const p1 = this.path[i];
-    const p2 = this.path[Math.min(i + 1, this.path.length - 1)];
-
+  private getPointAtDist(dist: number): { x: number; y: number } {
+    const p = Math.max(0, Math.min(1, dist / this.totalPathLength));
+    const idxFloat = p * (this.pathPoints.length - 1);
+    const i = Math.floor(idxFloat);
+    const f = idxFloat - i;
+    const p1 = this.pathPoints[i];
+    const p2 = this.pathPoints[Math.min(i + 1, this.pathPoints.length - 1)];
     return { x: p1.x + (p2.x - p1.x) * f, y: p1.y + (p2.y - p1.y) * f };
   }
 
   public update(dt: number): void {
+    globalParticles.update(dt);
     if (this.gameOver || this.isWon || this.isPaused) return;
     this.animTime += dt;
 
-    if (this.aimDir !== 0) this.aimAngle += this.aimDir * 3.5 * dt;
+    if (this.aimDir !== 0) {
+      this.aimAngle += this.aimDir * 3.6 * dt;
+    }
 
-    // Marble chain speed
-    const speed = 0.018 + this.level * 0.0025;
-    for (const m of this.marbles) m.t += speed * dt;
+    // Advance marble train smoothly
+    const trainSpeed = 34 + this.level * 6;
+    for (let i = 0; i < this.marbles.length; i++) {
+      this.marbles[i].dist += trainSpeed * dt;
+    }
 
-    // Check if marbles reached golden pit at center
-    if (this.marbles.length > 0 && this.marbles[0].t >= 1) {
+    // Keep strict continuous bead distance
+    for (let i = 1; i < this.marbles.length; i++) {
+      const expectedDist = this.marbles[i - 1].dist - this.marbleDiameter;
+      if (this.marbles[i].dist > expectedDist) {
+        this.marbles[i].dist = expectedDist;
+      }
+    }
+
+    // Check if front marble reached golden central hole
+    if (this.marbles.length > 0 && this.marbles[0].dist >= this.totalPathLength) {
       this.lives--;
-      this.ctx.audio.playExplosion();
+      this.ctx.audio?.playExplosion?.();
+      globalParticles.emitBurst(300, 350, 30, ["#EF4444", "#F59E0B", "#ffd84d"], 90, 300);
+
       if (this.lives <= 0) {
         this.gameOver = true;
         this.ctx.session.setStatus("game-over");
@@ -151,7 +191,8 @@ export class MarbleRushGame implements GameInstance {
       return;
     }
 
-    // Update Projectiles
+    // Update projectiles & check collision with marbles
+    const spd = 650;
     for (let i = this.projectiles.length - 1; i >= 0; i--) {
       const p = this.projectiles[i];
       p.x += p.vx * dt;
@@ -159,21 +200,28 @@ export class MarbleRushGame implements GameInstance {
 
       let hit = false;
       for (let j = 0; j < this.marbles.length; j++) {
-        const mp = this.getPathPoint(this.marbles[j].t);
-        const dx = p.x - mp.x;
-        const dy = p.y - mp.y;
-
-        if (Math.hypot(dx, dy) < 22) {
-          // Insert marble into chain
+        const pt = this.getPointAtDist(this.marbles[j].dist);
+        if (Math.hypot(p.x - pt.x, p.y - pt.y) < this.marbleDiameter) {
+          // Insert marble into chain cleanly
+          const insertDist = this.marbles[j].dist;
           this.marbles.splice(j, 0, {
             color: p.color,
+            glow: p.glow,
             colorIdx: p.colorIdx,
-            t: Math.max(0, this.marbles[j].t - 0.005),
+            dist: insertDist,
           });
+
+          // Spread subsequent marbles back by 1 diameter
+          for (let k = j + 1; k < this.marbles.length; k++) {
+            this.marbles[k].dist -= this.marbleDiameter;
+          }
+
           this.projectiles.splice(i, 1);
-          this.addParticles(p.x, p.y, p.color, 6);
-          this.ctx.audio.playHit();
-          this.checkMatches(j);
+          this.ctx.audio?.playHit?.();
+          globalParticles.emitBurst(pt.x, pt.y, 8, [p.color, "#FFFFFF"], 40, 160);
+
+          // Check matches and cascading collapse
+          this.resolveChainMatches(j);
           hit = true;
           break;
         }
@@ -184,69 +232,90 @@ export class MarbleRushGame implements GameInstance {
       }
     }
 
-    // Check level victory
+    // Level Clear Check
     if (this.marbles.length === 0) {
       this.level++;
-      this.score += 2000 * this.level;
-      this.ctx.audio.playVictory();
+      this.score += 3000 * this.level;
+      this.ctx.audio?.playVictory?.();
+      globalParticles.emitBurst(300, 350, 35, ["#ffd84d", "#00F0FF", "#10B981"], 90, 320);
       this.initLevel();
-    }
-
-    // Update Particles
-    for (let i = this.particles.length - 1; i >= 0; i--) {
-      const pt = this.particles[i];
-      pt.x += pt.vx * dt;
-      pt.y += pt.vy * dt;
-      pt.life -= dt;
-      if (pt.life <= 0) this.particles.splice(i, 1);
     }
   }
 
-  private checkMatches(idx: number): void {
-    if (idx < 0 || idx >= this.marbles.length) return;
-    let s = idx;
-    let e = idx;
-    const c = this.marbles[idx].color;
+  private resolveChainMatches(startIdx: number): void {
+    if (startIdx < 0 || startIdx >= this.marbles.length) return;
+
+    let s = startIdx;
+    let e = startIdx;
+    const c = this.marbles[startIdx].color;
 
     while (s > 0 && this.marbles[s - 1].color === c) s--;
     while (e < this.marbles.length - 1 && this.marbles[e + 1].color === c) e++;
 
     const count = e - s + 1;
     if (count >= 3) {
-      const removed = this.marbles.splice(s, count);
-      this.score += count * 150;
-      this.ctx.audio.playCoin();
-      for (const m of removed) {
-        const pt = this.getPathPoint(m.t);
-        this.addParticles(pt.x, pt.y, m.color, 10);
+      this.combo++;
+      const pts = count * 200 * this.combo;
+      this.score += pts;
+      this.ctx.audio?.playCoin?.();
+
+      for (let i = s; i <= e; i++) {
+        const pt = this.getPointAtDist(this.marbles[i].dist);
+        globalParticles.emitBurst(pt.x, pt.y, 14, [c, "#FFFFFF", "#ffd84d"], 60, 220);
+        globalParticles.emitText(`+${pts}`, pt.x, pt.y - 10, "#ffd84d", 14);
       }
+
+      // Remove matched group
+      this.marbles.splice(s, count);
+
+      // Check cascade magnetic collapse on remaining gap
+      if (s > 0 && s < this.marbles.length) {
+        if (this.marbles[s - 1].color === this.marbles[s].color) {
+          // Cascade combo!
+          this.ctx.audio?.playPowerUp?.();
+          setTimeout(() => this.resolveChainMatches(s), 180);
+        }
+      }
+    } else {
+      this.combo = 0;
     }
+  }
+
+  private shootMarble(): void {
+    const spd = 650;
+    const activeColorObj = this.currentColors[this.nextColorIdx];
+    this.projectiles.push({
+      x: 300,
+      y: 350,
+      vx: Math.cos(this.aimAngle) * spd,
+      vy: Math.sin(this.aimAngle) * spd,
+      color: activeColorObj.color,
+      glow: activeColorObj.glow,
+      colorIdx: this.nextColorIdx,
+    });
+    this.nextColorIdx = Math.floor(this.ctx.random.next() * this.currentColors.length);
+    this.ctx.audio?.playLaser?.();
   }
 
   public handleInput(action: GameAction, isPressed: boolean): void {
     if (action === "MOVE_LEFT") this.aimDir = isPressed ? -1 : 0;
     if (action === "MOVE_RIGHT") this.aimDir = isPressed ? 1 : 0;
-
-    if (action === "ACTION_PRIMARY" && isPressed && !this.gameOver) {
-      const spd = 620;
-      this.projectiles.push({
-        x: 300,
-        y: 350,
-        vx: Math.cos(this.aimAngle) * spd,
-        vy: Math.sin(this.aimAngle) * spd,
-        color: this.currentColors[this.nextColorIdx],
-        colorIdx: this.nextColorIdx,
-      });
-      this.nextColorIdx = Math.floor(this.ctx.random.next() * this.currentColors.length);
-      this.ctx.audio.playLaser();
+    if (action === "ACTION_PRIMARY" && isPressed && !this.gameOver && !this.isWon) {
+      this.shootMarble();
     }
-
     if (action === "RESTART" && isPressed) this.reset();
   }
 
   public pause(): void { this.isPaused = true; }
   public resume(): void { this.isPaused = false; }
-  public destroy(): void {}
+  public destroy(): void {
+    if (this.boundPointerMove && this.boundPointerDown) {
+      const canvas = (this.ctx.renderer as PixelRenderer).getContext?.()?.canvas;
+      canvas?.removeEventListener("pointermove", this.boundPointerMove);
+      canvas?.removeEventListener("pointerdown", this.boundPointerDown);
+    }
+  }
+
   public getScore(): number { return this.score; }
   public getLevel(): number { return this.level; }
   public getLives(): number { return this.lives; }
@@ -255,69 +324,82 @@ export class MarbleRushGame implements GameInstance {
     const pr = renderer as PixelRenderer;
     pr.clear("#040714");
 
-    const w = renderer.getWidth();
-    const h = renderer.getHeight();
+    const w = pr.getWidth();
+    const h = pr.getHeight();
 
-    // 1. Ancient Stone Path Groove (Draw Outer Canal & Track)
-    for (let i = 0; i < this.path.length - 1; i++) {
-      pr.drawLine(this.path[i].x, this.path[i].y, this.path[i + 1].x, this.path[i + 1].y, "#1e293b", 26);
-      pr.drawLine(this.path[i].x, this.path[i].y, this.path[i + 1].x, this.path[i + 1].y, "#0f172a", 16);
+    // 1. Draw Stone Carved Spiral Canal Track
+    for (let i = 0; i < this.pathPoints.length - 1; i++) {
+      const p1 = this.pathPoints[i];
+      const p2 = this.pathPoints[i + 1];
+      pr.drawLine(p1.x, p1.y, p2.x, p2.y, "#1E293B", 28);
+      pr.drawLine(p1.x, p1.y, p2.x, p2.y, "#0F172A", 22);
     }
 
-    // Golden Pit Skull at End
-    const endPt = this.path[this.path.length - 1];
-    pr.drawCircle(endPt.x, endPt.y, 22, "#78350f", true);
-    pr.drawCircle(endPt.x, endPt.y, 16, "#d97706", true);
+    // 2. Central Golden Destination Vortex Hole
+    const endPt = this.pathPoints[this.pathPoints.length - 1];
+    pr.drawCircle(endPt.x, endPt.y, 22, "#B45309", true);
+    pr.drawCircle(endPt.x, endPt.y, 16, "#F59E0B", true);
     pr.drawCircle(endPt.x, endPt.y, 8, "#000000", true);
 
-    // 2. Draw 3D Glass Marbles along track
+    // 3. Draw 3D Faceted Glass Marbles
     for (const m of this.marbles) {
-      const pt = this.getPathPoint(m.t);
-      // Outer drop shadow
-      pr.drawCircle(pt.x + 2, pt.y + 2, 11, "rgba(0,0,0,0.3)", true);
-      // Sphere body
-      pr.drawCircle(pt.x, pt.y, 11, m.color, true);
-      // 3D Glass Specular Highlight
-      pr.drawCircle(pt.x - 3, pt.y - 3, 5, "#FFFFFF", true);
+      const pt = this.getPointAtDist(m.dist);
+      pr.drawCircle(pt.x, pt.y, this.marbleRadius, m.color, true);
+      pr.drawCircle(pt.x, pt.y, this.marbleRadius, "#0F172A", false);
+      // Specular shine glint
+      pr.drawCircle(pt.x - 4, pt.y - 4, 3.5, m.glow, true);
+      pr.drawCircle(pt.x - 3, pt.y - 3, 1.5, "#FFFFFF", true);
     }
 
-    // 3. Draw Projectiles
+    // 4. Draw Projectile Marbles
     for (const p of this.projectiles) {
-      pr.drawCircle(p.x, p.y, 10, p.color, true);
-      pr.drawCircle(p.x - 3, p.y - 3, 4, "#FFFFFF", true);
+      pr.drawCircle(p.x, p.y, this.marbleRadius, p.color, true);
+      pr.drawCircle(p.x - 3, p.y - 3, 3, "#FFFFFF", true);
     }
 
-    // 4. Particles
-    for (const pt of this.particles) {
-      pr.drawCircle(pt.x, pt.y, 2.5, pt.color, true);
-    }
+    // 5. Draw Central Dragon Turret (Aims with Mouse & Keyboard)
+    pr.save();
+    pr.translate(300, 350);
+    pr.rotate(this.aimAngle);
 
-    // 5. Center Dragon/Frog Turret
-    pr.drawCircle(300, 350, 28, "#1e293b", true);
-    pr.drawCircle(300, 350, 24, "#065f46", true);
-    // Next loaded marble in mouth
-    const loadedCol = this.currentColors[this.nextColorIdx] || "#EF4444";
-    pr.drawCircle(300, 350, 11, loadedCol, true);
-    pr.drawCircle(297, 347, 4, "#FFFFFF", true);
+    // Stone Pedestal
+    pr.drawCircle(0, 0, 26, "#334155", true);
+    pr.drawCircle(0, 0, 22, "#475569", true);
 
-    // Turret Cannon Aim Pointer
-    const ax = 300 + Math.cos(this.aimAngle) * 44;
-    const ay = 350 + Math.sin(this.aimAngle) * 44;
-    pr.drawLine(300, 350, ax, ay, "#FCD34D", 3);
-    pr.drawCircle(ax, ay, 4, "#EF4444", true);
+    // Dragon Mouth Cannon & Loaded Marble
+    pr.drawRect(8, -6, 20, 12, "#1E293B", true);
+    const loadedCol = this.currentColors[this.nextColorIdx];
+    pr.drawCircle(14, 0, 9, loadedCol.color, true);
+    pr.drawCircle(12, -2, 2.5, "#FFFFFF", true);
 
-    // 6. Top HUD
-    pr.drawRect(0, 0, w, 52, "#080e1c", true);
-    pr.drawLine(0, 52, w, 52, "#1e293b", 1);
-    pr.drawText(`SCORE: ${this.score}`, 20, 32, { size: 13, color: "#ffd84d", font: "monospace" });
-    pr.drawText(`MARBLE RUSH • LVL ${this.level}`, w / 2, 32, { size: 13, color: "#4de8e8", align: "center", font: "monospace" });
-    pr.drawText(`LIVES: ${"♥".repeat(Math.max(0, this.lives))}`, w - 20, 32, { size: 13, color: "#f43f5e", align: "right", font: "monospace" });
+    // Aim Laser Sight
+    pr.drawLine(24, 0, 80, 0, "rgba(0, 240, 255, 0.4)", 1);
+
+    pr.restore();
+
+    // Render Particles & Score Popups
+    globalParticles.render(pr);
+
+    // Top HUD
+    pr.drawRect(12, 12, w - 24, 28, "rgba(8, 14, 28, 0.8)", true);
+    pr.drawRect(12, 12, w - 24, 28, "#1e293b", false);
+    pr.drawText(
+      `SCORE: ${this.score}  •  LEVEL: ${this.level}  •  COMBO: ${this.combo}X  •  LIVES: ${"♥ ".repeat(Math.max(0, this.lives))}`,
+      w / 2,
+      30,
+      {
+        size: 11,
+        color: "#00F0FF",
+        align: "center",
+        font: "monospace",
+      }
+    );
 
     if (this.gameOver) {
-      pr.drawRect(0, h / 2 - 45, w, 90, "rgba(8,14,28,0.95)", true);
+      pr.drawRect(0, h / 2 - 45, w, 90, "rgba(8, 14, 28, 0.95)", true);
       pr.drawRect(0, h / 2 - 45, w, 90, "#FF3366", false);
-      pr.drawText("MARBLE PIT OVERFLOW — GAME OVER", w / 2, h / 2 - 10, { size: 20, color: "#FF3366", align: "center", font: "monospace" });
-      pr.drawText("PRESS [R] TO RETRY", w / 2, h / 2 + 18, { size: 12, color: "#cbd5e1", align: "center", font: "monospace" });
+      pr.drawText("MARBLES BREACHED — GAME OVER", w / 2, h / 2 - 10, { size: 22, color: "#FF3366", align: "center", font: "monospace" });
+      pr.drawText("CLICK OR PRESS [R] TO RESTART", w / 2, h / 2 + 18, { size: 12, color: "#cbd5e1", align: "center", font: "monospace" });
     }
   }
 }

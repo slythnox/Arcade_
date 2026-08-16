@@ -266,14 +266,14 @@ export class MinesweeperGame implements GameInstance {
     pr.drawRect(offX - 4, offY - 4, boardWidth + 8, boardHeight + 8, "rgba(0, 255, 102, 0.55)", false);
 
     const numberColors: Record<number, string> = {
-      1: "#00F0FF", // Cyan
-      2: "#00FF66", // Green
-      3: "#FFB703", // Yellow
-      4: "#F97316", // Orange
-      5: "#FF3366", // Coral
-      6: "#A855F7", // Purple
-      7: "#EC4899", // Pink
-      8: "#FFFFFF",
+      1: "#38BDF8", // Cyan / Blue
+      2: "#4ADE80", // Emerald Green
+      3: "#F87171", // Ruby Red
+      4: "#818CF8", // Indigo
+      5: "#FB923C", // Orange
+      6: "#2DD4BF", // Teal
+      7: "#E879F9", // Purple
+      8: "#FFFFFF", // White
     };
 
     // Draw Grid Cells
@@ -284,18 +284,19 @@ export class MinesweeperGame implements GameInstance {
         const cy = offY + r * cellSize;
 
         if (cell.isRevealed) {
-          // Revealed tile
-          pr.drawRect(cx + 1, cy + 1, cellSize - 2, cellSize - 2, "#080e08", true);
-          pr.drawRect(cx + 1, cy + 1, cellSize - 2, cellSize - 2, "rgba(0, 255, 102, 0.15)", false);
+          // Revealed recessed tile
+          pr.drawRect(cx + 1, cy + 1, cellSize - 2, cellSize - 2, "#080e1c", true);
+          pr.drawRect(cx + 1, cy + 1, cellSize - 2, cellSize - 2, "#1a2a4a", false);
 
           if (cell.isMine) {
             // Detonated or revealed mine
             const isOrigin = this.detonatedMine && this.detonatedMine.col === c && this.detonatedMine.row === r;
-            pr.drawRect(cx + 1, cy + 1, cellSize - 2, cellSize - 2, isOrigin ? "#7F1D1D" : "#1A2E1A", true);
-            pr.drawCircle(cx + cellSize / 2, cy + cellSize / 2, cellSize / 3, isOrigin ? "#FF3366" : "#A3B3A3", true);
-            pr.drawCircle(cx + cellSize / 2, cy + cellSize / 2, cellSize / 6, "#FFFFFF", true);
+            pr.drawRect(cx + 1, cy + 1, cellSize - 2, cellSize - 2, isOrigin ? "#7F1D1D" : "#1e293b", true);
+            // Spiked naval mine
+            pr.drawCircle(cx + cellSize / 2, cy + cellSize / 2, cellSize / 3, isOrigin ? "#EF4444" : "#0F172A", true);
+            pr.drawCircle(cx + cellSize / 2, cy + cellSize / 2, cellSize / 6, isOrigin ? "#FFFFFF" : "#64748B", true);
           } else if (cell.neighborMines > 0) {
-            const col = numberColors[cell.neighborMines] || "#00FF66";
+            const col = numberColors[cell.neighborMines] || "#38BDF8";
             pr.drawText(
               cell.neighborMines.toString(),
               cx + cellSize / 2,
@@ -304,34 +305,43 @@ export class MinesweeperGame implements GameInstance {
                 size: 24,
                 color: col,
                 align: "center",
+                font: "monospace",
               }
             );
           }
         } else {
-          // Unrevealed button
+          // Unrevealed 3D button
           if (this.gameOver && cell.isMine) {
             // Reveal unflagged mines on game over
-            pr.drawRect(cx + 1, cy + 1, cellSize - 2, cellSize - 2, "#111811", true);
-            pr.drawCircle(cx + cellSize / 2, cy + cellSize / 2, cellSize / 3, "#64748B", true);
+            pr.drawRect(cx + 1, cy + 1, cellSize - 2, cellSize - 2, "#1e293b", true);
+            pr.drawCircle(cx + cellSize / 2, cy + cellSize / 2, cellSize / 3, "#475569", true);
           } else {
             const isHovered = this.hoveredCell && this.hoveredCell.col === c && this.hoveredCell.row === r;
-            const highlightColor = isHovered ? "rgba(0, 255, 102, 0.55)" : "rgba(0, 255, 102, 0.3)";
-            pr.drawPixelBlock(cx + 1, cy + 1, cellSize - 2, isHovered ? "#162516" : "#0f170f", highlightColor, "#040604");
+            pr.drawPixelBlock(
+              cx + 1,
+              cy + 1,
+              cellSize - 2,
+              isHovered ? "#334155" : "#1e293b",
+              isHovered ? "#94A3B8" : "#475569",
+              "#0F172A"
+            );
 
             if (cell.isFlagged) {
               if (this.gameOver && !cell.isMine) {
-                // False flag on game over
+                // False flag
                 pr.drawText("✕", cx + cellSize / 2, cy + cellSize / 2 + 8, {
                   size: 24,
                   color: "#FF3366",
                   align: "center",
+                  font: "monospace",
                 });
               } else {
-                // Active flag marker
+                // Active red flag
                 pr.drawText("⚑", cx + cellSize / 2, cy + cellSize / 2 + 9, {
                   size: 26,
-                  color: this.isWon ? "#00FF66" : "#FFB703",
+                  color: "#EF4444",
                   align: "center",
+                  font: "monospace",
                 });
               }
             }
@@ -340,8 +350,8 @@ export class MinesweeperGame implements GameInstance {
 
         // Active Keyboard / Cursor Highlight
         if (this.cursor.col === c && this.cursor.row === r && !this.gameOver && !this.isWon) {
-          pr.drawRect(cx, cy, cellSize, cellSize, "#00FF66", false);
-          pr.drawRect(cx + 1, cy + 1, cellSize - 2, cellSize - 2, "rgba(0, 255, 102, 0.5)", false);
+          pr.drawRect(cx, cy, cellSize, cellSize, "#ffd84d", false);
+          pr.drawRect(cx + 1, cy + 1, cellSize - 2, cellSize - 2, "rgba(255, 216, 77, 0.4)", false);
         }
       }
     }
@@ -354,36 +364,41 @@ export class MinesweeperGame implements GameInstance {
       offY - 20,
       {
         size: 11,
-        color: "#00FF66",
+        color: "#4de8e8",
         align: "center",
+        font: "monospace",
       }
     );
 
     if (this.isWon) {
-      pr.drawRect(0, h / 2 - 45, w, 90, "rgba(4, 6, 4, 0.95)", true);
-      pr.drawRect(0, h / 2 - 45, w, 90, "#00FF66", false);
+      pr.drawRect(0, h / 2 - 45, w, 90, "rgba(8, 14, 28, 0.95)", true);
+      pr.drawRect(0, h / 2 - 45, w, 90, "#ffd84d", false);
       pr.drawText("FIELD CLEARED — VICTORY", w / 2, h / 2 - 10, {
         size: 24,
-        color: "#00FF66",
+        color: "#ffd84d",
         align: "center",
+        font: "monospace",
       });
-      pr.drawText("CLICK ANYWHERE OR PRESS R TO PLAY AGAIN", w / 2, h / 2 + 18, {
+      pr.drawText("CLICK ANYWHERE OR PRESS [R] TO PLAY AGAIN", w / 2, h / 2 + 18, {
         size: 12,
-        color: "#F0F4F0",
+        color: "#cbd5e1",
         align: "center",
+        font: "monospace",
       });
     } else if (this.gameOver) {
-      pr.drawRect(0, h / 2 - 45, w, 90, "rgba(4, 6, 4, 0.95)", true);
+      pr.drawRect(0, h / 2 - 45, w, 90, "rgba(8, 14, 28, 0.95)", true);
       pr.drawRect(0, h / 2 - 45, w, 90, "#FF3366", false);
       pr.drawText("DETONATION — GAME OVER", w / 2, h / 2 - 10, {
         size: 24,
         color: "#FF3366",
         align: "center",
+        font: "monospace",
       });
-      pr.drawText("CLICK ANYWHERE OR PRESS R TO RETRY", w / 2, h / 2 + 18, {
+      pr.drawText("CLICK ANYWHERE OR PRESS [R] TO RETRY", w / 2, h / 2 + 18, {
         size: 12,
-        color: "#F0F4F0",
+        color: "#cbd5e1",
         align: "center",
+        font: "monospace",
       });
     }
   }

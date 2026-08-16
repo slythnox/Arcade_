@@ -290,19 +290,19 @@ export class TetrisGame implements GameInstance {
 
     // Large high-visibility 10x20 matrix layout
     this.cellSize = 31;
-    const boardWidth = this.board.cols * this.cellSize; // 310px
-    const boardHeight = this.board.rows * this.cellSize; // 620px
+    const boardWidth = this.board.cols * this.cellSize;
+    const boardHeight = this.board.rows * this.cellSize;
 
     this.boardOffsetX = 32;
-    this.boardOffsetY = Math.floor((h - boardHeight) / 2); // 40px
+    this.boardOffsetY = Math.floor((h - boardHeight) / 2);
 
-    // Draw board background with glowing boundary
+    // Outer Matrix Metallic Frame
     pr.drawRect(
-      this.boardOffsetX - 4,
-      this.boardOffsetY - 4,
-      boardWidth + 8,
-      boardHeight + 8,
-      "#080e08",
+      this.boardOffsetX - 6,
+      this.boardOffsetY - 6,
+      boardWidth + 12,
+      boardHeight + 12,
+      "#1e293b",
       true
     );
     pr.drawRect(
@@ -310,32 +310,40 @@ export class TetrisGame implements GameInstance {
       this.boardOffsetY - 4,
       boardWidth + 8,
       boardHeight + 8,
-      "rgba(0, 255, 102, 0.55)",
+      "#0f172a",
+      true
+    );
+    pr.drawRect(
+      this.boardOffsetX - 4,
+      this.boardOffsetY - 4,
+      boardWidth + 8,
+      boardHeight + 8,
+      "#00F0FF",
       false
     );
 
-    // Draw subtle grid
+    // Matrix background & subtle grid
     pr.drawGrid(
       this.board.cols,
       this.board.rows,
       this.cellSize,
-      "rgba(0, 255, 102, 0.08)",
+      "rgba(0, 240, 255, 0.06)",
       this.boardOffsetX,
       this.boardOffsetY
     );
 
-    // Draw locked cells with glowing bevels
+    // Draw locked cells with 3D bevel highlights
     for (let r = 0; r < this.board.rows; r++) {
       for (let c = 0; c < this.board.cols; c++) {
         const cell = this.board.grid[r][c];
         if (cell && cell.filled) {
-          const color = cell.color || "#00FF66";
+          const color = cell.color || "#00F0FF";
           pr.drawPixelBlock(
             this.boardOffsetX + c * this.cellSize,
             this.boardOffsetY + r * this.cellSize,
             this.cellSize,
             color,
-            "rgba(255, 255, 255, 0.4)",
+            "#FFFFFF",
             "rgba(0, 0, 0, 0.5)"
           );
         }
@@ -345,18 +353,18 @@ export class TetrisGame implements GameInstance {
     // Draw Ghost Piece
     if (this.currentPiece && !this.gameOver) {
       const ghostY = this.calculateGhostY();
+      const shape = TETROMINO_SHAPES[this.currentPiece.type];
       for (let r = 0; r < this.currentPiece.matrix.length; r++) {
         for (let c = 0; c < this.currentPiece.matrix[r].length; c++) {
           if (this.currentPiece.matrix[r][c] !== 0) {
             const gx = this.boardOffsetX + (this.currentPiece.x + c) * this.cellSize;
             const gy = this.boardOffsetY + (ghostY + r) * this.cellSize;
-            pr.drawRect(gx + 1, gy + 1, this.cellSize - 2, this.cellSize - 2, "rgba(0, 255, 102, 0.28)", false);
+            pr.drawRect(gx + 1, gy + 1, this.cellSize - 2, this.cellSize - 2, "rgba(255, 255, 255, 0.25)", false);
           }
         }
       }
 
-      // Draw Active Piece with neon glow bevels
-      const shape = TETROMINO_SHAPES[this.currentPiece.type];
+      // Draw Active Piece
       for (let r = 0; r < this.currentPiece.matrix.length; r++) {
         for (let c = 0; c < this.currentPiece.matrix[r].length; c++) {
           if (this.currentPiece.matrix[r][c] !== 0) {
@@ -369,21 +377,21 @@ export class TetrisGame implements GameInstance {
     }
 
     // Right Preview Panel (NEXT & HOLD)
-    const previewX = this.boardOffsetX + boardWidth + 24; // 366
+    const previewX = this.boardOffsetX + boardWidth + 24;
     const previewY = this.boardOffsetY;
     const boxWidth = 200;
     const boxHeight = 120;
 
     // NEXT Box
-    pr.drawText("NEXT PIECE", previewX + 10, previewY + 18, { size: 12, color: "#00FF66" });
-    pr.drawRect(previewX, previewY, boxWidth, boxHeight, "#080e08", true);
-    pr.drawRect(previewX, previewY, boxWidth, boxHeight, "rgba(0, 255, 102, 0.35)", false);
+    pr.drawRect(previewX, previewY, boxWidth, boxHeight, "#080e1c", true);
+    pr.drawRect(previewX, previewY, boxWidth, boxHeight, "#1e293b", false);
+    pr.drawText("NEXT PIECE", previewX + 12, previewY + 22, { size: 12, color: "#ffd84d", font: "monospace" });
 
     if (this.nextPiece) {
       const shape = TETROMINO_SHAPES[this.nextPiece.type];
       const pSize = 22;
       const offX = previewX + (boxWidth - this.nextPiece.matrix[0].length * pSize) / 2;
-      const offY = previewY + 24 + (boxHeight - 24 - this.nextPiece.matrix.length * pSize) / 2;
+      const offY = previewY + 26 + (boxHeight - 26 - this.nextPiece.matrix.length * pSize) / 2;
 
       for (let r = 0; r < this.nextPiece.matrix.length; r++) {
         for (let c = 0; c < this.nextPiece.matrix[r].length; c++) {
@@ -396,16 +404,16 @@ export class TetrisGame implements GameInstance {
 
     // HOLD Box
     const holdY = previewY + 140;
-    pr.drawText("HOLD [C / SHIFT]", previewX + 10, holdY + 18, { size: 12, color: "#00FF66" });
-    pr.drawRect(previewX, holdY, boxWidth, boxHeight, "#080e08", true);
-    pr.drawRect(previewX, holdY, boxWidth, boxHeight, "rgba(0, 255, 102, 0.35)", false);
+    pr.drawRect(previewX, holdY, boxWidth, boxHeight, "#080e1c", true);
+    pr.drawRect(previewX, holdY, boxWidth, boxHeight, "#1e293b", false);
+    pr.drawText("HOLD [C / SHIFT]", previewX + 12, holdY + 22, { size: 12, color: "#4de8e8", font: "monospace" });
 
     if (this.holdPieceType) {
       const shape = TETROMINO_SHAPES[this.holdPieceType];
       const pSize = 22;
       const matrix = shape.matrix;
       const offX = previewX + (boxWidth - matrix[0].length * pSize) / 2;
-      const offY = holdY + 24 + (boxHeight - 24 - matrix.length * pSize) / 2;
+      const offY = holdY + 26 + (boxHeight - 26 - matrix.length * pSize) / 2;
 
       for (let r = 0; r < matrix.length; r++) {
         for (let c = 0; c < matrix[r].length; c++) {
@@ -418,30 +426,32 @@ export class TetrisGame implements GameInstance {
 
     // Controls hints inside canvas
     const ctrlY = holdY + 140;
-    pr.drawRect(previewX, ctrlY, boxWidth, 140, "#080e08", true);
-    pr.drawRect(previewX, ctrlY, boxWidth, 140, "rgba(0, 255, 102, 0.2)", false);
-    pr.drawText("CONTROLS", previewX + 12, ctrlY + 22, { size: 11, color: "#00FF66" });
-    pr.drawText("← → : MOVE", previewX + 12, ctrlY + 48, { size: 11, color: "#A3B3A3" });
-    pr.drawText("↑ / Z : ROTATE", previewX + 12, ctrlY + 70, { size: 11, color: "#A3B3A3" });
-    pr.drawText("SPACE : HARD DROP", previewX + 12, ctrlY + 92, { size: 11, color: "#A3B3A3" });
-    pr.drawText("C / SHIFT : HOLD", previewX + 12, ctrlY + 114, { size: 11, color: "#A3B3A3" });
+    pr.drawRect(previewX, ctrlY, boxWidth, 140, "#080e1c", true);
+    pr.drawRect(previewX, ctrlY, boxWidth, 140, "#1e293b", false);
+    pr.drawText("CONTROLS", previewX + 12, ctrlY + 22, { size: 11, color: "#ffd84d", font: "monospace" });
+    pr.drawText("← → : MOVE", previewX + 12, ctrlY + 48, { size: 11, color: "#94a3b8", font: "monospace" });
+    pr.drawText("↑ / Z : ROTATE", previewX + 12, ctrlY + 70, { size: 11, color: "#94a3b8", font: "monospace" });
+    pr.drawText("SPACE : HARD DROP", previewX + 12, ctrlY + 92, { size: 11, color: "#94a3b8", font: "monospace" });
+    pr.drawText("C / SHIFT : HOLD", previewX + 12, ctrlY + 114, { size: 11, color: "#94a3b8", font: "monospace" });
 
     // Render Global Particle Explosions & Score Popups
     globalParticles.render(pr);
 
     // Game Over Overlay
     if (this.gameOver) {
-      pr.drawRect(0, h / 2 - 45, w, 90, "rgba(4, 6, 4, 0.95)", true);
+      pr.drawRect(0, h / 2 - 45, w, 90, "rgba(8, 14, 28, 0.95)", true);
       pr.drawRect(0, h / 2 - 45, w, 90, "#FF3366", false);
       pr.drawText("GAME OVER", w / 2, h / 2 - 10, {
         size: 28,
         color: "#FF3366",
         align: "center",
+        font: "monospace",
       });
-      pr.drawText("PRESS R TO RESTART", w / 2, h / 2 + 18, {
+      pr.drawText("PRESS [R] TO RESTART", w / 2, h / 2 + 18, {
         size: 13,
-        color: "#F0F4F0",
+        color: "#cbd5e1",
         align: "center",
+        font: "monospace",
       });
     }
   }

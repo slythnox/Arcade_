@@ -83,34 +83,54 @@ import { logicGatesDefinition } from "./definitions/logicGates";
  * Single source of truth for all game cartridges in ARCADE_.
  */
 export const gameRegistry: readonly GameDefinition[] = [
-  // Core Arcade Classics
-  tetrisDefinition,
-  snakeDefinition,
-  breakoutDefinition,
-  pongDefinition,
-  minesweeperDefinition,
+  // 🌟 Featured & Premier Arcade Hits
+  hotlapDefinition,
+  raySectorDefinition,
+  velocityRushDefinition,
+  pixelBrawlDefinition,
+  pixelQuestDefinition,
   spaceDefenderDefinition,
   asteroidFieldDefinition,
   alienSwarmDefinition,
+  twinStickArenaDefinition,
+  bossReactorDefinition,
+  omegaRunDefinition,
+  diamondRunDefinition,
+  starFormationDefinition,
+  donkeyClimbDefinition,
+  breakoutDefinition,
+  tetrisDefinition,
+  snakeDefinition,
+  pongDefinition,
+  minesweeperDefinition,
+  roadHopperDefinition,
+  mazeChaserDefinition,
+  bombGridDefinition,
+  caveHunterDefinition,
+  pixelCircuitDefinition,
+  towerDefenseDefinition,
+
+  // Iconic Action & Reflex
   brickStackDefinition,
   laserGridDefinition,
-
-  // Iconic Retro Additions
-  mazeChaserDefinition,
-  roadHopperDefinition,
-  starFormationDefinition,
-  bombGridDefinition,
   pegBlastDefinition,
-  caveHunterDefinition,
-  donkeyClimbDefinition,
   marbleRushDefinition,
-  velocityRushDefinition,
-  pixelQuestDefinition,
-  raySectorDefinition,
-  pixelBrawlDefinition,
-  pixelCircuitDefinition,
+  droneSwarmDefinition,
+  missileCommandDefinition,
+  bulletGardenDefinition,
+  gravityFlipDefinition,
+  ballDropDefinition,
+  ropeSwingDefinition,
+  magnetRunDefinition,
+  newtonsBoxDefinition,
+  ricochetDefinition,
+  pixelJumperDefinition,
+  wallRunnerDefinition,
+  caveEscapeDefinition,
+  ladderClimbDefinition,
+  shadowRunnerDefinition,
 
-  // Puzzle Games
+  // Puzzle & Brain
   twentyFortyEightDefinition,
   lightsOutDefinition,
   matchThreeDefinition,
@@ -118,47 +138,19 @@ export const gameRegistry: readonly GameDefinition[] = [
   mazeRunnerDefinition,
   pipeConnectDefinition,
   sudokuDefinition,
+  sokobanDefinition,
+  logicGatesDefinition,
 
-  // Physics & Reflex
-  gravityFlipDefinition,
-  ballDropDefinition,
-  ropeSwingDefinition,
-  magnetRunDefinition,
-  newtonsBoxDefinition,
-  ricochetDefinition,
-
-  // Shooters & Action
-  twinStickArenaDefinition,
-  bulletGardenDefinition,
-  bossReactorDefinition,
-  droneSwarmDefinition,
-  missileCommandDefinition,
-
-  // Platformers & Movement
-  pixelJumperDefinition,
-  wallRunnerDefinition,
-  caveEscapeDefinition,
-  ladderClimbDefinition,
-  shadowRunnerDefinition,
-
-  // Strategy & Board Games
+  // Strategy, Board & Simulation
   connectFourDefinition,
   ticTacToePlusDefinition,
   reversiDefinition,
-  towerDefenseDefinition,
-
-  // Systems & Simulation
   cellColonyDefinition,
   poolSimulatorDefinition,
   infiniteForestDefinition,
   timeLoopDefinition,
   fireSpreadDefinition,
   liquidCellsDefinition,
-  omegaRunDefinition,
-  sokobanDefinition,
-  logicGatesDefinition,
-  diamondRunDefinition,
-  hotlapDefinition,
 ];
 
 /** Games visible in the main ARCADE_ game library (62 cartridges). */

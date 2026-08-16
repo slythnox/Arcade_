@@ -5,18 +5,28 @@ import type { PixelRenderer } from "../../engine/rendering/PixelRenderer";
 import type { GameAction } from "../../core/types/game";
 import { Vector2 } from "../../core/math/vector";
 import { globalParticles } from "../../engine/particles/ParticleSystem";
+import { drawSpaceshipSprite } from "../../engine/rendering/spaceshipSprite";
 
 interface Asteroid {
   pos: Vector2;
   vel: Vector2;
   radius: number;
   tier: number; // 3 = large, 2 = medium, 1 = small
+  rotAngle: number;
+  rotSpeed: number;
 }
 
 interface Bullet {
   pos: Vector2;
   vel: Vector2;
   life: number;
+}
+
+interface Star {
+  x: number;
+  y: number;
+  size: number;
+  color: string;
 }
 
 export class AsteroidFieldGame implements GameInstance {
@@ -29,6 +39,7 @@ export class AsteroidFieldGame implements GameInstance {
   private rotateRight: boolean = false;
   private bullets: Bullet[] = [];
   private asteroids: Asteroid[] = [];
+  private stars: Star[] = [];
   private score: number = 0;
   private level: number = 1;
   private lives: number = 3;
@@ -37,7 +48,21 @@ export class AsteroidFieldGame implements GameInstance {
 
   public init(ctx: GameContext): void {
     this.ctx = ctx;
+    this.initStars();
     this.reset();
+  }
+
+  private initStars(): void {
+    this.stars = [];
+    const colors = ["#FFFFFF", "#93C5FD", "#FDE047", "#C084FC", "#67E8F9"];
+    for (let i = 0; i < 65; i++) {
+      this.stars.push({
+        x: Math.random() * 600,
+        y: Math.random() * 700,
+        size: Math.random() > 0.85 ? 2 : 1,
+        color: colors[Math.floor(Math.random() * colors.length)],
+      });
+    }
   }
 
   public reset(seed?: number): void {
@@ -70,6 +95,8 @@ export class AsteroidFieldGame implements GameInstance {
         vel: new Vector2(Math.cos(angle) * speed, Math.sin(angle) * speed),
         radius: 34,
         tier: 3,
+        rotAngle: Math.random() * Math.PI * 2,
+        rotSpeed: (Math.random() - 0.5) * 2,
       });
     }
   }
@@ -83,19 +110,31 @@ export class AsteroidFieldGame implements GameInstance {
     if (this.rotateRight) this.shipAngle += 4.2 * dt;
 
     if (this.isThrusting) {
-      const thrust = 340;
+      const thrust = 360;
       this.shipVel.x += Math.cos(this.shipAngle) * thrust * dt;
       this.shipVel.y += Math.sin(this.shipAngle) * thrust * dt;
+
+      // Exhaust particle
+      if (Math.random() < 0.6) {
+        globalParticles.emitBurst(
+          this.shipPos.x - Math.cos(this.shipAngle) * 16,
+          this.shipPos.y - Math.sin(this.shipAngle) * 16,
+          2,
+          ["#00F0FF", "#22C55E", "#E0F2FE"],
+          20,
+          60
+        );
+      }
     }
 
     // Drag / inertia
-    this.shipVel.x *= Math.pow(0.98, dt * 60);
-    this.shipVel.y *= Math.pow(0.98, dt * 60);
+    this.shipVel.x *= Math.pow(0.985, dt * 60);
+    this.shipVel.y *= Math.pow(0.985, dt * 60);
 
     this.shipPos.x += this.shipVel.x * dt;
     this.shipPos.y += this.shipVel.y * dt;
 
-    // Toroidal screen wrap
+    // Screen wrap
     if (this.shipPos.x < 0) this.shipPos.x += 600;
     if (this.shipPos.x > 600) this.shipPos.x -= 600;
     if (this.shipPos.y < 0) this.shipPos.y += 700;
@@ -108,6 +147,7 @@ export class AsteroidFieldGame implements GameInstance {
       b.pos.y += b.vel.y * dt;
       b.life -= dt;
 
+      // Wrap bullets
       if (b.pos.x < 0) b.pos.x += 600;
       if (b.pos.x > 600) b.pos.x -= 600;
       if (b.pos.y < 0) b.pos.y += 700;
@@ -118,66 +158,81 @@ export class AsteroidFieldGame implements GameInstance {
         continue;
       }
 
-      // Check collision with asteroids
-      for (let j = this.asteroids.length - 1; j >= 0; j--) {
-        const ast = this.asteroids[j];
+      // Check bullet hit asteroid
+      for (let aIdx = this.asteroids.length - 1; aIdx >= 0; aIdx--) {
+        const ast = this.asteroids[aIdx];
         if (Math.hypot(b.pos.x - ast.pos.x, b.pos.y - ast.pos.y) < ast.radius) {
-          this.ctx.audio.playExplosion();
-          const pts = (4 - ast.tier) * 150;
-          this.score += pts;
           this.bullets.splice(i, 1);
+          const pts = (4 - ast.tier) * 100 * this.level;
+          this.score += pts;
+          this.ctx.audio?.playExplosion?.();
 
-          globalParticles.emitBurst(ast.pos.x, ast.pos.y, 16, ["#FFB703", "#FF3366", "#ffffff"], 60, 240);
-          globalParticles.emitText(`+${pts}`, ast.pos.x, ast.pos.y, "#FFB703", 14);
+          globalParticles.emitBurst(
+            ast.pos.x,
+            ast.pos.y,
+            ast.tier * 8,
+            ["#CBD5E1", "#94A3B8", "#64748B", "#ffd84d"],
+            60,
+            240
+          );
+          globalParticles.emitText(`+${pts}`, ast.pos.x, ast.pos.y, "#ffd84d", 14);
 
-          // Split asteroid
+          // Split asteroid if tier > 1
           if (ast.tier > 1) {
             for (let k = 0; k < 2; k++) {
-              const randAng = this.ctx.random.next() * Math.PI * 2;
-              const spd = (4 - ast.tier + 1) * 60;
+              const splitAngle = Math.random() * Math.PI * 2;
+              const splitSpeed = 60 + Math.random() * 50 + this.level * 10;
               this.asteroids.push({
                 pos: new Vector2(ast.pos.x, ast.pos.y),
-                vel: new Vector2(Math.cos(randAng) * spd, Math.sin(randAng) * spd),
-                radius: ast.radius * 0.6,
+                vel: new Vector2(Math.cos(splitAngle) * splitSpeed, Math.sin(splitAngle) * splitSpeed),
+                radius: ast.radius * 0.55,
                 tier: ast.tier - 1,
+                rotAngle: Math.random() * Math.PI * 2,
+                rotSpeed: (Math.random() - 0.5) * 3,
               });
             }
           }
-          this.asteroids.splice(j, 1);
+
+          this.asteroids.splice(aIdx, 1);
           break;
         }
       }
     }
 
-    // Update asteroids
+    // Update asteroids & check ship collision
     for (const ast of this.asteroids) {
       ast.pos.x += ast.vel.x * dt;
       ast.pos.y += ast.vel.y * dt;
+      ast.rotAngle += ast.rotSpeed * dt;
 
-      if (ast.pos.x < 0) ast.pos.x += 600;
-      if (ast.pos.x > 600) ast.pos.x -= 600;
-      if (ast.pos.y < 0) ast.pos.y += 700;
-      if (ast.pos.y > 700) ast.pos.y -= 700;
+      if (ast.pos.x < -ast.radius) ast.pos.x += 600 + ast.radius * 2;
+      if (ast.pos.x > 600 + ast.radius) ast.pos.x -= 600 + ast.radius * 2;
+      if (ast.pos.y < -ast.radius) ast.pos.y += 700 + ast.radius * 2;
+      if (ast.pos.y > 700 + ast.radius) ast.pos.y -= 700 + ast.radius * 2;
 
       // Ship collision
       if (Math.hypot(this.shipPos.x - ast.pos.x, this.shipPos.y - ast.pos.y) < ast.radius + 12) {
         this.lives--;
-        this.ctx.audio.playExplosion();
-        this.shipPos = new Vector2(300, 350);
-        this.shipVel = new Vector2(0, 0);
+        this.ctx.audio?.playGameOver?.();
+        globalParticles.emitBurst(this.shipPos.x, this.shipPos.y, 24, ["#FF3366", "#F59E0B", "#FFFFFF"], 90, 300);
+
         if (this.lives <= 0) {
           this.gameOver = true;
           this.ctx.session.setStatus("game-over");
+        } else {
+          this.shipPos.set(300, 350);
+          this.shipVel.set(0, 0);
         }
+        break;
       }
     }
 
-    // Next wave
+    // Level clear check
     if (this.asteroids.length === 0) {
       this.level++;
-      this.score += 2000;
-      this.ctx.audio.playPowerUp();
-      this.spawnAsteroids(4 + this.level);
+      this.score += 1000 * this.level;
+      this.ctx.audio?.playVictory?.();
+      this.spawnAsteroids(Math.min(8, 3 + this.level));
     }
   }
 
@@ -185,21 +240,21 @@ export class AsteroidFieldGame implements GameInstance {
     if (action === "MOVE_LEFT") this.rotateLeft = isPressed;
     if (action === "MOVE_RIGHT") this.rotateRight = isPressed;
     if (action === "MOVE_UP") this.isThrusting = isPressed;
+
     if (action === "ACTION_PRIMARY" && isPressed && !this.gameOver && !this.isPaused) {
       if (this.bullets.length < 5) {
-        const bSpeed = 600;
+        const noseX = this.shipPos.x + Math.cos(this.shipAngle) * 18;
+        const noseY = this.shipPos.y + Math.sin(this.shipAngle) * 18;
+        const speed = 560;
         this.bullets.push({
-          pos: new Vector2(
-            this.shipPos.x + Math.cos(this.shipAngle) * 16,
-            this.shipPos.y + Math.sin(this.shipAngle) * 16
-          ),
+          pos: new Vector2(noseX, noseY),
           vel: new Vector2(
-            this.shipVel.x + Math.cos(this.shipAngle) * bSpeed,
-            this.shipVel.y + Math.sin(this.shipAngle) * bSpeed
+            this.shipVel.x + Math.cos(this.shipAngle) * speed,
+            this.shipVel.y + Math.sin(this.shipAngle) * speed
           ),
           life: 1.1,
         });
-        this.ctx.audio.playLaser();
+        this.ctx.audio?.playLaser?.();
       }
     }
     if (action === "RESTART" && isPressed) this.reset();
@@ -214,59 +269,66 @@ export class AsteroidFieldGame implements GameInstance {
 
   public render(renderer: Renderer): void {
     const pr = renderer as PixelRenderer;
-    pr.clear("#040604");
+    pr.clear("#040714");
     const w = renderer.getWidth();
     const h = renderer.getHeight();
 
-    // Outer border
-    pr.drawRect(10, 10, w - 20, h - 20, "rgba(0, 255, 102, 0.4)", false);
+    // 1. Starfield background
+    for (const star of this.stars) {
+      pr.drawRect(star.x, star.y, star.size, star.size, star.color, true);
+    }
 
-    // Draw Asteroids
+    // 2. Outer border
+    pr.drawRect(8, 8, w - 16, h - 16, "#1e293b", false);
+
+    // 3. Draw Textured Craggy Asteroids
     for (const ast of this.asteroids) {
-      const col = ast.tier === 3 ? "#A3B3A3" : ast.tier === 2 ? "#FFB703" : "#00F0FF";
-      pr.drawCircle(ast.pos.x, ast.pos.y, ast.radius, col, false);
-      pr.drawCircle(ast.pos.x, ast.pos.y, ast.radius * 0.4, "rgba(255,255,255,0.1)", true);
+      pr.save();
+      pr.translate(ast.pos.x, ast.pos.y);
+      pr.rotate(ast.rotAngle);
+
+      const baseCol = ast.tier === 3 ? "#475569" : ast.tier === 2 ? "#64748B" : "#94A3B8";
+      const highlightCol = "#CBD5E1";
+      const shadowCol = "#1E293B";
+
+      pr.drawCircle(0, 0, ast.radius, baseCol, true);
+      pr.drawCircle(0, 0, ast.radius, highlightCol, false);
+
+      // Crater details
+      pr.drawCircle(ast.radius * 0.3, -ast.radius * 0.2, ast.radius * 0.25, shadowCol, true);
+      pr.drawCircle(-ast.radius * 0.3, ast.radius * 0.2, ast.radius * 0.35, shadowCol, true);
+      pr.drawCircle(ast.radius * 0.1, ast.radius * 0.4, ast.radius * 0.2, shadowCol, true);
+
+      pr.restore();
     }
 
-    // Draw Bullets
+    // 4. Draw Bullets (Glowing Cyan Plasma Orbs)
     for (const b of this.bullets) {
-      pr.drawCircle(b.pos.x, b.pos.y, 3, "#00FF66", true);
+      pr.drawCircle(b.pos.x, b.pos.y, 4, "rgba(0, 240, 255, 0.4)", true);
+      pr.drawCircle(b.pos.x, b.pos.y, 2, "#FFFFFF", true);
     }
 
-    // Draw Ship
-    const noseX = this.shipPos.x + Math.cos(this.shipAngle) * 16;
-    const noseY = this.shipPos.y + Math.sin(this.shipAngle) * 16;
-    const leftX = this.shipPos.x + Math.cos(this.shipAngle + 2.4) * 14;
-    const leftY = this.shipPos.y + Math.sin(this.shipAngle + 2.4) * 14;
-    const rightX = this.shipPos.x + Math.cos(this.shipAngle - 2.4) * 14;
-    const rightY = this.shipPos.y + Math.sin(this.shipAngle - 2.4) * 14;
+    // 5. Draw Player Starfighter (Rotated Reference Sprite)
+    drawSpaceshipSprite(pr, this.shipPos.x, this.shipPos.y, 36, this.shipAngle + Math.PI / 2, "#00F0FF");
 
-    pr.drawLine(noseX, noseY, leftX, leftY, "#00FF66", 2);
-    pr.drawLine(leftX, leftY, this.shipPos.x, this.shipPos.y, "#00FF66", 2);
-    pr.drawLine(this.shipPos.x, this.shipPos.y, rightX, rightY, "#00FF66", 2);
-    pr.drawLine(rightX, rightY, noseX, noseY, "#00FF66", 2);
-
-    if (this.isThrusting) {
-      const flameX = this.shipPos.x - Math.cos(this.shipAngle) * 14;
-      const flameY = this.shipPos.y - Math.sin(this.shipAngle) * 14;
-      pr.drawLine(leftX, leftY, flameX, flameY, "#FFB703", 2);
-      pr.drawLine(rightX, rightY, flameX, flameY, "#FFB703", 2);
-    }
-
-    // Render Particle Explosions & Text Popups
+    // 6. Render Particles & Floating Text
     globalParticles.render(pr);
 
-    pr.drawText(`SCORE: ${this.score}  •  LEVEL: ${this.level}  •  LIVES: ${this.lives}`, w / 2, 28, {
-      size: 12,
-      color: "#00FF66",
+    // 7. Top HUD
+    pr.drawRect(12, 12, w - 24, 28, "rgba(8, 14, 28, 0.8)", true);
+    pr.drawRect(12, 12, w - 24, 28, "#1e293b", false);
+    pr.drawText(`SCORE: ${this.score}  •  LEVEL: ${this.level}  •  LIVES: ${"♥ ".repeat(Math.max(0, this.lives))}`, w / 2, 30, {
+      size: 11,
+      color: "#00F0FF",
       align: "center",
+      font: "monospace",
     });
 
     if (this.gameOver) {
-      pr.drawRect(0, h / 2 - 45, w, 90, "rgba(4,6,4,0.95)", true);
+      pr.drawRect(0, h / 2 - 45, w, 90, "rgba(8, 14, 28, 0.95)", true);
       pr.drawRect(0, h / 2 - 45, w, 90, "#FF3366", false);
-      pr.drawText("SHIP DESTROYED — GAME OVER", w / 2, h / 2 - 10, { size: 22, color: "#FF3366", align: "center" });
-      pr.drawText("PRESS R TO RESTART", w / 2, h / 2 + 18, { size: 12, color: "#F0F4F0", align: "center" });
+      pr.drawText("SHIP DESTROYED — GAME OVER", w / 2, h / 2 - 10, { size: 22, color: "#FF3366", align: "center", font: "monospace" });
+      pr.drawText("PRESS [R] TO RESTART", w / 2, h / 2 + 18, { size: 12, color: "#cbd5e1", align: "center", font: "monospace" });
     }
   }
 }

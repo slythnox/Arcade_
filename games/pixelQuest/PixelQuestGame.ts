@@ -141,9 +141,12 @@ export class PixelQuestGame implements GameInstance {
   private state: "playing" | "paused" | "gameover" | "victory" | "level_transition" = "playing";
 
   private player: Entity = { x: 0, y: 0, w: 20, h: 28, vx: 0, vy: 0, type: "player", id: 0 };
+  private powerState: "small" | "super" | "fire" = "small";
   private enemies: Entity[] = [];
   private coins: Entity[] = [];
   private platforms: Entity[] = [];
+  private powerups: Entity[] = [];
+  private fireballs: Entity[] = [];
   
   private map: string[] = [];
   private mapW: number = 0;
@@ -344,13 +347,68 @@ export class PixelQuestGame implements GameInstance {
         if (this.player.vy > 0 && this.player.y + this.player.h < e.y + e.h / 2) {
           // Stomp
           e.dead = true;
-          this.player.vy = -400; // Bounce
+          this.player.vy = -420; // Bounce
           this.score += 200;
           this.ctx.audio.playTone(600, "square", 0.1);
         } else {
           // Hurt
           this.die();
           return;
+        }
+      }
+    }
+
+    // Powerups Movement & Collection (Mushroom 🍄 & Fire Flower 🌸)
+    for (let i = this.powerups.length - 1; i >= 0; i--) {
+      const p = this.powerups[i];
+      p.vy += 800 * deltaTime;
+      p.x += p.vx * deltaTime;
+      const pxRes = this.resolveCollisionsX(p);
+      if (pxRes.hitWall) p.vx *= -1;
+      p.y += p.vy * deltaTime;
+      const pyRes = this.resolveCollisionsY(p);
+      if (pyRes.landed) p.vy = 0;
+
+      if (this.checkOverlap(this.player, p)) {
+        if (p.type === "mushroom") {
+          this.powerState = "super";
+          this.player.h = 32;
+        } else if (p.type === "fireflower") {
+          this.powerState = "fire";
+          this.player.h = 32;
+        }
+        this.score += 500;
+        this.ctx.audio?.playTone?.(880, "sine", 0.15);
+        this.powerups.splice(i, 1);
+      }
+    }
+
+    // Fireballs Physics & Enemy Burn
+    for (let i = this.fireballs.length - 1; i >= 0; i--) {
+      const fb = this.fireballs[i];
+      fb.x += fb.vx * deltaTime;
+      fb.vy += 800 * deltaTime;
+      fb.y += fb.vy * deltaTime;
+
+      const fbYRes = this.resolveCollisionsY(fb);
+      if (fbYRes.landed) {
+        fb.vy = -280; // Bouncing fireball
+      }
+
+      const fbXRes = this.resolveCollisionsX(fb);
+      if (fbXRes.hitWall) {
+        this.fireballs.splice(i, 1);
+        continue;
+      }
+
+      // Check collision with enemies
+      for (const e of this.enemies) {
+        if (!e.dead && this.checkOverlap(fb, e)) {
+          e.dead = true;
+          this.score += 300;
+          this.ctx.audio?.playTone?.(350, "square", 0.1);
+          this.fireballs.splice(i, 1);
+          break;
         }
       }
     }
@@ -361,6 +419,7 @@ export class PixelQuestGame implements GameInstance {
       if (this.checkOverlap(this.player, c)) {
         this.coins.splice(i, 1);
         this.score += 50;
+        this.coinsCollected++;
         this.ctx.audio.playTone(800, "sine", 0.1);
       }
     }
@@ -369,11 +428,11 @@ export class PixelQuestGame implements GameInstance {
     const ptx = Math.floor((this.player.x + this.player.w / 2) / TILE_SIZE);
     const pty = Math.floor((this.player.y + this.player.h - 2) / TILE_SIZE);
     if (this.getTile(ptx, pty) === '^') {
-      this.die();
+      this.die(true);
       return;
     }
     if (this.player.y > this.mapH * TILE_SIZE + 100) {
-      this.die();
+      this.die(true);
       return;
     }
     
@@ -384,8 +443,8 @@ export class PixelQuestGame implements GameInstance {
       this.state = "level_transition";
       this.transitionTimer = 2.0;
       this.ctx.audio.playTone(400, "sine", 0.1);
-      setTimeout(() => this.ctx.audio.playTone(600, "sine", 0.1), 100);
-      setTimeout(() => this.ctx.audio.playTone(800, "sine", 0.2), 200);
+      setTimeout(() => this.ctx.audio?.playTone?.(600, "sine", 0.1), 100);
+      setTimeout(() => this.ctx.audio?.playTone?.(800, "sine", 0.2), 200);
       this.loadLevel(this.currentLevel);
       return;
     }
@@ -396,8 +455,32 @@ export class PixelQuestGame implements GameInstance {
     this.cameraY = (this.mapH * TILE_SIZE) / 2 - 300;
   }
 
-  private die() {
+  private shootFireball(): void {
+    if (this.powerState !== "fire" || this.fireballs.length >= 3) return;
+    const dir = this.player.vx >= 0 ? 1 : -1;
+    this.fireballs.push({
+      x: this.player.x + (dir > 0 ? this.player.w : -8),
+      y: this.player.y + 10,
+      w: 12,
+      h: 12,
+      vx: dir * 320,
+      vy: 100,
+      type: "fireball",
+      id: this.nextEntityId++,
+    });
+    this.ctx.audio?.playTone?.(900, "sawtooth", 0.08);
+  }
+
+  private die(instant = false) {
+    if (!instant && this.powerState !== "small") {
+      this.powerState = "small";
+      this.player.h = 28;
+      this.ctx.audio?.playTone?.(250, "sawtooth", 0.2);
+      return;
+    }
     this.lives--;
+    this.powerState = "small";
+    this.player.h = 28;
     this.ctx.audio.playTone(200, "sawtooth", 0.3);
     if (this.lives <= 0) {
       this.state = "gameover";
@@ -487,15 +570,27 @@ export class PixelQuestGame implements GameInstance {
   
   private bumpBlock(tx: number, ty: number, type: string) {
     if (type === '?') {
-      // Turn to solid block, spawn coin
+      // Turn to solid block, spawn powerup or coin
       this.map[ty] = this.map[ty].substring(0, tx) + '#' + this.map[ty].substring(tx + 1);
-      this.score += 50;
-      this.ctx.audio.playTone(800, "sine", 0.1);
-      // Spawn bouncing coin effect (simplified by just adding score and sound)
+      this.score += 100;
+      this.ctx.audio?.playTone?.(800, "sine", 0.1);
+
+      // Spawn Mushroom or Fire Flower
+      const pType = this.powerState === "small" ? "mushroom" : "fireflower";
+      this.powerups.push({
+        x: tx * TILE_SIZE + 4,
+        y: (ty - 1) * TILE_SIZE,
+        w: 24,
+        h: 24,
+        vx: 50,
+        vy: -140,
+        type: pType,
+        id: this.nextEntityId++,
+      });
     } else if (type === '=') {
-      // Break block
+      // Break brick block
       this.map[ty] = this.map[ty].substring(0, tx) + '.' + this.map[ty].substring(tx + 1);
-      this.ctx.audio.playTone(150, "square", 0.1);
+      this.ctx.audio?.playTone?.(150, "square", 0.1);
     }
   }
 
@@ -614,6 +709,26 @@ export class PixelQuestGame implements GameInstance {
       }
     }
 
+    // Powerups (Mushroom & Fire Flower)
+    for (const p of this.powerups) {
+      if (p.type === "mushroom") {
+        // Red & White Mushroom Cap
+        pr.drawPixelBlock(p.x, p.y, p.w, "#EF4444", "#FFFFFF", "#991B1B");
+        pr.drawRect(p.x + 4, p.y + p.h - 8, p.w - 8, 8, "#FEF08A");
+      } else {
+        // Fire Flower
+        pr.drawCircle(p.x + p.w / 2, p.y + p.h / 2, 10, "#EF4444", true);
+        pr.drawCircle(p.x + p.w / 2, p.y + p.h / 2, 6, "#F59E0B", true);
+        pr.drawCircle(p.x + p.w / 2, p.y + p.h / 2, 3, "#FFFFFF", true);
+      }
+    }
+
+    // Fireballs
+    for (const fb of this.fireballs) {
+      pr.drawCircle(fb.x + fb.w / 2, fb.y + fb.h / 2, 6, "#EF4444", true);
+      pr.drawCircle(fb.x + fb.w / 2, fb.y + fb.h / 2, 3, "#FDE047", true);
+    }
+
     // Enemies
     for (const e of this.enemies) {
       if (!e.dead) {
@@ -624,16 +739,20 @@ export class PixelQuestGame implements GameInstance {
       }
     }
 
-    // Player (Mario-inspired NES 8-bit sprite)
+    // Player (Mario-inspired NES 8-bit sprite with Super & Fire palettes)
     const pWalkOffset = (this.inputX !== 0 && this.grounded) ? Math.sin(this.timeAlive * 15) * 2 : 0;
     const faceDir = this.player.vx >= 0 ? 1 : -1;
+    const isFire = this.powerState === "fire";
+    const capCol = isFire ? "#FFFFFF" : "#d82800";
+    const overallCol = isFire ? "#d82800" : "#002870";
+    const shirtCol = isFire ? "#FFFFFF" : "#d82800";
     
-    // Cap (Red)
-    pr.drawPixelRect(this.player.x, this.player.y, this.player.w, 8, "#d82800", "#fc9838", "#a81000");
+    // Cap
+    pr.drawPixelRect(this.player.x, this.player.y, this.player.w, 8, capCol, "#fc9838", "#a81000");
     if (faceDir > 0) {
-      pr.drawRect(this.player.x + 8, this.player.y + 4, this.player.w - 4, 4, "#d82800");
+      pr.drawRect(this.player.x + 8, this.player.y + 4, this.player.w - 4, 4, capCol);
     } else {
-      pr.drawRect(this.player.x - 4, this.player.y + 4, this.player.w - 4, 4, "#d82800");
+      pr.drawRect(this.player.x - 4, this.player.y + 4, this.player.w - 4, 4, capCol);
     }
     // Face (Skin tone)
     pr.drawPixelRect(this.player.x + 2, this.player.y + 6, this.player.w - 4, 10, "#fce0a8", "#ffffff", "#c89860");
@@ -641,10 +760,10 @@ export class PixelQuestGame implements GameInstance {
     const eyeX = faceDir > 0 ? this.player.x + 14 : this.player.x + 4;
     pr.drawRect(eyeX, this.player.y + 8, 3, 3, "#000000");
     pr.drawRect(eyeX - 2, this.player.y + 12, 8, 3, "#402000");
-    // Shirt & Overalls (Red & Blue)
-    pr.drawPixelRect(this.player.x + 2, this.player.y + 16, this.player.w - 4, 10, "#002870", "#4070d8", "#001040");
-    pr.drawRect(this.player.x + 4, this.player.y + 16, 4, 6, "#d82800");
-    pr.drawRect(this.player.x + 14, this.player.y + 16, 4, 6, "#d82800");
+    // Shirt & Overalls
+    pr.drawPixelRect(this.player.x + 2, this.player.y + 16, this.player.w - 4, 10, overallCol, "#4070d8", "#001040");
+    pr.drawRect(this.player.x + 4, this.player.y + 16, 4, 6, shirtCol);
+    pr.drawRect(this.player.x + 14, this.player.y + 16, 4, 6, shirtCol);
     // Boots
     pr.drawRect(this.player.x + 2, this.player.y + 26 + pWalkOffset, 7, 6, "#704000");
     pr.drawRect(this.player.x + 13, this.player.y + 26 - pWalkOffset, 7, 6, "#704000");
@@ -660,7 +779,7 @@ export class PixelQuestGame implements GameInstance {
     const padCoins = String(this.coinsCollected).padStart(2, '0');
 
     // NES Header Bar
-    renderer.drawText(`MARIO`, 24, 16, { color: "#ffffff", size: 14 });
+    renderer.drawText(`MARIO [${this.powerState.toUpperCase()}]`, 24, 16, { color: "#ffffff", size: 14 });
     renderer.drawText(`${padScore}`, 24, 32, { color: "#ffffff", size: 14 });
 
     renderer.drawText(`WORLD`, 200, 16, { color: "#ffffff", size: 14 });
@@ -711,6 +830,13 @@ export class PixelQuestGame implements GameInstance {
     } else if (action === "ACTION_PRIMARY" || action === "MOVE_UP") {
       if (isPressed) {
         this.lastJumpPressTime = this.timeAlive;
+        if (this.powerState === "fire") {
+          this.shootFireball();
+        }
+      }
+    } else if (action === "ACTION_SECONDARY" && isPressed) {
+      if (this.powerState === "fire") {
+        this.shootFireball();
       }
     }
   }
