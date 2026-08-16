@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "@/styles/globals.css";
+import { Analytics } from "@vercel/analytics/next";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { ProceduralBackground } from "@/components/environment/ProceduralBackground";
@@ -33,6 +34,7 @@ export default function RootLayout({
         </div>
         {/* Fixed persistent retro pixel flowerbed along bottom */}
         <FixedBottomFlora />
+        <Analytics />
       </body>
     </html>
   );
