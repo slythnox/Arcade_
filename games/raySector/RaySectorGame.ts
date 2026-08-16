@@ -1,247 +1,476 @@
 import type { GameInstance } from "../types";
 import type { GameContext } from "../../engine/GameContext";
 import type { Renderer } from "../../engine/rendering/Renderer";
+import type { PixelRenderer } from "../../engine/rendering/PixelRenderer";
 import type { GameAction } from "../../core/types/game";
-
-const MAP: number[][] = [
-  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-  [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,1],
-  [1,0,0,0,2,0,0,0,2,0,0,0,2,0,0,1],
-  [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,1],
-  [1,1,2,1,1,1,2,1,1,1,2,1,1,1,1,1],
-  [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,1],
-  [1,0,0,0,2,0,0,0,2,0,0,0,2,0,0,1],
-  [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,1],
-  [1,1,2,1,1,1,2,1,1,1,2,1,1,1,1,1],
-  [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,1],
-  [1,0,0,0,2,0,0,0,2,0,0,0,2,0,0,1],
-  [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,1],
-  [1,1,2,1,1,1,2,1,1,1,2,1,1,1,1,1],
-  [1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,1],
-  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-];
 
 interface Enemy {
   x: number;
   y: number;
-  type: number;
+  type: "drone" | "soldier" | "boss";
   active: boolean;
   hp: number;
+  maxHp: number;
+  shootCooldown: number;
+  animFrame: number;
+}
+
+interface Projectile {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  isEnemy: boolean;
+}
+
+interface Particle {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;
+  color: string;
+}
+
+interface Pickup {
+  x: number;
+  y: number;
+  type: "ammo" | "health" | "key";
+  collected: boolean;
 }
 
 export class RaySectorGame implements GameInstance {
   private ctx!: GameContext;
-  private posX: number = 1.5;
-  private posY: number = 1.5;
+  private posX: number = 2.5;
+  private posY: number = 2.5;
   private dirX: number = 1;
   private dirY: number = 0;
   private planeX: number = 0;
   private planeY: number = 0.66;
-  
-  private moveSpeed = 3.0;
-  private rotSpeed = 2.0;
-  
+
+  private mapW = 24;
+  private mapH = 24;
+  private map: number[][] = [];
+
+  private moveSpeed = 3.8;
+  private rotSpeed = 2.6;
+
   private movingForward = false;
   private movingBackward = false;
+  private strafeLeft = false;
+  private strafeRight = false;
   private turningLeft = false;
   private turningRight = false;
-  private isShooting = false;
-  
+
   private enemies: Enemy[] = [];
-  
+  private projectiles: Projectile[] = [];
+  private pickups: Pickup[] = [];
+  private particles: Particle[] = [];
+
   private level: number = 1;
   private score: number = 0;
   private lives: number = 3;
   private playerHp: number = 100;
+  private ammo: number = 80;
+  private keys: number = 0;
   private paused: boolean = false;
   private gameOver: boolean = false;
-  
+  private isWon: boolean = false;
+
   private muzzleFlash = 0;
   private swayTimer = 0;
   private shootCooldown = 0;
-  private ammo = 99;
-  
+  private damageFlash = 0;
+  private animTime = 0;
+
   public init(ctx: GameContext): void {
     this.ctx = ctx;
     this.reset();
   }
-  
+
   public reset(seed?: number): void {
-    this.posX = 1.5;
-    this.posY = 1.5;
-    this.dirX = 1;
-    this.dirY = 0;
-    this.planeX = 0;
-    this.planeY = 0.66;
+    if (seed !== undefined) this.ctx.random.reset(seed);
     this.level = 1;
     this.score = 0;
     this.lives = 3;
     this.playerHp = 100;
-    this.ammo = 99;
+    this.ammo = 80;
+    this.keys = 0;
     this.gameOver = false;
+    this.isWon = false;
     this.muzzleFlash = 0;
     this.shootCooldown = 0;
-    
-    this.enemies = [
-      { x: 3.5, y: 3.5, type: 0, active: true, hp: 10 },
-      { x: 10.5, y: 10.5, type: 1, active: true, hp: 20 },
-      { x: 14.5, y: 14.5, type: 2, active: true, hp: 50 },
-    ];
+    this.damageFlash = 0;
+    this.projectiles = [];
+    this.particles = [];
+    this.initMazeLevel();
   }
-  
-  public update(deltaTime: number): void {
-    if (this.paused || this.gameOver) return;
-    
-    if (this.muzzleFlash > 0) this.muzzleFlash -= deltaTime;
-    if (this.shootCooldown > 0) this.shootCooldown -= deltaTime;
-    
-    const isMoving = this.movingForward || this.movingBackward || this.turningLeft || this.turningRight;
-    if (isMoving) {
-        this.swayTimer += deltaTime;
-    } else {
-        this.swayTimer = 0;
-    }
-    
-    if (this.movingForward) {
-      if (MAP[Math.floor(this.posY)][Math.floor(this.posX + this.dirX * this.moveSpeed * deltaTime)] === 0) {
-        this.posX += this.dirX * this.moveSpeed * deltaTime;
-      }
-      if (MAP[Math.floor(this.posY + this.dirY * this.moveSpeed * deltaTime)][Math.floor(this.posX)] === 0) {
-        this.posY += this.dirY * this.moveSpeed * deltaTime;
-      }
-    }
-    if (this.movingBackward) {
-      if (MAP[Math.floor(this.posY)][Math.floor(this.posX - this.dirX * this.moveSpeed * deltaTime)] === 0) {
-        this.posX -= this.dirX * this.moveSpeed * deltaTime;
-      }
-      if (MAP[Math.floor(this.posY - this.dirY * this.moveSpeed * deltaTime)][Math.floor(this.posX)] === 0) {
-        this.posY -= this.dirY * this.moveSpeed * deltaTime;
-      }
-    }
-    
-    if (this.turningLeft) {
-      const oldDirX = this.dirX;
-      this.dirX = this.dirX * Math.cos(this.rotSpeed * deltaTime) - this.dirY * Math.sin(this.rotSpeed * deltaTime);
-      this.dirY = oldDirX * Math.sin(this.rotSpeed * deltaTime) + this.dirY * Math.cos(this.rotSpeed * deltaTime);
-      const oldPlaneX = this.planeX;
-      this.planeX = this.planeX * Math.cos(this.rotSpeed * deltaTime) - this.planeY * Math.sin(this.rotSpeed * deltaTime);
-      this.planeY = oldPlaneX * Math.sin(this.rotSpeed * deltaTime) + this.planeY * Math.cos(this.rotSpeed * deltaTime);
-    }
-    if (this.turningRight) {
-      const oldDirX = this.dirX;
-      this.dirX = this.dirX * Math.cos(-this.rotSpeed * deltaTime) - this.dirY * Math.sin(-this.rotSpeed * deltaTime);
-      this.dirY = oldDirX * Math.sin(-this.rotSpeed * deltaTime) + this.dirY * Math.cos(-this.rotSpeed * deltaTime);
-      const oldPlaneX = this.planeX;
-      this.planeX = this.planeX * Math.cos(-this.rotSpeed * deltaTime) - this.planeY * Math.sin(-this.rotSpeed * deltaTime);
-      this.planeY = oldPlaneX * Math.sin(-this.rotSpeed * deltaTime) + this.planeY * Math.cos(-this.rotSpeed * deltaTime);
-    }
-    
-    // Enemy movement toward player
-    for (const e of this.enemies) {
-      if (!e.active) continue;
-      const dx = this.posX - e.x; 
-      const dy = this.posY - e.y;
-      const dist = Math.sqrt(dx*dx + dy*dy);
-      if (dist > 1.5) { 
-          e.x += dx/dist * 1.5 * deltaTime; 
-          e.y += dy/dist * 1.5 * deltaTime; 
-      }
-      if (dist < 0.8) { 
-          this.playerHp -= 20 * deltaTime; 
-          this.ctx.audio.playHit();
-      }
-    }
-    
-    if (this.playerHp <= 0) {
-        this.gameOver = true;
-        this.ctx.session.setStatus("game-over");
-    }
-  }
-  
-  public handleInput(action: GameAction, isPressed: boolean): void {
-    if (action === "RESTART" && isPressed) this.reset();
-    if (this.gameOver) return;
-    
-    switch (action) {
-      case "MOVE_UP":
-        this.movingForward = isPressed;
-        break;
-      case "MOVE_DOWN":
-        this.movingBackward = isPressed;
-        break;
-      case "MOVE_LEFT":
-        this.turningLeft = isPressed;
-        break;
-      case "MOVE_RIGHT":
-        this.turningRight = isPressed;
-        break;
-      case "ACTION_PRIMARY":
-        if (isPressed && !this.isShooting && this.shootCooldown <= 0 && this.ammo > 0) {
-          this.shoot();
+
+  private initMazeLevel(): void {
+    this.mapW = 22 + this.level * 2;
+    this.mapH = 22 + this.level * 2;
+    this.map = Array.from({ length: this.mapH }, () => Array(this.mapW).fill(1));
+
+    // Carve maze rooms & corridors
+    const carveRoom = (rx: number, ry: number, rw: number, rh: number) => {
+      for (let y = ry; y < ry + rh; y++) {
+        for (let x = rx; x < rx + rw; x++) {
+          if (x > 0 && x < this.mapW - 1 && y > 0 && y < this.mapH - 1) {
+            this.map[y][x] = 0;
+          }
         }
-        this.isShooting = isPressed;
-        break;
+      }
+    };
+
+    // Starting player room
+    carveRoom(1, 1, 5, 5);
+    this.posX = 2.5;
+    this.posY = 2.5;
+    this.dirX = 1;
+    this.dirY = 0;
+    this.planeX = 0;
+    this.planeY = 0.66;
+
+    // Additional labyrinth chambers & decorated walls (1=Stone, 2=Cyan Neon, 3=Hazard, 4=Reactor)
+    for (let i = 0; i < 6 + this.level * 2; i++) {
+      const rx = 2 + Math.floor(this.ctx.random.next() * (this.mapW - 8));
+      const ry = 2 + Math.floor(this.ctx.random.next() * (this.mapH - 8));
+      carveRoom(rx, ry, 4, 4);
+
+      // Connect with corridor
+      const prevX = Math.floor(this.posX);
+      const prevY = Math.floor(this.posY);
+      for (let x = Math.min(prevX, rx); x <= Math.max(prevX, rx); x++) this.map[prevY][x] = 0;
+      for (let y = Math.min(prevY, ry); y <= Math.max(prevY, ry); y++) this.map[y][rx] = 0;
+    }
+
+    // Decorate walls with variety
+    for (let y = 1; y < this.mapH - 1; y++) {
+      for (let x = 1; x < this.mapW - 1; x++) {
+        if (this.map[y][x] === 1) {
+          const roll = (x * 7 + y * 13) % 10;
+          if (roll < 3) this.map[y][x] = 2; // Cyan Cyber
+          else if (roll < 5) this.map[y][x] = 3; // Hazard Wall
+          else if (roll < 6) this.map[y][x] = 4; // Red Reactor
+        }
+      }
+    }
+
+    // Spawn Enemies
+    this.enemies = [];
+    const enemyCount = 4 + this.level * 3;
+    for (let i = 0; i < enemyCount; i++) {
+      let ex = 0;
+      let ey = 0;
+      while (this.map[ey]?.[ex] !== 0 || Math.hypot(ex - this.posX, ey - this.posY) < 4) {
+        ex = Math.floor(this.ctx.random.next() * (this.mapW - 2)) + 1;
+        ey = Math.floor(this.ctx.random.next() * (this.mapH - 2)) + 1;
+      }
+      const typeRoll = this.ctx.random.next();
+      const type = (i === enemyCount - 1 && this.level % 2 === 0) ? "boss" : (typeRoll > 0.6 ? "soldier" : "drone");
+      const hp = type === "boss" ? 80 : (type === "soldier" ? 30 : 15);
+      this.enemies.push({
+        x: ex + 0.5,
+        y: ey + 0.5,
+        type,
+        active: true,
+        hp,
+        maxHp: hp,
+        shootCooldown: 1.5 + this.ctx.random.next() * 2,
+        animFrame: 0,
+      });
+    }
+
+    // Spawn Pickups
+    this.pickups = [];
+    for (let i = 0; i < 6; i++) {
+      let px = 0;
+      let py = 0;
+      while (this.map[py]?.[px] !== 0) {
+        px = Math.floor(this.ctx.random.next() * (this.mapW - 2)) + 1;
+        py = Math.floor(this.ctx.random.next() * (this.mapH - 2)) + 1;
+      }
+      this.pickups.push({
+        x: px + 0.5,
+        y: py + 0.5,
+        type: i % 2 === 0 ? "ammo" : "health",
+        collected: false,
+      });
+    }
+
+    this.projectiles = [];
+  }
+
+  private addParticles(x: number, y: number, color: string, count = 6): void {
+    for (let i = 0; i < count; i++) {
+      const ang = this.ctx.random.next() * Math.PI * 2;
+      const spd = 20 + this.ctx.random.next() * 60;
+      this.particles.push({
+        x,
+        y,
+        vx: Math.cos(ang) * spd,
+        vy: Math.sin(ang) * spd,
+        life: 0.35,
+        color,
+      });
     }
   }
-  
+
   private shoot(): void {
-    this.shootCooldown = 0.3;
-    this.muzzleFlash = 0.15;
+    if (this.shootCooldown > 0 || this.ammo <= 0 || this.gameOver || this.paused) return;
+
     this.ammo--;
+    this.muzzleFlash = 0.08;
+    this.shootCooldown = 0.22;
     this.ctx.audio.playLaser();
-    
+
+    // Raycast bullet hitscan
+    let closestEnemy: Enemy | null = null;
+    let minDist = 12;
+
     for (const e of this.enemies) {
       if (!e.active) continue;
       const dx = e.x - this.posX;
       const dy = e.y - this.posY;
-      const dist = Math.sqrt(dx*dx + dy*dy);
-      if (dist < 5.0) {
-        const dot = (dx/dist)*this.dirX + (dy/dist)*this.dirY;
-        if (dot > 0.95) {
-          e.hp -= 10;
-          if (e.hp <= 0) {
-            e.active = false;
-            this.score += 100;
-            this.ctx.audio.playExplosion();
+      const dist = Math.hypot(dx, dy);
+
+      // Check angle alignment with forward vector
+      const dot = (dx / dist) * this.dirX + (dy / dist) * this.dirY;
+      if (dot > 0.94 && dist < minDist) {
+        // Verify wall line of sight
+        let hitWall = false;
+        const steps = Math.floor(dist * 4);
+        for (let s = 1; s <= steps; s++) {
+          const tx = Math.floor(this.posX + (dx * s) / steps);
+          const ty = Math.floor(this.posY + (dy * s) / steps);
+          if (this.map[ty]?.[tx] > 0) {
+            hitWall = true;
+            break;
           }
-          break;
+        }
+
+        if (!hitWall) {
+          minDist = dist;
+          closestEnemy = e;
         }
       }
     }
+
+    if (closestEnemy) {
+      closestEnemy.hp -= 15;
+      this.ctx.audio.playHit();
+      if (closestEnemy.hp <= 0) {
+        closestEnemy.active = false;
+        this.score += closestEnemy.type === "boss" ? 1000 : (closestEnemy.type === "soldier" ? 300 : 150);
+        this.ctx.audio.playExplosion();
+      }
+    }
   }
-  
+
+  public update(dt: number): void {
+    if (this.paused || this.gameOver) return;
+    this.animTime += dt;
+
+    if (this.muzzleFlash > 0) this.muzzleFlash -= dt;
+    if (this.shootCooldown > 0) this.shootCooldown -= dt;
+    if (this.damageFlash > 0) this.damageFlash -= dt;
+
+    // Movement & Turning
+    if (this.turningLeft) {
+      const oldDirX = this.dirX;
+      this.dirX = this.dirX * Math.cos(-this.rotSpeed * dt) - this.dirY * Math.sin(-this.rotSpeed * dt);
+      this.dirY = oldDirX * Math.sin(-this.rotSpeed * dt) + this.dirY * Math.cos(-this.rotSpeed * dt);
+      const oldPlaneX = this.planeX;
+      this.planeX = this.planeX * Math.cos(-this.rotSpeed * dt) - this.planeY * Math.sin(-this.rotSpeed * dt);
+      this.planeY = oldPlaneX * Math.sin(-this.rotSpeed * dt) + this.planeY * Math.cos(-this.rotSpeed * dt);
+    }
+    if (this.turningRight) {
+      const oldDirX = this.dirX;
+      this.dirX = this.dirX * Math.cos(this.rotSpeed * dt) - this.dirY * Math.sin(this.rotSpeed * dt);
+      this.dirY = oldDirX * Math.sin(this.rotSpeed * dt) + this.dirY * Math.cos(this.rotSpeed * dt);
+      const oldPlaneX = this.planeX;
+      this.planeX = this.planeX * Math.cos(this.rotSpeed * dt) - this.planeY * Math.sin(this.rotSpeed * dt);
+      this.planeY = oldPlaneX * Math.sin(this.rotSpeed * dt) + this.planeY * Math.cos(this.rotSpeed * dt);
+    }
+
+    let moveX = 0;
+    let moveY = 0;
+    if (this.movingForward) {
+      moveX += this.dirX * this.moveSpeed * dt;
+      moveY += this.dirY * this.moveSpeed * dt;
+    }
+    if (this.movingBackward) {
+      moveX -= this.dirX * this.moveSpeed * dt;
+      moveY -= this.dirY * this.moveSpeed * dt;
+    }
+    if (this.strafeLeft) {
+      moveX -= this.planeX * this.moveSpeed * dt;
+      moveY -= this.planeY * this.moveSpeed * dt;
+    }
+    if (this.strafeRight) {
+      moveX += this.planeX * this.moveSpeed * dt;
+      moveY += this.planeY * this.moveSpeed * dt;
+    }
+
+    // Collision against walls
+    const checkRadius = 0.25;
+    if (this.map[Math.floor(this.posY)][Math.floor(this.posX + moveX + Math.sign(moveX) * checkRadius)] === 0) {
+      this.posX += moveX;
+    }
+    if (this.map[Math.floor(this.posY + moveY + Math.sign(moveY) * checkRadius)][Math.floor(this.posX)] === 0) {
+      this.posY += moveY;
+    }
+
+    if (moveX !== 0 || moveY !== 0) {
+      this.swayTimer += dt * 10;
+    }
+
+    // Pickups collection
+    for (const p of this.pickups) {
+      if (!p.collected && Math.hypot(p.x - this.posX, p.y - this.posY) < 0.6) {
+        p.collected = true;
+        if (p.type === "ammo") {
+          this.ammo = Math.min(99, this.ammo + 25);
+          this.score += 50;
+        } else if (p.type === "health") {
+          this.playerHp = Math.min(100, this.playerHp + 30);
+          this.score += 50;
+        }
+        this.ctx.audio.playPowerUp();
+      }
+    }
+
+    // Enemy AI & Projectiles
+    for (const e of this.enemies) {
+      if (!e.active) continue;
+      const dx = this.posX - e.x;
+      const dy = this.posY - e.y;
+      const dist = Math.hypot(dx, dy);
+
+      // Approach player if within sight
+      if (dist < 8 && dist > 1.2) {
+        const nx = e.x + (dx / dist) * (e.type === "boss" ? 1.2 : 1.8) * dt;
+        const ny = e.y + (dy / dist) * (e.type === "boss" ? 1.2 : 1.8) * dt;
+        if (this.map[Math.floor(ny)]?.[Math.floor(nx)] === 0) {
+          e.x = nx;
+          e.y = ny;
+        }
+      }
+
+      // Attack player
+      e.shootCooldown -= dt;
+      if (dist < 7 && e.shootCooldown <= 0) {
+        e.shootCooldown = e.type === "boss" ? 1.0 : 2.0;
+        this.projectiles.push({
+          x: e.x,
+          y: e.y,
+          vx: (dx / dist) * 4.5,
+          vy: (dy / dist) * 4.5,
+          isEnemy: true,
+        });
+        this.ctx.audio.playLaser();
+      }
+    }
+
+    // Update enemy plasma projectiles
+    for (let i = this.projectiles.length - 1; i >= 0; i--) {
+      const prj = this.projectiles[i];
+      prj.x += prj.vx * dt;
+      prj.y += prj.vy * dt;
+
+      // Hit wall
+      if (this.map[Math.floor(prj.y)]?.[Math.floor(prj.x)] > 0) {
+        this.projectiles.splice(i, 1);
+        continue;
+      }
+
+      // Hit player
+      if (Math.hypot(prj.x - this.posX, prj.y - this.posY) < 0.4) {
+        this.projectiles.splice(i, 1);
+        this.playerHp -= 12;
+        this.damageFlash = 0.2;
+        this.ctx.audio.playHit();
+
+        if (this.playerHp <= 0) {
+          this.lives--;
+          if (this.lives <= 0) {
+            this.gameOver = true;
+            this.ctx.session.setStatus("game-over");
+          } else {
+            this.playerHp = 100;
+            this.posX = 2.5;
+            this.posY = 2.5;
+          }
+        }
+      }
+    }
+
+    // Check level clear
+    const allCleared = this.enemies.every((e) => !e.active);
+    if (allCleared && !this.isWon) {
+      this.isWon = true;
+      this.score += 2000 * this.level;
+      this.ctx.audio.playVictory();
+      this.level++;
+      setTimeout(() => {
+        this.isWon = false;
+        this.initMazeLevel();
+      }, 1800);
+    }
+  }
+
+  public handleInput(action: GameAction, isPressed: boolean): void {
+    switch (action) {
+      case "MOVE_UP": this.movingForward = isPressed; break;
+      case "MOVE_DOWN": this.movingBackward = isPressed; break;
+      case "MOVE_LEFT": this.turningLeft = isPressed; break;
+      case "MOVE_RIGHT": this.turningRight = isPressed; break;
+      case "ACTION_PRIMARY":
+        if (isPressed) this.shoot();
+        break;
+      case "RESTART":
+        if (isPressed) this.reset();
+        break;
+    }
+  }
+
+  public pause(): void { this.paused = true; }
+  public resume(): void { this.paused = false; }
+  public destroy(): void {}
+  public getScore(): number { return this.score; }
+  public getLevel(): number { return this.level; }
+  public getLives(): number { return this.lives; }
+
   public render(renderer: Renderer): void {
+    const pr = renderer as PixelRenderer;
     const w = renderer.getWidth();
     const h = renderer.getHeight();
-    
-    // Ceiling & Floor
-    renderer.drawRect(0, 0, w, h/2, "#333333", true);
-    renderer.drawRect(0, h/2, w, h/2, "#555555", true);
-    
-    // Z-Buffer
+
+    // 1. Atmosphere Gradient (Ceiling & Floor with Atmospheric Horizon Fog)
+    pr.drawRect(0, 0, w, h / 2, "#0a0f1d", true);
+    pr.drawRect(0, h / 2, w, h / 2 - 50, "#1e293b", true);
+
+    // 2. High-Performance Raycasting Engine
     const zBuffer: number[] = new Array(w).fill(0);
-    
+
     for (let x = 0; x < w; x++) {
-      const cameraX = 2 * x / w - 1;
+      const cameraX = (2 * x) / w - 1;
       const rayDirX = this.dirX + this.planeX * cameraX;
       const rayDirY = this.dirY + this.planeY * cameraX;
-      
+
       let mapX = Math.floor(this.posX);
       let mapY = Math.floor(this.posY);
-      
-      let sideDistX;
-      let sideDistY;
-      
-      const deltaDistX = (rayDirX === 0) ? 1e30 : Math.abs(1 / rayDirX);
-      const deltaDistY = (rayDirY === 0) ? 1e30 : Math.abs(1 / rayDirY);
-      let perpWallDist;
-      
-      let stepX;
-      let stepY;
+
+      const deltaDistX = rayDirX === 0 ? 1e30 : Math.abs(1 / rayDirX);
+      const deltaDistY = rayDirY === 0 ? 1e30 : Math.abs(1 / rayDirY);
+
+      let sideDistX = 0;
+      let sideDistY = 0;
+      let stepX = 0;
+      let stepY = 0;
       let hit = 0;
-      let side = 0; // 0=NS, 1=EW
-      
+      let side = 0; // 0 = NS, 1 = EW
+
       if (rayDirX < 0) {
         stepX = -1;
         sideDistX = (this.posX - mapX) * deltaDistX;
@@ -256,7 +485,7 @@ export class RaySectorGame implements GameInstance {
         stepY = 1;
         sideDistY = (mapY + 1.0 - this.posY) * deltaDistY;
       }
-      
+
       while (hit === 0) {
         if (sideDistX < sideDistY) {
           sideDistX += deltaDistX;
@@ -267,138 +496,218 @@ export class RaySectorGame implements GameInstance {
           mapY += stepY;
           side = 1;
         }
-        if (MAP[mapY] && MAP[mapY][mapX] > 0) {
-          hit = MAP[mapY][mapX];
+        if (this.map[mapY] && this.map[mapY][mapX] > 0) {
+          hit = this.map[mapY][mapX];
         }
       }
-      
-      if (side === 0) perpWallDist = (mapX - this.posX + (1 - stepX) / 2) / rayDirX;
-      else perpWallDist = (mapY - this.posY + (1 - stepY) / 2) / rayDirY;
-      
-      zBuffer[x] = perpWallDist;
-      
-      const lineHeight = Math.floor(h / perpWallDist);
-      let drawStart = -lineHeight / 2 + h / 2;
-      if (drawStart < 0) drawStart = 0;
-      let drawEnd = lineHeight / 2 + h / 2;
-      if (drawEnd >= h) drawEnd = h - 1;
-      
-      let color = (hit === 1) ? "rgba(100, 100, 180, 1)" : "rgba(200, 150, 50, 1)";
-      if (side === 1) {
-        color = (hit === 1) ? "rgba(70, 70, 126, 1)" : "rgba(140, 105, 35, 1)";
+
+      let perpWallDist = 0;
+      let wallHitU = 0;
+      if (side === 0) {
+        perpWallDist = (mapX - this.posX + (1 - stepX) / 2) / rayDirX;
+        wallHitU = this.posY + perpWallDist * rayDirY;
+      } else {
+        perpWallDist = (mapY - this.posY + (1 - stepY) / 2) / rayDirY;
+        wallHitU = this.posX + perpWallDist * rayDirX;
       }
-      
-      renderer.drawRect(x, drawStart, 1, drawEnd - drawStart, color, true);
+      wallHitU -= Math.floor(wallHitU);
+
+      zBuffer[x] = perpWallDist;
+
+      const lineHeight = Math.floor((h - 50) / Math.max(0.01, perpWallDist));
+      let drawStart = -lineHeight / 2 + (h - 50) / 2;
+      let drawEnd = lineHeight / 2 + (h - 50) / 2;
+
+      // Distance Fog Shading Factor
+      const fog = Math.max(0.2, Math.min(1.0, 1.0 / (1.0 + perpWallDist * 0.18)));
+
+      // Procedural Texture Styling based on Wall Type
+      let wallColor = "#334155";
+      const isStripe = (wallHitU * 8) % 1 > 0.85;
+      const isMortar = (wallHitU * 4) % 1 > 0.92;
+
+      if (hit === 1) {
+        // Tech Stone Bricks
+        wallColor = isMortar ? "#0f172a" : (side === 0 ? "#475569" : "#334155");
+      } else if (hit === 2) {
+        // Cyan Cyber Neon Conduit
+        wallColor = isStripe ? "#00F0FF" : (side === 0 ? "#0369a1" : "#075985");
+      } else if (hit === 3) {
+        // Hazard Airlock Stripe
+        wallColor = (Math.floor(wallHitU * 6) % 2 === 0) ? "#F59E0B" : "#0F172A";
+      } else if (hit === 4) {
+        // Red Power Reactor
+        wallColor = isStripe ? "#EF4444" : (side === 0 ? "#991b1b" : "#7f1d1d");
+      }
+
+      if (drawStart < 0) drawStart = 0;
+      if (drawEnd >= h - 50) drawEnd = h - 51;
+
+      pr.drawRect(x, drawStart, 1, Math.max(1, drawEnd - drawStart), wallColor, true);
     }
-    
-    const sortedEnemies = [...this.enemies].sort((a,b) => {
-      return ((b.x-this.posX)**2 + (b.y-this.posY)**2) - ((a.x-this.posX)**2 + (a.y-this.posY)**2);
-    });
-    
-    let allEnemiesDead = true;
-    let enemyNear = false;
-    for (let i = 0; i < sortedEnemies.length; i++) {
-      const sprite = sortedEnemies[i];
-      if (!sprite.active) continue;
-      allEnemiesDead = false;
-      
-      const distToEnemy = Math.sqrt((sprite.x-this.posX)**2 + (sprite.y-this.posY)**2);
-      if (distToEnemy < 8) enemyNear = true;
-      
-      const spriteX = sprite.x - this.posX;
-      const spriteY = sprite.y - this.posY;
-      
+
+    // 3. Render Pickups (Ammo & Health Packs)
+    for (const p of this.pickups) {
+      if (p.collected) continue;
+      const spriteX = p.x - this.posX;
+      const spriteY = p.y - this.posY;
       const invDet = 1.0 / (this.planeX * this.dirY - this.dirX * this.planeY);
       const transformX = invDet * (this.dirY * spriteX - this.dirX * spriteY);
       const transformY = invDet * (-this.planeY * spriteX + this.planeX * spriteY);
-      
-      const spriteScreenX = Math.floor((w / 2) * (1 + transformX / transformY));
-      const spriteHeight = Math.abs(Math.floor(h / transformY));
-      
-      let drawStartY = -spriteHeight / 2 + h / 2;
-      if (drawStartY < 0) drawStartY = 0;
-      let drawEndY = spriteHeight / 2 + h / 2;
-      if (drawEndY >= h) drawEndY = h - 1;
-      
-      const spriteWidth = Math.abs(Math.floor(h / transformY));
-      let drawStartX = -spriteWidth / 2 + spriteScreenX;
-      if (drawStartX < 0) drawStartX = 0;
-      let drawEndX = spriteWidth / 2 + spriteScreenX;
-      if (drawEndX >= w) drawEndX = w - 1;
-      
-      if (transformY > 0) {
-        for (let stripe = Math.floor(drawStartX); stripe < drawEndX; stripe++) {
-          if (transformY < zBuffer[stripe]) {
-            renderer.drawRect(stripe, drawStartY, 1, drawEndY - drawStartY, "#FF2200", true);
-          }
+
+      if (transformY > 0.2) {
+        const screenX = Math.floor((w / 2) * (1 + transformX / transformY));
+        const sz = Math.abs(Math.floor((h - 50) / transformY * 0.35));
+        const sy = (h - 50) / 2 + sz / 2;
+
+        if (screenX >= 0 && screenX < w && transformY < zBuffer[screenX]) {
+          const col = p.type === "ammo" ? "#FFD84D" : "#22C55E";
+          pr.drawPixelBlock(screenX - sz / 2, sy - sz, sz, col, "#FFFFFF", "#0F172A");
         }
       }
     }
-    
-    // Enemy Indicator
-    if (enemyNear) {
-        renderer.drawCircle(w/2, 40, 10, "#FF0000", true);
+
+    // 4. Render 3D Enemies (Drones, Soldiers, Bosses)
+    const sortedEnemies = [...this.enemies].sort((a, b) => {
+      return (b.x - this.posX) ** 2 + (b.y - this.posY) ** 2 - ((a.x - this.posX) ** 2 + (a.y - this.posY) ** 2);
+    });
+
+    for (const e of sortedEnemies) {
+      if (!e.active) continue;
+      const spriteX = e.x - this.posX;
+      const spriteY = e.y - this.posY;
+
+      const invDet = 1.0 / (this.planeX * this.dirY - this.dirX * this.planeY);
+      const transformX = invDet * (this.dirY * spriteX - this.dirX * spriteY);
+      const transformY = invDet * (-this.planeY * spriteX + this.planeX * spriteY);
+
+      if (transformY > 0.2) {
+        const screenX = Math.floor((w / 2) * (1 + transformX / transformY));
+        const szScale = e.type === "boss" ? 1.1 : 0.65;
+        const spriteH = Math.abs(Math.floor(((h - 50) / transformY) * szScale));
+        const spriteW = spriteH;
+
+        let startY = Math.floor((h - 50) / 2 - spriteH / 2);
+        if (startY < 0) startY = 0;
+        let endY = startY + spriteH;
+        if (endY >= h - 50) endY = h - 51;
+
+        let startX = Math.floor(screenX - spriteW / 2);
+        let endX = startX + spriteW;
+
+        for (let stripe = startX; stripe < endX; stripe++) {
+          if (stripe >= 0 && stripe < w && transformY < zBuffer[stripe]) {
+            const u = (stripe - startX) / spriteW;
+
+            // Draw multi-frame enemy character sprite
+            if (e.type === "drone") {
+              // Floating Robotic Drone Sphere
+              pr.drawRect(stripe, startY, 1, endY - startY, u > 0.35 && u < 0.65 ? "#EF4444" : "#475569", true);
+            } else if (e.type === "boss") {
+              // Giant Heavy Cyber Mech Boss
+              pr.drawRect(stripe, startY, 1, endY - startY, u > 0.25 && u < 0.75 ? "#991B1B" : "#1E293B", true);
+            } else {
+              // Cybernetic Soldier
+              pr.drawRect(stripe, startY, 1, endY - startY, u > 0.3 && u < 0.7 ? "#0284C7" : "#334155", true);
+            }
+          }
+        }
+
+        // Enemy Health Bar above head
+        if (screenX >= 20 && screenX < w - 20 && transformY < zBuffer[screenX]) {
+          const hpW = Math.max(16, spriteW * 0.8);
+          const hpPct = Math.max(0, e.hp / e.maxHp);
+          pr.drawRect(screenX - hpW / 2, startY - 8, hpW, 4, "#0f172a", true);
+          pr.drawRect(screenX - hpW / 2, startY - 8, hpW * hpPct, 4, e.type === "boss" ? "#A855F7" : "#EF4444", true);
+        }
+      }
     }
-    
-    // Gun Barrel Sprite with Sway and Flash
-    const gunX = w / 2 - 16;
-    const swayOffset = Math.sin(this.swayTimer * 2) * 3;
-    const gunY = h - 100 + swayOffset;
-    renderer.drawRect(gunX + 12, gunY, 8, 30, "#555555", true);
-    renderer.drawRect(gunX + 10, gunY + 20, 12, 35, "#222222", true);
-    renderer.drawRect(gunX + 6, gunY + 45, 20, 25, "#885522", true);
-    
+
+    // 5. Render Plasma Projectiles
+    for (const prj of this.projectiles) {
+      const spriteX = prj.x - this.posX;
+      const spriteY = prj.y - this.posY;
+      const invDet = 1.0 / (this.planeX * this.dirY - this.dirX * this.planeY);
+      const transformX = invDet * (this.dirY * spriteX - this.dirX * spriteY);
+      const transformY = invDet * (-this.planeY * spriteX + this.planeX * spriteY);
+
+      if (transformY > 0.2) {
+        const screenX = Math.floor((w / 2) * (1 + transformX / transformY));
+        const sz = Math.abs(Math.floor((h - 50) / transformY * 0.15));
+        const sy = (h - 50) / 2;
+
+        if (screenX >= 0 && screenX < w && transformY < zBuffer[screenX]) {
+          pr.drawCircle(screenX, sy, Math.max(3, sz), "#EF4444", true);
+          pr.drawCircle(screenX, sy, Math.max(1, sz * 0.5), "#FFFFFF", true);
+        }
+      }
+    }
+
+    // 6. Damage Red Flash Effect
+    if (this.damageFlash > 0) {
+      pr.drawRect(0, 0, w, h - 50, "rgba(239, 68, 68, 0.35)", true);
+    }
+
+    // 7. Weapon Plasma Rifle with Animated Recoil, Sway, and Muzzle Flash
+    const swayX = Math.sin(this.swayTimer) * 6;
+    const swayY = Math.abs(Math.cos(this.swayTimer)) * 4;
+    const recoil = this.muzzleFlash > 0 ? 12 : 0;
+    const gunX = w / 2 + swayX;
+    const gunY = h - 110 + swayY + recoil;
+
+    // Heavy Metal Plasma Cannon Barrel
+    pr.drawPixelBlock(gunX - 22, gunY, 44, "#334155", "#64748B", "#0F172A");
+    pr.drawRect(gunX - 10, gunY - 24, 20, 28, "#1E293B", true);
+    pr.drawRect(gunX - 6, gunY - 32, 12, 14, "#00F0FF", true); // Glowing plasma core
+
+    // Muzzle Flash
     if (this.muzzleFlash > 0) {
-        renderer.drawRect(w/2 - 4, gunY - 20, 8, 20, "#FFFF00", true);
+      pr.drawCircle(gunX, gunY - 38, 20, "rgba(0, 240, 255, 0.4)", true);
+      pr.drawCircle(gunX, gunY - 38, 12, "#00F0FF", true);
+      pr.drawCircle(gunX, gunY - 38, 5, "#FFFFFF", true);
     }
 
-    // Crosshair in Viewport
-    renderer.drawRect(w / 2 - 6, h / 2 - 1, 12, 2, "#00FF00", true);
-    renderer.drawRect(w / 2 - 1, h / 2 - 6, 2, 12, "#00FF00", true);
+    // 8. Crosshair Reticle
+    pr.drawLine(w / 2 - 8, (h - 50) / 2, w / 2 + 8, (h - 50) / 2, "#00F0FF", 2);
+    pr.drawLine(w / 2, (h - 50) / 2 - 8, w / 2, (h - 50) / 2 + 8, "#00F0FF", 2);
+    pr.drawCircle(w / 2, (h - 50) / 2, 4, "#00F0FF", false);
 
-    // Bottom Status Bar HUD
-    const hudY = h - 48;
-    renderer.drawRect(0, hudY, w, 48, "#0000a8", true);
-    renderer.drawRect(0, hudY, w, 3, "#5555ff", true);
-    
-    // Status Bar Labels & Stats
-    renderer.drawText(`LEVEL`, 20, hudY + 14, { color: "#aaaaaa", size: 10 });
-    renderer.drawText(`${this.level}`, 20, hudY + 34, { color: "#ffffff", size: 16 });
+    // 9. Classic Wolf3D / Doom Retro Dashboard HUD
+    const hudY = h - 50;
+    pr.drawRect(0, hudY, w, 50, "#080e1c", true);
+    pr.drawLine(0, hudY, w, hudY, "#00F0FF", 2);
 
-    renderer.drawText(`SCORE`, 80, hudY + 14, { color: "#aaaaaa", size: 10 });
-    renderer.drawText(`${String(this.score).padStart(6, '0')}`, 80, hudY + 34, { color: "#ffd84d", size: 16 });
+    // Level Badge
+    pr.drawText(`SECTOR ${this.level}`, 20, hudY + 30, { size: 14, color: "#ffd84d", font: "monospace" });
 
-    // Center Face Box
-    const faceBoxX = w / 2 - 20;
-    renderer.drawRect(faceBoxX, hudY + 6, 40, 36, "#000055", true);
-    renderer.drawRect(faceBoxX, hudY + 6, 40, 36, "#5555ff", false);
-    renderer.drawRect(faceBoxX + 10, hudY + 12, 20, 22, "#ffccaa", true);
-    renderer.drawRect(faceBoxX + 8, hudY + 10, 24, 6, "#cc9933", true);
-    const lookOffset = Math.floor(Math.sin(this.posX * 2) * 2);
-    renderer.drawRect(faceBoxX + 13 + lookOffset, hudY + 18, 3, 3, "#0000ff", true);
-    renderer.drawRect(faceBoxX + 23 + lookOffset, hudY + 18, 3, 3, "#0000ff", true);
-    renderer.drawRect(faceBoxX + 16, hudY + 26, 8, 2, "#aa3333", true);
+    // Score
+    pr.drawText(`SCORE: ${this.score}`, 140, hudY + 30, { size: 14, color: "#38bdf8", font: "monospace" });
 
-    renderer.drawText(`HEALTH`, w - 160, hudY + 14, { color: "#aaaaaa", size: 10 });
-    const hpColor = this.playerHp > 50 ? "#63e66d" : (this.playerHp > 25 ? "#ffd84d" : "#ff5c8a");
-    // HP Bar
-    renderer.drawRect(w - 160, hudY + 22, 60, 16, "#333333", true);
-    renderer.drawRect(w - 160, hudY + 22, Math.max(0, this.playerHp / 100 * 60), 16, hpColor, true);
+    // Center Animated Marine Visor Face
+    const faceX = w / 2 - 16;
+    pr.drawRect(faceX - 2, hudY + 6, 36, 38, "#1e293b", true);
+    pr.drawRect(faceX - 2, hudY + 6, 36, 38, "#00F0FF", false);
+    pr.drawCircle(faceX + 16, hudY + 24, 12, "#fde047", true); // Helmet Visor
+    pr.drawRect(faceX + 8, hudY + 20, 16, 6, "#0284c7", true); // Cyan Eye Band
 
-    renderer.drawText(`AMMO`, w - 70, hudY + 14, { color: "#aaaaaa", size: 10 });
-    renderer.drawText(`${this.ammo}`, w - 70, hudY + 34, { color: "#ffffff", size: 16 });
+    // Player Health
+    const hpColor = this.playerHp > 50 ? "#22c55e" : (this.playerHp > 25 ? "#f59e0b" : "#ef4444");
+    pr.drawText(`HEALTH: ${this.playerHp}%`, w - 240, hudY + 30, { size: 14, color: hpColor, font: "monospace" });
 
+    // Ammo Counter
+    pr.drawText(`AMMO: ${this.ammo}`, w - 20, hudY + 30, { size: 14, color: "#ffd84d", align: "right", font: "monospace" });
+
+    // Game Over / Sector Clear Popups
     if (this.gameOver) {
-        renderer.drawRect(0, h/2 - 40, w, 80, "rgba(0,0,0,0.8)", true);
-        renderer.drawText("GAME OVER", w/2, h/2 + 10, { color: "#FF0000", size: 40, align: "center" });
-    } else if (allEnemiesDead) {
-        renderer.drawText("VICTORY!", w/2, h/2, { color: "#00FF00", size: 40, align: "center" });
+      pr.drawRect(0, h / 2 - 50, w, 100, "rgba(8,14,28,0.95)", true);
+      pr.drawRect(0, h / 2 - 50, w, 100, "#FF3366", false);
+      pr.drawText("CRITICAL FAILURE — AGENT TERMINATED", w / 2, h / 2 - 12, { size: 18, color: "#FF3366", align: "center", font: "monospace" });
+      pr.drawText("PRESS [R] OR [SPACE] TO RE-ENTER SECTOR", w / 2, h / 2 + 18, { size: 12, color: "#cbd5e1", align: "center", font: "monospace" });
+    } else if (this.isWon) {
+      pr.drawRect(0, h / 2 - 50, w, 100, "rgba(8,14,28,0.95)", true);
+      pr.drawRect(0, h / 2 - 50, w, 100, "#22c55e", false);
+      pr.drawText(`SECTOR ${this.level - 1} HOSTILES ELIMINATED!`, w / 2, h / 2 - 12, { size: 18, color: "#22c55e", align: "center", font: "monospace" });
+      pr.drawText("WARPING TO NEXT SECTOR CORRIDOR...", w / 2, h / 2 + 18, { size: 12, color: "#cbd5e1", align: "center", font: "monospace" });
     }
   }
-  
-  public pause(): void { this.paused = true; }
-  public resume(): void { this.paused = false; }
-  public destroy(): void {}
-  public getScore(): number { return this.score; }
-  public getLevel(): number { return this.level; }
 }
