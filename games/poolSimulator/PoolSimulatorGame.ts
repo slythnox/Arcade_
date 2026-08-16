@@ -13,25 +13,31 @@ interface Ball {
   isCue: boolean;
   potted: boolean;
   points: number;
+  number: number;
 }
 
 export class PoolSimulatorGame implements GameInstance {
   private ctx!: GameContext;
   private balls: Ball[] = [];
-  private cueAngle: number = 0; // Radians
-  private cuePower: number = 550;
+  private cueAngle: number = 0;
+  private power: number = 0;
+  private maxPower: number = 1000;
+  private powerDir: number = 1;
   private isAiming: boolean = true;
   private score: number = 0;
   private level: number = 1;
   private isPaused: boolean = false;
 
-  // Table bounds
-  private tableX = 50;
-  private tableY = 90;
-  private tableW = 500;
-  private tableH = 480;
+  private tableOuterX = 30;
+  private tableOuterY = 60;
+  private tableOuterW = 540;
+  private tableOuterH = 380;
 
-  // 6 Pockets
+  private tableX = 50;
+  private tableY = 80;
+  private tableW = 500;
+  private tableH = 340;
+
   private pockets: Vector2[] = [];
 
   public init(ctx: GameContext): void {
@@ -48,52 +54,55 @@ export class PoolSimulatorGame implements GameInstance {
 
   private initTable(): void {
     this.pockets = [
-      new Vector2(this.tableX + 16, this.tableY + 16),
-      new Vector2(this.tableX + this.tableW / 2, this.tableY + 10),
-      new Vector2(this.tableX + this.tableW - 16, this.tableY + 16),
-      new Vector2(this.tableX + 16, this.tableY + this.tableH - 16),
-      new Vector2(this.tableX + this.tableW / 2, this.tableY + this.tableH - 10),
-      new Vector2(this.tableX + this.tableW - 16, this.tableY + this.tableH - 16),
+      new Vector2(this.tableX, this.tableY),
+      new Vector2(this.tableX + this.tableW / 2, this.tableY - 5),
+      new Vector2(this.tableX + this.tableW, this.tableY),
+      new Vector2(this.tableX, this.tableY + this.tableH),
+      new Vector2(this.tableX + this.tableW / 2, this.tableY + this.tableH + 5),
+      new Vector2(this.tableX + this.tableW, this.tableY + this.tableH),
     ];
 
     this.balls = [];
 
-    // Cue Ball (White)
     this.balls.push({
-      pos: new Vector2(this.tableX + this.tableW / 2, this.tableY + this.tableH - 90),
+      pos: new Vector2(this.tableX + this.tableW * 0.25, this.tableY + this.tableH / 2),
       vel: Vector2.zero(),
       radius: 9,
       color: "#FFFFFF",
       isCue: true,
       potted: false,
       points: 0,
+      number: 0,
     });
 
-    // Target Colored Balls in Pyramid Formation
-    const targetColors = ["#ffd84d", "#ff5c8a", "#4de8e8", "#a879ff", "#ff9f43", "#63e66d", "#ef4444", "#3b82f6"];
-    const startX = this.tableX + this.tableW / 2;
-    const startY = this.tableY + 130;
+    const targetColors = ["#ffd84d", "#ff5c8a", "#4de8e8", "#a879ff", "#ff9f43", "#63e66d", "#ef4444", "#111111"];
+    const startX = this.tableX + this.tableW * 0.7;
+    const startY = this.tableY + this.tableH / 2;
 
-    let ballIndex = 0;
-    for (let row = 0; row < 4; row++) {
-      for (let col = 0; col <= row; col++) {
-        const bx = startX + (col - row / 2) * 22;
-        const by = startY - row * 19;
+    let ballIndex = 1;
+    for (let col = 0; col < 5; col++) {
+      for (let row = 0; row <= col; row++) {
+        const bx = startX + col * 16;
+        const by = startY + (row - col / 2) * 18;
+        const colIdx = ballIndex === 8 ? 7 : (ballIndex % 7);
         this.balls.push({
           pos: new Vector2(bx, by),
           vel: Vector2.zero(),
           radius: 9,
-          color: targetColors[ballIndex % targetColors.length],
+          color: ballIndex === 8 ? "#111111" : targetColors[colIdx],
           isCue: false,
           potted: false,
-          points: (row + 1) * 100,
+          points: ballIndex * 10,
+          number: ballIndex,
         });
         ballIndex++;
+        if (ballIndex > 15) break;
       }
     }
 
     this.isAiming = true;
-    this.cueAngle = -Math.PI / 2;
+    this.cueAngle = 0;
+    this.power = 0;
   }
 
   public update(dt: number): void {
@@ -102,7 +111,17 @@ export class PoolSimulatorGame implements GameInstance {
     let allStationary = true;
     const friction = 0.982;
 
-    // 1. Move balls and apply table friction
+    if (this.isAiming) {
+      this.power += 800 * dt * this.powerDir;
+      if (this.power >= this.maxPower) {
+        this.power = this.maxPower;
+        this.powerDir = -1;
+      } else if (this.power <= 0) {
+        this.power = 0;
+        this.powerDir = 1;
+      }
+    }
+
     for (const ball of this.balls) {
       if (ball.potted) continue;
 
@@ -112,11 +131,10 @@ export class PoolSimulatorGame implements GameInstance {
         ball.pos.y += ball.vel.y * dt;
         ball.vel = ball.vel.scale(friction);
 
-        // Cushion Wall Bounces
-        const minX = this.tableX + ball.radius + 12;
-        const maxX = this.tableX + this.tableW - ball.radius - 12;
-        const minY = this.tableY + ball.radius + 12;
-        const maxY = this.tableY + this.tableH - ball.radius - 12;
+        const minX = this.tableX + ball.radius;
+        const maxX = this.tableX + this.tableW - ball.radius;
+        const minY = this.tableY + ball.radius;
+        const maxY = this.tableY + this.tableH - ball.radius;
 
         if (ball.pos.x <= minX) {
           ball.pos.x = minX;
@@ -138,19 +156,17 @@ export class PoolSimulatorGame implements GameInstance {
           this.ctx.audio?.playHit?.();
         }
 
-        // Pocket check
         for (const pocket of this.pockets) {
-          if (ball.pos.distance(pocket) < 22) {
+          if (ball.pos.distance(pocket) < 20) {
             ball.potted = true;
             ball.vel = Vector2.zero();
 
             if (ball.isCue) {
-              // Scratch penalty
-              this.score = Math.max(0, this.score - 200);
+              this.score = Math.max(0, this.score - 50);
               this.ctx.audio?.playExplosion?.();
               setTimeout(() => {
                 ball.potted = false;
-                ball.pos.set(this.tableX + this.tableW / 2, this.tableY + this.tableH - 90);
+                ball.pos.set(this.tableX + this.tableW * 0.25, this.tableY + this.tableH / 2);
                 ball.vel = Vector2.zero();
               }, 400);
             } else {
@@ -164,7 +180,6 @@ export class PoolSimulatorGame implements GameInstance {
       }
     }
 
-    // 2. Ball-to-Ball Elastic Collisions
     for (let i = 0; i < this.balls.length; i++) {
       for (let j = i + 1; j < this.balls.length; j++) {
         const b1 = this.balls[i];
@@ -179,11 +194,9 @@ export class PoolSimulatorGame implements GameInstance {
           const normal = delta.normalize();
           const overlap = minDist - dist;
 
-          // Separate overlapping balls
           b1.pos = b1.pos.sub(normal.scale(overlap / 2));
           b2.pos = b2.pos.add(normal.scale(overlap / 2));
 
-          // Elastic Momentum Exchange
           const relVel = b1.vel.sub(b2.vel);
           const sepVel = relVel.dot(normal);
           if (sepVel > 0) {
@@ -196,11 +209,11 @@ export class PoolSimulatorGame implements GameInstance {
       }
     }
 
-    // Enable aiming once all balls have stopped
     if (allStationary && !this.isAiming) {
       this.isAiming = true;
+      this.power = 0;
+      this.powerDir = 1;
 
-      // Check if all target balls potted
       const remainingTargets = this.balls.filter((b) => !b.isCue && !b.potted).length;
       if (remainingTargets === 0) {
         this.score += 2000 * this.level;
@@ -219,11 +232,10 @@ export class PoolSimulatorGame implements GameInstance {
     } else if (action === "MOVE_RIGHT") {
       this.cueAngle += 0.08;
     } else if (action === "ACTION_PRIMARY" || action === "CONFIRM") {
-      // Strike cue ball
       if (this.isAiming) {
         const cueBall = this.balls.find((b) => b.isCue && !b.potted);
         if (cueBall) {
-          const impulse = Vector2.fromAngle(this.cueAngle).scale(this.cuePower);
+          const impulse = Vector2.fromAngle(this.cueAngle).scale(Math.max(100, this.power));
           cueBall.vel = impulse;
           this.isAiming = false;
           this.ctx.audio?.playRotate?.();
@@ -242,53 +254,86 @@ export class PoolSimulatorGame implements GameInstance {
 
   public render(renderer: Renderer): void {
     const pr = renderer as PixelRenderer;
+    const rawCtx = pr.getContext();
     pr.clear("#050914");
     const w = renderer.getWidth();
 
-    // Table Felt & Wooden Frame
-    pr.drawRect(this.tableX - 14, this.tableY - 14, this.tableW + 28, this.tableH + 28, "#78350f", true);
-    pr.drawRect(this.tableX, this.tableY, this.tableW, this.tableH, "#15803d", true);
-    pr.drawRect(this.tableX, this.tableY, this.tableW, this.tableH, "#166534", false);
+    pr.drawRect(this.tableOuterX, this.tableOuterY, this.tableOuterW, this.tableOuterH, "#2d6a4f", true);
+    pr.drawRect(this.tableX, this.tableY, this.tableW, this.tableH, "#1e8a4a", true);
 
-    // Pockets
     for (const p of this.pockets) {
-      pr.drawCircle(p.x, p.y, 16, "#030712", true);
-      pr.drawCircle(p.x, p.y, 16, "#475569", false);
+      pr.drawCircle(p.x, p.y, 18, "#111111", true);
     }
 
-    // Aiming Cue Line
     const cueBall = this.balls.find((b) => b.isCue && !b.potted);
     if (this.isAiming && cueBall) {
       const aimDir = Vector2.fromAngle(this.cueAngle);
-      const aimTarget = cueBall.pos.add(aimDir.scale(90));
-      pr.drawLine(cueBall.pos.x, cueBall.pos.y, aimTarget.x, aimTarget.y, "#ffd84d", 2);
+      
+      rawCtx.save();
+      rawCtx.beginPath();
+      rawCtx.setLineDash([2, 8]);
+      rawCtx.moveTo(cueBall.pos.x, cueBall.pos.y);
+      const endDot = cueBall.pos.add(aimDir.scale(300));
+      rawCtx.lineTo(endDot.x, endDot.y);
+      rawCtx.strokeStyle = "rgba(255,255,255,0.5)";
+      rawCtx.lineWidth = 1;
+      rawCtx.stroke();
+      rawCtx.restore();
 
-      // Cue Stick
-      const cueStickStart = cueBall.pos.sub(aimDir.scale(18));
-      const cueStickEnd = cueBall.pos.sub(aimDir.scale(90));
-      pr.drawLine(cueStickStart.x, cueStickStart.y, cueStickEnd.x, cueStickEnd.y, "#f59e0b", 4);
+      const stickStart = cueBall.pos.sub(aimDir.scale(30));
+      const stickEnd = cueBall.pos.sub(aimDir.scale(120 + this.power * 0.05));
+      
+      rawCtx.save();
+      rawCtx.beginPath();
+      rawCtx.moveTo(stickStart.x, stickStart.y);
+      rawCtx.lineTo(stickEnd.x, stickEnd.y);
+      rawCtx.strokeStyle = "#8b5a2b";
+      rawCtx.lineWidth = 4;
+      rawCtx.lineCap = "round";
+      rawCtx.stroke();
+      
+      rawCtx.beginPath();
+      rawCtx.moveTo(stickStart.x, stickStart.y);
+      const stickMid = stickStart.add(stickEnd.sub(stickStart).scale(0.2));
+      rawCtx.lineTo(stickMid.x, stickMid.y);
+      rawCtx.strokeStyle = "#e8e8e8";
+      rawCtx.lineWidth = 3;
+      rawCtx.stroke();
+      rawCtx.restore();
     }
 
-    // Balls
     for (const ball of this.balls) {
       if (ball.potted) continue;
+      
+      rawCtx.fillStyle = "rgba(0,0,0,0.4)";
+      rawCtx.beginPath();
+      rawCtx.ellipse(ball.pos.x + 3, ball.pos.y + 3, ball.radius, ball.radius * 0.8, 0, 0, Math.PI * 2);
+      rawCtx.fill();
+
       pr.drawCircle(ball.pos.x, ball.pos.y, ball.radius, ball.color, true);
-      pr.drawCircle(ball.pos.x, ball.pos.y, ball.radius, "rgba(0,0,0,0.5)", false);
-      if (ball.isCue) {
-        pr.drawCircle(ball.pos.x, ball.pos.y, 3, "#ef4444", true);
+
+      if (!ball.isCue && ball.number > 8) {
+        pr.drawCircle(ball.pos.x, ball.pos.y, ball.radius * 0.7, "#FFFFFF", true);
+      } else if (!ball.isCue) {
+        pr.drawCircle(ball.pos.x, ball.pos.y, ball.radius * 0.5, "#FFFFFF", true);
+      }
+
+      pr.drawCircle(ball.pos.x - ball.radius / 3, ball.pos.y - ball.radius / 3, ball.radius / 3, "rgba(255,255,255,0.6)", true);
+
+      if (!ball.isCue) {
+        pr.drawText(ball.number.toString(), ball.pos.x, ball.pos.y + 3, { size: 8, color: "#111", align: "center", font: "sans-serif" });
       }
     }
 
-    // Header HUD
-    pr.drawText(`POOL SIMULATOR  •  LVL ${this.level}  •  AIM: ${Math.round((this.cueAngle * 180) / Math.PI)}°`, w / 2, 32, {
-      size: 12,
+    pr.drawRect(560, 100, 15, 300, "#111", true);
+    pr.drawRect(560, 100 + 300 * (1 - this.power / this.maxPower), 15, 300 * (this.power / this.maxPower), "#ff3333", true);
+    pr.drawRect(560, 100, 15, 300, "#fff", false);
+
+    pr.drawText(`SCORE: ${this.score}  •  LVL ${this.level}  •  TURN: ${this.isAiming ? 'PLAYER' : 'WAIT'}`, w / 2, 25, {
+      size: 14,
       color: "#ffd84d",
       align: "center",
-    });
-    pr.drawText(`[LEFT/RIGHT] AIM CUE ANGLE    [SPACE/A] STRIKE CUE BALL`, w / 2, 54, {
-      size: 10,
-      color: "#94a3b8",
-      align: "center",
+      font: "monospace"
     });
   }
 }

@@ -19,6 +19,11 @@ export class SudokuGame implements GameInstance {
   private isWon: boolean = false;
   private isPaused: boolean = false;
 
+  private editMode: boolean = false;
+  private draftNumber: number = 0;
+  private time: number = 0;
+  private particles: {x:number, y:number, vx:number, vy:number, color:string}[] = [];
+
   public init(ctx: GameContext): void {
     this.ctx = ctx;
     this.reset();
@@ -29,14 +34,16 @@ export class SudokuGame implements GameInstance {
     this.cursor = { col: 4, row: 4 };
     this.mistakes = 0;
     this.score = 0;
+    this.time = 0;
     this.gameOver = false;
     this.isWon = false;
     this.isPaused = false;
+    this.editMode = false;
+    this.particles = [];
     this.generateBoard();
   }
 
   private generateBoard(): void {
-    // Valid base solution
     const base = [
       [5, 3, 4, 6, 7, 8, 9, 1, 2],
       [6, 7, 2, 1, 9, 5, 3, 4, 8],
@@ -53,7 +60,6 @@ export class SudokuGame implements GameInstance {
     this.initialGrid = base.map((row) => [...row]);
     this.playerGrid = base.map((row) => [...row]);
 
-    // Remove ~35 cells for a playable medium puzzle
     const removedIndices: Set<number> = new Set();
     while (removedIndices.size < 36) {
       const idx = Math.floor(this.ctx.random.next() * 81);
@@ -89,6 +95,7 @@ export class SudokuGame implements GameInstance {
       this.ctx.audio.playPowerUp();
       this.checkWin();
     } else {
+      this.playerGrid[row][col] = d; // Set it anyway to show error
       this.mistakes++;
       this.ctx.audio.playExplosion();
       if (this.mistakes >= this.maxMistakes) {
@@ -107,13 +114,60 @@ export class SudokuGame implements GameInstance {
       this.score += 2500;
       this.ctx.session.setStatus("ready");
       this.ctx.audio.playVictory();
+      
+      // Spawn confetti
+      const colors = ["#FF3366", "#00FF66", "#00F0FF", "#FFB703", "#A855F7"];
+      for (let i = 0; i < 150; i++) {
+        this.particles.push({
+          x: 300, y: 350,
+          vx: (this.ctx.random.next() - 0.5) * 600,
+          vy: (this.ctx.random.next() - 0.5) * 600,
+          color: colors[Math.floor(this.ctx.random.next() * colors.length)]
+        });
+      }
     }
   }
 
-  public update(_dt: number): void {}
+  public update(dt: number): void {
+    if (!this.gameOver && !this.isWon && !this.isPaused) {
+      this.time += dt;
+    }
+    for (let p of this.particles) {
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.vy += 500 * dt; // gravity
+    }
+  }
 
   public handleInput(action: GameAction, isPressed: boolean): void {
     if (!isPressed || this.isPaused) return;
+
+    if (action === "RESTART") {
+      this.reset();
+      return;
+    }
+
+    if (this.gameOver || this.isWon) return;
+
+    if (this.editMode) {
+      if (action === "MOVE_RIGHT" || action === "MOVE_UP") {
+        this.draftNumber++;
+        if (this.draftNumber > 9) this.draftNumber = 0;
+        this.ctx.audio.playMove();
+      } else if (action === "MOVE_LEFT" || action === "MOVE_DOWN") {
+        this.draftNumber--;
+        if (this.draftNumber < 0) this.draftNumber = 9;
+        this.ctx.audio.playMove();
+      } else if (action === "ACTION_PRIMARY" || action === "CONFIRM") {
+        this.editMode = false;
+        if (this.draftNumber !== this.playerGrid[this.cursor.row][this.cursor.col]) {
+          this.inputDigit(this.draftNumber);
+        }
+      } else if (action === "ACTION_SECONDARY" || action === "BACK") {
+        this.editMode = false;
+      }
+      return;
+    }
 
     switch (action) {
       case "MOVE_UP":
@@ -133,15 +187,12 @@ export class SudokuGame implements GameInstance {
         this.ctx.audio.playMove();
         break;
       case "ACTION_PRIMARY":
-        // Cycle numbers 1..9
-        {
-          const curVal = this.playerGrid[this.cursor.row][this.cursor.col];
-          const nextVal = curVal >= 9 ? 1 : curVal + 1;
-          this.inputDigit(nextVal);
+      case "CONFIRM":
+        if (this.initialGrid[this.cursor.row][this.cursor.col] === 0) {
+          this.editMode = true;
+          this.draftNumber = this.playerGrid[this.cursor.row][this.cursor.col] || 1;
+          this.ctx.audio.playMove();
         }
-        break;
-      case "RESTART":
-        this.reset();
         break;
     }
   }
@@ -154,25 +205,58 @@ export class SudokuGame implements GameInstance {
 
   public render(renderer: Renderer): void {
     const pr = renderer as PixelRenderer;
-    pr.clear("#040604");
+    const rawCtx = pr.getContext();
+    pr.clear("#f5f5f5");
     const w = renderer.getWidth();
     const h = renderer.getHeight();
 
-    const cellSize = 56;
+    const cellSize = 60;
     const boardWidth = this.size * cellSize;
-    const offX = Math.floor((w - boardWidth) / 2);
-    const offY = Math.floor((h - boardWidth) / 2) + 12;
+    const offX = 30;
+    const offY = 80;
 
-    pr.drawRect(offX - 4, offY - 4, boardWidth + 8, boardHeight(boardWidth), "#080e08", true);
-    pr.drawRect(offX - 4, offY - 4, boardWidth + 8, boardHeight(boardWidth), "rgba(0, 255, 102, 0.4)", false);
+    const selectedVal = this.playerGrid[this.cursor.row][this.cursor.col];
 
-    // Draw standard grid
-    pr.drawGrid(this.size, this.size, cellSize, "rgba(0, 255, 102, 0.1)", offX, offY);
+    // Background
+    pr.drawRect(offX, offY, boardWidth, boardWidth, "#ffffff", true);
 
-    // Draw thick 3x3 block sub-borders
-    for (let i = 0; i <= 3; i++) {
-      pr.drawLine(offX, offY + i * 3 * cellSize, offX + boardWidth, offY + i * 3 * cellSize, "#00FF66", 2);
-      pr.drawLine(offX + i * 3 * cellSize, offY, offX + i * 3 * cellSize, offY + boardWidth, "#00FF66", 2);
+    for (let r = 0; r < this.size; r++) {
+      for (let c = 0; c < this.size; c++) {
+        const val = this.playerGrid[r][c];
+        const isSelected = (r === this.cursor.row && c === this.cursor.col);
+        const cx = offX + c * cellSize;
+        const cy = offY + r * cellSize;
+        
+        // Highlight logic
+        if (isSelected) {
+          pr.drawRect(cx, cy, cellSize, cellSize, this.editMode ? "#aae8ff" : "#cceeff", true);
+        } else if (val !== 0 && val === selectedVal && !this.editMode) {
+          pr.drawRect(cx, cy, cellSize, cellSize, "#e6f7ff", true);
+        }
+      }
+    }
+
+    // Grid Lines
+    for (let i = 0; i <= this.size; i++) {
+      const thick = (i % 3 === 0);
+      const color = thick ? "#333333" : "#cccccc";
+      const lw = thick ? 3 : 1;
+      
+      // Vertical
+      rawCtx.beginPath();
+      rawCtx.moveTo(offX + i * cellSize, offY);
+      rawCtx.lineTo(offX + i * cellSize, offY + boardWidth);
+      rawCtx.lineWidth = lw;
+      rawCtx.strokeStyle = color;
+      rawCtx.stroke();
+      
+      // Horizontal
+      rawCtx.beginPath();
+      rawCtx.moveTo(offX, offY + i * cellSize);
+      rawCtx.lineTo(offX + boardWidth, offY + i * cellSize);
+      rawCtx.lineWidth = lw;
+      rawCtx.strokeStyle = color;
+      rawCtx.stroke();
     }
 
     // Draw Digits
@@ -180,48 +264,54 @@ export class SudokuGame implements GameInstance {
       for (let c = 0; c < this.size; c++) {
         const val = this.playerGrid[r][c];
         const isFixed = this.initialGrid[r][c] !== 0;
+        const isSelected = (r === this.cursor.row && c === this.cursor.col);
+        const isWrong = !isFixed && val !== 0 && val !== this.solution[r][c];
+        
         const cx = offX + c * cellSize + cellSize / 2;
-        const cy = offY + r * cellSize + cellSize / 2 + 8;
+        const cy = offY + r * cellSize + cellSize / 2 + 10; // offset for text baseline
 
-        if (val !== 0) {
-          pr.drawText(val.toString(), cx, cy, {
-            size: 24,
-            color: isFixed ? "#FFFFFF" : "#00FF66",
-            align: "center",
-          });
-        }
-
-        if (this.cursor.col === c && this.cursor.row === r) {
-          pr.drawRect(offX + c * cellSize, offY + r * cellSize, cellSize, cellSize, "#00F0FF", false);
+        if (this.editMode && isSelected) {
+          if (this.draftNumber !== 0) {
+            pr.drawText(this.draftNumber.toString(), cx, cy, {
+              size: 32, color: "#0077ff", align: "center", font: "monospace"
+            });
+          }
+        } else if (val !== 0) {
+          let tColor = isFixed ? "#000000" : "#444444";
+          if (isWrong) tColor = "#e60000";
+          
+          rawCtx.font = `${isFixed ? "bold" : "normal"} 32px monospace`;
+          rawCtx.fillStyle = tColor;
+          rawCtx.textAlign = "center";
+          rawCtx.fillText(val.toString(), cx, cy);
         }
       }
     }
 
-    pr.drawText(
-      `SCORE: ${this.score}  •  MISTAKES: ${this.mistakes}/${this.maxMistakes}  •  [SPACE TO ENTER DIGIT]`,
-      w / 2,
-      28,
-      {
-        size: 11,
-        color: "#00FF66",
-        align: "center",
-      }
-    );
+    // Timer and Header
+    const m = Math.floor(this.time / 60).toString().padStart(2, '0');
+    const s = Math.floor(this.time % 60).toString().padStart(2, '0');
+    pr.drawText(`TIME: ${m}:${s}`, w - 20, 40, { size: 18, color: "#333", align: "right" });
+    pr.drawText("SUDOKU", 30, 40, { size: 28, color: "#333", align: "left" });
+
+    pr.drawText(`MISTAKES: ${this.mistakes}/${this.maxMistakes}`, 30, h - 30, { size: 16, color: "#333", align: "left" });
+    if (this.editMode) {
+      pr.drawText("EDIT MODE: LEFT/RIGHT TO CHANGE, SPACE TO CONFIRM", w/2, h - 30, { size: 14, color: "#0077ff", align: "center" });
+    } else {
+      pr.drawText("SPACE TO EDIT CELL", w - 30, h - 30, { size: 14, color: "#555", align: "right" });
+    }
 
     if (this.isWon) {
-      pr.drawRect(0, h / 2 - 45, w, 90, "rgba(4,6,4,0.95)", true);
-      pr.drawRect(0, h / 2 - 45, w, 90, "#00FF66", false);
-      pr.drawText("SUDOKU SOLVED — VICTORY", w / 2, h / 2 - 10, { size: 22, color: "#00FF66", align: "center" });
-      pr.drawText("PRESS R TO RESTART", w / 2, h / 2 + 18, { size: 12, color: "#F0F4F0", align: "center" });
+      for (const p of this.particles) {
+        pr.drawRect(p.x, p.y, 6, 6, p.color, true);
+      }
+      pr.drawRect(0, h / 2 - 60, w, 120, "rgba(255,255,255,0.9)", true);
+      pr.drawText("SOLVED!", w / 2, h / 2, { size: 48, color: "#00aa00", align: "center" });
+      pr.drawText("PRESS RESTART", w / 2, h / 2 + 40, { size: 16, color: "#333", align: "center" });
     } else if (this.gameOver) {
-      pr.drawRect(0, h / 2 - 45, w, 90, "rgba(4,6,4,0.95)", true);
-      pr.drawRect(0, h / 2 - 45, w, 90, "#FF3366", false);
-      pr.drawText("MISTAKES LIMIT — GAME OVER", w / 2, h / 2 - 10, { size: 22, color: "#FF3366", align: "center" });
-      pr.drawText("PRESS R TO RESTART", w / 2, h / 2 + 18, { size: 12, color: "#F0F4F0", align: "center" });
+      pr.drawRect(0, h / 2 - 60, w, 120, "rgba(255,255,255,0.9)", true);
+      pr.drawText("GAME OVER", w / 2, h / 2, { size: 48, color: "#cc0000", align: "center" });
+      pr.drawText("PRESS RESTART", w / 2, h / 2 + 40, { size: 16, color: "#333", align: "center" });
     }
   }
-}
-
-function boardHeight(bw: number): number {
-  return bw + 8;
 }

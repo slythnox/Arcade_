@@ -1,6 +1,7 @@
 import type { GameInstance } from "../types";
 import type { GameContext } from "../../engine/GameContext";
 import type { Renderer } from "../../engine/rendering/Renderer";
+import type { PixelRenderer } from "../../engine/rendering/PixelRenderer";
 import type { GameAction } from "../../core/types/game";
 
 export class BombGridGame implements GameInstance {
@@ -11,15 +12,16 @@ export class BombGridGame implements GameInstance {
   private lives: number = 3;
   private gameOver: boolean = false;
   private isPaused: boolean = false;
+  private time: number = 0;
   
-  private player = { x: 1, y: 1, maxBombs: 1, blastRange: 2 };
+  private player = { x: 1, y: 1, maxBombs: 1, blastRange: 2, dir: 2 }; // 0=up,1=right,2=down,3=left
   
-  // 0=empty, 1=solid, 2=crate
   private grid: number[][] = [];
   
   private bombs: { x: number, y: number, timer: number, range: number }[] = [];
   private blasts: { x: number, y: number, timer: number }[] = [];
   private enemies: { x: number, y: number, dir: number, timer: number }[] = [];
+  private explosions: { x: number, y: number, timer: number }[] = [];
   
   public init(ctx: GameContext): void {
     this.ctx = ctx;
@@ -32,7 +34,8 @@ export class BombGridGame implements GameInstance {
     this.lives = 3;
     this.gameOver = false;
     this.isPaused = false;
-    this.player = { x: 1, y: 1, maxBombs: 1, blastRange: 2 };
+    this.time = 0;
+    this.player = { x: 1, y: 1, maxBombs: 1, blastRange: 2, dir: 2 };
     this.loadLevel();
   }
   
@@ -41,27 +44,25 @@ export class BombGridGame implements GameInstance {
     this.bombs = [];
     this.blasts = [];
     this.enemies = [];
+    this.explosions = [];
     this.player.x = 1;
     this.player.y = 1;
     
-    // Generate 15x13 grid
     for (let y = 0; y < 13; y++) {
       const row = [];
       for (let x = 0; x < 15; x++) {
         if (x === 0 || x === 14 || y === 0 || y === 12) {
-          row.push(1); // Border
+          row.push(1);
         } else if (x % 2 === 0 && y % 2 === 0) {
-          row.push(1); // Pillar
+          row.push(1);
         } else {
-          // crates
-          if (x < 3 && y < 3) row.push(0); // Safe zone
+          if (x < 3 && y < 3) row.push(0);
           else row.push(Math.random() < 0.5 ? 2 : 0);
         }
       }
       this.grid.push(row);
     }
     
-    // Spawn enemies
     const enemyCount = 2 + this.level;
     for (let i = 0; i < enemyCount; i++) {
       let ex = 0, ey = 0;
@@ -77,25 +78,32 @@ export class BombGridGame implements GameInstance {
   public update(dt: number): void {
     if (this.gameOver || this.isPaused) return;
 
-    // Update bombs
+    this.time += dt;
+
     for (let i = this.bombs.length - 1; i >= 0; i--) {
       const b = this.bombs[i];
       b.timer -= dt;
       if (b.timer <= 0) {
+        this.ctx.audio?.playExplosion?.();
         this.detonate(b.x, b.y, b.range);
         this.bombs.splice(i, 1);
       }
     }
     
-    // Update blasts
     for (let i = this.blasts.length - 1; i >= 0; i--) {
       this.blasts[i].timer -= dt;
       if (this.blasts[i].timer <= 0) {
         this.blasts.splice(i, 1);
       }
     }
+
+    for (let i = this.explosions.length - 1; i >= 0; i--) {
+      this.explosions[i].timer -= dt;
+      if (this.explosions[i].timer <= 0) {
+        this.explosions.splice(i, 1);
+      }
+    }
     
-    // Check player blast collision
     for (const bl of this.blasts) {
       if (bl.x === this.player.x && bl.y === this.player.y) {
         this.die();
@@ -103,7 +111,6 @@ export class BombGridGame implements GameInstance {
       }
     }
     
-    // Update enemies
     for (let i = this.enemies.length - 1; i >= 0; i--) {
       const e = this.enemies[i];
       e.timer += dt;
@@ -123,12 +130,10 @@ export class BombGridGame implements GameInstance {
         }
       }
       
-      // Enemy touched player
       if (e.x === this.player.x && e.y === this.player.y) {
         this.die();
       }
       
-      // Enemy in blast
       for (const bl of this.blasts) {
         if (bl.x === e.x && bl.y === e.y) {
           this.score += 100;
@@ -140,6 +145,7 @@ export class BombGridGame implements GameInstance {
     
     if (this.enemies.length === 0) {
       this.level++;
+      this.ctx.audio?.playVictory?.();
       this.loadLevel();
     }
   }
@@ -150,6 +156,7 @@ export class BombGridGame implements GameInstance {
   
   private detonate(cx: number, cy: number, range: number): void {
     this.blasts.push({ x: cx, y: cy, timer: 0.5 });
+    this.explosions.push({ x: cx, y: cy, timer: 0.5 });
     
     const dirs = [[0,-1], [1,0], [0,1], [-1,0]];
     for (const d of dirs) {
@@ -157,14 +164,14 @@ export class BombGridGame implements GameInstance {
         const nx = cx + d[0] * i;
         const ny = cy + d[1] * i;
         
-        if (this.grid[ny][nx] === 1) break; // Solid wall
+        if (this.grid[ny][nx] === 1) break;
         
         this.blasts.push({ x: nx, y: ny, timer: 0.5 });
+        this.explosions.push({ x: nx, y: ny, timer: 0.5 });
         
         if (this.grid[ny][nx] === 2) {
-          this.grid[ny][nx] = 0; // Destroy crate
+          this.grid[ny][nx] = 0;
           this.score += 10;
-          // Random powerup chance omitted for simplicity or can be added
           break;
         }
       }
@@ -173,9 +180,11 @@ export class BombGridGame implements GameInstance {
   
   private die(): void {
     this.lives--;
+    this.ctx.audio?.playHit?.();
     if (this.lives <= 0) {
       this.gameOver = true;
       this.ctx.session.setStatus("game-over");
+      this.ctx.audio?.playGameOver?.();
     } else {
       this.player.x = 1;
       this.player.y = 1;
@@ -185,66 +194,86 @@ export class BombGridGame implements GameInstance {
   }
 
   public render(renderer: Renderer): void {
-    renderer.clear("#224422");
-    const cellSize = 32;
+    const pr = renderer as PixelRenderer;
+    const rawCtx = pr.getContext();
+    pr.clear("#1a1a1a");
+    const cellSize = 38;
     const offsetX = (renderer.getWidth() - 15 * cellSize) / 2;
-    const offsetY = (renderer.getHeight() - 13 * cellSize) / 2;
+    const offsetY = (renderer.getHeight() - 13 * cellSize) / 2 + 10;
     
-    // Draw Grid
     for (let y = 0; y < 13; y++) {
       for (let x = 0; x < 15; x++) {
         const type = this.grid[y][x];
         const px = offsetX + x * cellSize;
         const py = offsetY + y * cellSize;
         
-        if (type === 1) {
-          renderer.drawRect(px, py, cellSize, cellSize, "#555555"); // Solid
+        if (type === 0) {
+          const isDark = (x + y) % 2 === 0;
+          pr.drawRect(px, py, cellSize, cellSize, isDark ? "#333333" : "#3d3d3d", true);
+        } else if (type === 1) {
+          pr.drawPixelRect(px, py, cellSize, cellSize, "#555555", "#888888", "#222222");
         } else if (type === 2) {
-          renderer.drawRect(px, py, cellSize, cellSize, "#8B4513"); // Crate
-          // Crate X detail
-          renderer.drawLine(px, py, px+cellSize, py+cellSize, "#654321");
-          renderer.drawLine(px+cellSize, py, px, py+cellSize, "#654321");
-        } else {
-          renderer.drawRect(px, py, cellSize, cellSize, "#2A522A"); // Floor
+          pr.drawPixelRect(px, py, cellSize, cellSize, "#8B4513", "#A0522D", "#5C2E0B");
+          pr.drawLine(px + 4, py + 4, px + cellSize - 4, py + cellSize - 4, "#5C2E0B", 2);
+          pr.drawLine(px + cellSize - 4, py + 4, px + 4, py + cellSize - 4, "#5C2E0B", 2);
         }
       }
     }
     
-    // Draw Bombs
     for (const b of this.bombs) {
-      const px = offsetX + b.x * cellSize + cellSize/2;
-      const py = offsetY + b.y * cellSize + cellSize/2;
-      renderer.drawCircle(px, py, cellSize/2 - 4, "#111111");
-      // Fuse
-      renderer.drawCircle(px, py - cellSize/2 + 4, 3, b.timer % 0.2 < 0.1 ? "#FF0000" : "#FFFF00");
+      const cx = offsetX + b.x * cellSize + cellSize / 2;
+      const cy = offsetY + b.y * cellSize + cellSize / 2;
+      
+      const pulse = b.timer < 1.0 ? Math.sin(this.time * 20) * 0.5 + 0.5 : 0;
+      if (pulse > 0) {
+        pr.drawCircle(cx, cy, cellSize/2, `rgba(255, 0, 0, ${pulse * 0.5})`, true);
+      }
+      
+      pr.drawCircle(cx, cy, cellSize / 2 - 4, "#222222", true);
+      pr.drawCircle(cx, cy, cellSize / 2 - 4, "#444444", false);
+      pr.drawLine(cx - 4, cy - 4, cx + 4, cy + 4, "#fff", 2);
+      pr.drawLine(cx + 4, cy - 4, cx - 4, cy + 4, "#fff", 2);
+      
+      rawCtx.beginPath();
+      rawCtx.arc(cx, cy, cellSize / 2, -Math.PI / 2, -Math.PI / 2 + (b.timer / 3.0) * Math.PI * 2);
+      rawCtx.strokeStyle = b.timer < 1.0 ? "#FF0000" : "#FFAA00";
+      rawCtx.lineWidth = 3;
+      rawCtx.stroke();
     }
     
-    // Draw Blasts
-    for (const bl of this.blasts) {
-      const px = offsetX + bl.x * cellSize;
-      const py = offsetY + bl.y * cellSize;
-      renderer.drawRect(px + 4, py + 4, cellSize - 8, cellSize - 8, "#FFAA00");
-      renderer.drawRect(px + 8, py + 8, cellSize - 16, cellSize - 16, "#FFFF00");
+    for (const ex of this.explosions) {
+      const cx = offsetX + ex.x * cellSize + cellSize / 2;
+      const cy = offsetY + ex.y * cellSize + cellSize / 2;
+      const scale = (0.5 - ex.timer) * 2;
+      pr.drawCircle(cx, cy, (cellSize / 2) * scale, `rgba(255, 200, 0, ${ex.timer * 2})`, true);
+      pr.drawRect(cx - cellSize/2 * scale, cy - 4, cellSize * scale, 8, "#FFF", true);
+      pr.drawRect(cx - 4, cy - cellSize/2 * scale, 8, cellSize * scale, "#FFF", true);
     }
     
-    // Draw Enemies
     for (const e of this.enemies) {
-      const px = offsetX + e.x * cellSize + 4;
-      const py = offsetY + e.y * cellSize + 4;
-      renderer.drawRect(px, py, cellSize - 8, cellSize - 8, "#FF3333");
+      const cx = offsetX + e.x * cellSize + cellSize / 2;
+      const cy = offsetY + e.y * cellSize + cellSize / 2;
+      const bounce = Math.abs(Math.sin(this.time * 10)) * 4;
+      pr.drawCircle(cx, cy - bounce, cellSize / 2 - 6, "#FF3333", true);
+      pr.drawCircle(cx - 4, cy - bounce - 2, 3, "#FFF", true);
+      pr.drawCircle(cx + 4, cy - bounce - 2, 3, "#FFF", true);
+      pr.drawCircle(cx - 4, cy - bounce - 2, 1, "#000", true);
+      pr.drawCircle(cx + 4, cy - bounce - 2, 1, "#000", true);
     }
     
-    // Draw Player
-    const ppx = offsetX + this.player.x * cellSize + 4;
-    const ppy = offsetY + this.player.y * cellSize + 4;
-    renderer.drawRect(ppx, ppy, cellSize - 8, cellSize - 8, "#FFFFFF");
+    const pcx = offsetX + this.player.x * cellSize + cellSize / 2;
+    const pcy = offsetY + this.player.y * cellSize + cellSize / 2;
+    pr.drawRect(pcx - 8, pcy - 4, 16, 12, "#3b82f6", true);
+    pr.drawCircle(pcx, pcy - 10, 7, "#fca5a5", true);
     
-    // UI
-    renderer.drawText(`SCORE: ${this.score}`, 10, 20, {color: "#FFF", size: 16});
-    renderer.drawText(`LIVES: ${this.lives}`, renderer.getWidth() - 80, 20, {color: "#FFF", size: 16});
+    pr.drawRect(0, 0, renderer.getWidth(), 40, "#111", true);
+    pr.drawText(`♥ ${this.lives}   ★ SCORE: ${this.score}   🚩 LVL: ${this.level}`, renderer.getWidth() / 2, 25, {
+      color: "#FFF", size: 16, align: "center", font: "monospace"
+    });
     
     if (this.gameOver) {
-      renderer.drawText("GAME OVER", renderer.getWidth()/2, renderer.getHeight()/2, {color: "#F00", size: 32, align: "center"});
+      pr.drawRect(0, renderer.getHeight()/2 - 40, renderer.getWidth(), 80, "rgba(0,0,0,0.8)", true);
+      pr.drawText("GAME OVER", renderer.getWidth()/2, renderer.getHeight()/2 + 10, {color: "#F00", size: 32, align: "center"});
     }
   }
 
@@ -254,21 +283,23 @@ export class BombGridGame implements GameInstance {
     let nx = this.player.x;
     let ny = this.player.y;
 
-    if (action === "MOVE_UP") ny--;
-    else if (action === "MOVE_DOWN") ny++;
-    else if (action === "MOVE_LEFT") nx--;
-    else if (action === "MOVE_RIGHT") nx++;
+    if (action === "MOVE_UP") { ny--; this.player.dir = 0; }
+    else if (action === "MOVE_DOWN") { ny++; this.player.dir = 2; }
+    else if (action === "MOVE_LEFT") { nx--; this.player.dir = 3; }
+    else if (action === "MOVE_RIGHT") { nx++; this.player.dir = 1; }
     
     if (nx !== this.player.x || ny !== this.player.y) {
       if (this.grid[ny][nx] === 0 && !this.hasBomb(nx, ny)) {
         this.player.x = nx;
         this.player.y = ny;
+        this.ctx.audio?.playMove?.();
       }
     }
     
     if (action === "ACTION_PRIMARY") {
       if (this.bombs.length < this.player.maxBombs && !this.hasBomb(this.player.x, this.player.y)) {
         this.bombs.push({ x: this.player.x, y: this.player.y, timer: 3.0, range: this.player.blastRange });
+        this.ctx.audio?.playDrop?.();
       }
     }
   }

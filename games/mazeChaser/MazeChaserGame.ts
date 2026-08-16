@@ -1,6 +1,7 @@
 import type { GameInstance } from "../types";
 import type { GameContext } from "../../engine/GameContext";
 import type { Renderer } from "../../engine/rendering/Renderer";
+import type { PixelRenderer } from "../../engine/rendering/PixelRenderer";
 import type { GameAction } from "../../core/types/game";
 
 const MAZES = [
@@ -51,6 +52,10 @@ export class MazeChaserGame implements GameInstance {
   private ghostTimer: number = 0;
   private frightenedTimer: number = 0;
   
+  private mouthAngle = 0.25;
+  private mouthClosing = true;
+  private popups: {x:number, y:number, text:string, life:number}[] = [];
+  
   public init(ctx: GameContext): void {
     this.ctx = ctx;
     this.reset();
@@ -70,6 +75,7 @@ export class MazeChaserGame implements GameInstance {
     this.maze = MAZES[mazeIndex];
     this.pellets = [];
     this.ghosts = [];
+    this.popups = [];
     
     let ghostTypes = 0;
     
@@ -106,6 +112,19 @@ export class MazeChaserGame implements GameInstance {
     this.moveTimer += dt;
     this.ghostTimer += dt;
     
+    this.popups.forEach(p => p.life -= dt);
+    this.popups = this.popups.filter(p => p.life > 0);
+
+    if (this.player.dx !== 0 || this.player.dy !== 0) {
+      if (this.mouthClosing) {
+        this.mouthAngle -= dt * 4;
+        if (this.mouthAngle <= 0.02) this.mouthClosing = false;
+      } else {
+        this.mouthAngle += dt * 4;
+        if (this.mouthAngle >= 0.25) this.mouthClosing = true;
+      }
+    }
+
     if (this.frightenedTimer > 0) {
       this.frightenedTimer -= dt;
       if (this.frightenedTimer <= 0) {
@@ -152,7 +171,6 @@ export class MazeChaserGame implements GameInstance {
   
   private updateGhosts(): void {
     for (const g of this.ghosts) {
-      // Simplified ghost movement (random valid direction if frightened, else seek player)
       let bestDir = { dx: g.dx, dy: g.dy };
       
       const dirs = [
@@ -176,8 +194,23 @@ export class MazeChaserGame implements GameInstance {
           } else {
             let tx = this.player.x;
             let ty = this.player.y;
-            // Diff behavior by type
-            if (g.type === 1) { tx += this.player.dx * 4; ty += this.player.dy * 4; }
+            
+            if (g.type === 1) { // Pinky
+              tx += this.player.dx * 4; ty += this.player.dy * 4;
+            } else if (g.type === 2) { // Inky
+              const blinky = this.ghosts.find(gh => gh.type === 0) || this.ghosts[0];
+              const px = this.player.x + this.player.dx * 2;
+              const py = this.player.y + this.player.dy * 2;
+              tx = Math.floor((blinky.x + px) / 2);
+              ty = Math.floor((blinky.y + py) / 2);
+            } else if (g.type === 3) { // Clyde
+              const distToP = Math.abs(nx - tx) + Math.abs(ny - ty);
+              if (distToP > 8) {
+                // Chase
+              } else {
+                tx = 0; ty = 23; // Bottom left
+              }
+            }
             
             const dist = Math.abs(nx - tx) + Math.abs(ny - ty);
             if (dist < minScore) {
@@ -199,7 +232,6 @@ export class MazeChaserGame implements GameInstance {
   }
   
   private checkCollisions(): void {
-    // Pellets
     const pIdx = this.pellets.findIndex(p => p.x === this.player.x && p.y === this.player.y);
     if (pIdx >= 0) {
       const p = this.pellets[pIdx];
@@ -209,8 +241,10 @@ export class MazeChaserGame implements GameInstance {
         this.score += 50;
         this.frightenedTimer = 7.0;
         this.ghosts.forEach(g => g.state = 'frightened');
+        this.ctx.audio.playPowerUp();
       } else {
         this.score += 10;
+        this.ctx.audio.playCoin();
       }
       
       if (this.pellets.length === 0) {
@@ -219,14 +253,15 @@ export class MazeChaserGame implements GameInstance {
       }
     }
     
-    // Ghosts
     for (const g of this.ghosts) {
       if (g.x === this.player.x && g.y === this.player.y) {
         if (g.state === 'frightened') {
           this.score += 200;
+          this.popups.push({x: g.x, y: g.y, text: "200", life: 1.0});
           g.x = g.startX;
           g.y = g.startY;
           g.state = 'chase';
+          this.ctx.audio.playHit();
         } else {
           this.die();
         }
@@ -236,11 +271,12 @@ export class MazeChaserGame implements GameInstance {
   
   private die(): void {
     this.lives--;
+    this.ctx.audio.playExplosion();
     if (this.lives <= 0) {
       this.gameOver = true;
       this.ctx.session.setStatus("game-over");
+      this.ctx.audio.playGameOver();
     } else {
-      // Reset positions
       this.player.dx = 0;
       this.player.dy = 0;
       this.player.nextDx = 0;
@@ -263,80 +299,124 @@ export class MazeChaserGame implements GameInstance {
   }
 
   public render(renderer: Renderer): void {
+    const pr = renderer as PixelRenderer;
+    const rawCtx = pr.getContext();
     renderer.clear("#000000");
-    const cellSize = 18;
+    const cellSize = 22;
     const offsetX = (renderer.getWidth() - 23 * cellSize) / 2;
     const offsetY = (renderer.getHeight() - 23 * cellSize) / 2 + 16;
     
-    // Draw Classic Neon Blue Double Walls
+    // Walls
     for (let y = 0; y < 23; y++) {
       for (let x = 0; x < 23; x++) {
         if (this.isWall(x, y)) {
           const wx = offsetX + x * cellSize;
           const wy = offsetY + y * cellSize;
-          renderer.drawRect(wx + 2, wy + 2, cellSize - 4, cellSize - 4, "#0000aa", true);
-          renderer.drawRect(wx + 4, wy + 4, cellSize - 8, cellSize - 8, "#000033", true);
+          renderer.drawRect(wx + 2, wy + 2, cellSize - 4, cellSize - 4, "#2222ff", true);
+          renderer.drawRect(wx + 5, wy + 5, cellSize - 10, cellSize - 10, "#000044", true);
         }
       }
     }
     
-    // Draw Pellets & Flashing Power Pellets
+    // Pellets
     const flash = Math.floor(Date.now() / 250) % 2 === 0;
     for (const p of this.pellets) {
       const px = offsetX + p.x * cellSize + cellSize / 2;
       const py = offsetY + p.y * cellSize + cellSize / 2;
       if (p.power) {
         if (flash) {
-          renderer.drawCircle(px, py, 6, "#ffb8ae", true);
+          renderer.drawCircle(px, py, 7, "#ffb8ae", true);
         }
       } else {
-        renderer.drawRect(px - 1.5, py - 1.5, 3, 3, "#ffb8ae", true);
+        renderer.drawRect(px - 2, py - 2, 4, 4, "#ffb8ae", true);
       }
     }
     
-    // Draw Animated Chomping Pac-Man
+    // Pac-Man
     const pacX = offsetX + this.player.x * cellSize + cellSize / 2;
     const pacY = offsetY + this.player.y * cellSize + cellSize / 2;
-    renderer.drawCircle(pacX, pacY, cellSize / 2 - 1, "#ffff00", true);
     
-    // Draw 4 Iconic Ghosts (Blinky, Pinky, Inky, Clyde)
-    const ghostColors = ["#ff0000", "#ffb8ff", "#00ffff", "#ffb852"];
-    for (const g of this.ghosts) {
-      const gx = offsetX + g.x * cellSize + 2;
-      const gy = offsetY + g.y * cellSize + 2;
-      const isScared = g.state === 'frightened';
-      const color = isScared ? (flash ? "#2121ff" : "#ffffff") : ghostColors[g.type];
-      
-      // Ghost Head & Skirt Body
-      renderer.drawRect(gx, gy + 4, cellSize - 4, cellSize - 8, color, true);
-      renderer.drawCircle(gx + (cellSize - 4) / 2, gy + 4, (cellSize - 4) / 2, color, true);
-      
-      // Eyes (White with Blue pupils)
-      if (!isScared) {
-        renderer.drawCircle(gx + 5, gy + 6, 3, "#ffffff", true);
-        renderer.drawCircle(gx + 11, gy + 6, 3, "#ffffff", true);
-        renderer.drawCircle(gx + 5 + g.dx, gy + 6 + g.dy, 1.5, "#0000ff", true);
-        renderer.drawCircle(gx + 11 + g.dx, gy + 6 + g.dy, 1.5, "#0000ff", true);
-      } else {
-        renderer.drawCircle(gx + 5, gy + 6, 2, "#ffb8ae", true);
-        renderer.drawCircle(gx + 11, gy + 6, 2, "#ffb8ae", true);
+    let rotation = 0;
+    if (this.player.dx === 1) rotation = 0;
+    else if (this.player.dx === -1) rotation = Math.PI;
+    else if (this.player.dy === 1) rotation = Math.PI / 2;
+    else if (this.player.dy === -1) rotation = -Math.PI / 2;
+
+    rawCtx.save();
+    rawCtx.translate(pacX, pacY);
+    rawCtx.rotate(rotation);
+    rawCtx.beginPath();
+    rawCtx.moveTo(0, 0);
+    rawCtx.arc(0, 0, cellSize / 2 - 2, this.mouthAngle, Math.PI * 2 - this.mouthAngle);
+    rawCtx.closePath();
+    rawCtx.fillStyle = '#FFD700';
+    rawCtx.fill();
+    rawCtx.restore();
+    
+    // Ghosts
+    const ghostColors = ["#FF0000", "#FFB8FF", "#00FFFF", "#FFB852"];
+    const drawGhost = (ctx2d: CanvasRenderingContext2D, cx: number, cy: number, size: number, color: string, scared: boolean) => {
+      const s = size / 2;
+      ctx2d.beginPath();
+      ctx2d.arc(cx, cy - s * 0.2, s, Math.PI, 0, false);
+      ctx2d.lineTo(cx + s, cy + s);
+      const bumps = 3; const bumpW = (2 * s) / bumps;
+      for (let i = 0; i < bumps; i++) {
+        ctx2d.quadraticCurveTo(cx + s - bumpW * i - bumpW * 0.5, cy + s + s * 0.4, cx + s - bumpW * (i + 1), cy + s);
       }
+      ctx2d.closePath();
+      ctx2d.fillStyle = scared ? (flash ? '#ffffff' : '#2121de') : color;
+      ctx2d.fill();
+      
+      if (!scared) {
+        ctx2d.fillStyle = 'white';
+        ctx2d.beginPath(); ctx2d.arc(cx - s * 0.3, cy - s * 0.1, s * 0.25, 0, Math.PI * 2); ctx2d.fill();
+        ctx2d.beginPath(); ctx2d.arc(cx + s * 0.3, cy - s * 0.1, s * 0.25, 0, Math.PI * 2); ctx2d.fill();
+        ctx2d.fillStyle = '#000080';
+        // Eye direction offset
+        const dx = (this.player.x - Math.floor((cx-offsetX)/cellSize)) > 0 ? 1 : -1;
+        const dy = (this.player.y - Math.floor((cy-offsetY)/cellSize)) > 0 ? 1 : -1;
+        ctx2d.beginPath(); ctx2d.arc(cx - s * 0.3 + dx, cy - s * 0.1 + dy, s * 0.12, 0, Math.PI * 2); ctx2d.fill();
+        ctx2d.beginPath(); ctx2d.arc(cx + s * 0.3 + dx, cy - s * 0.1 + dy, s * 0.12, 0, Math.PI * 2); ctx2d.fill();
+      } else {
+        ctx2d.fillStyle = flash ? '#ff0000' : '#ffb8ae';
+        ctx2d.fillRect(cx - s * 0.4, cy - s * 0.15, s * 0.2, s * 0.2);
+        ctx2d.fillRect(cx + s * 0.2, cy - s * 0.15, s * 0.2, s * 0.2);
+        ctx2d.fillRect(cx - s * 0.4, cy + s * 0.2, s * 0.8, s * 0.1);
+      }
+    };
+
+    for (const g of this.ghosts) {
+      const gx = offsetX + g.x * cellSize + cellSize/2;
+      const gy = offsetY + g.y * cellSize + cellSize/2;
+      const isScared = g.state === 'frightened';
+      drawGhost(rawCtx, gx, gy, cellSize - 2, ghostColors[g.type], isScared);
     }
     
-    // Authentic Pac-Man Arcade Top HUD
-    renderer.drawText(`1UP`, 40, 20, { color: "#ff0000", size: 14 });
-    renderer.drawText(`${String(this.score).padStart(5, '0')}`, 40, 36, { color: "#ffffff", size: 14 });
+    // Popups
+    for (const p of this.popups) {
+      renderer.drawText(p.text, offsetX + p.x * cellSize + cellSize/2, offsetY + p.y * cellSize - 5, { color: "#00ffff", size: 12, align: "center" });
+    }
+    
+    renderer.drawText(`1UP`, 40, 30, { color: "#ff0000", size: 18 });
+    renderer.drawText(`${String(this.score).padStart(5, '0')}`, 40, 50, { color: "#ffffff", size: 18 });
 
-    renderer.drawText(`HIGH SCORE`, renderer.getWidth() / 2, 20, { color: "#ff0000", size: 14, align: "center" });
-    renderer.drawText(`10000`, renderer.getWidth() / 2, 36, { color: "#ffffff", size: 14, align: "center" });
+    renderer.drawText(`HIGH SCORE`, renderer.getWidth() / 2, 30, { color: "#ff0000", size: 18, align: "center" });
+    renderer.drawText(`10000`, renderer.getWidth() / 2, 50, { color: "#ffffff", size: 18, align: "center" });
 
-    // Lives Icon at bottom left
     for (let l = 0; l < this.lives; l++) {
-      renderer.drawCircle(30 + l * 18, renderer.getHeight() - 16, 6, "#ffff00", true);
+      const lx = 30 + l * 24;
+      const ly = renderer.getHeight() - 20;
+      rawCtx.beginPath();
+      rawCtx.moveTo(lx, ly);
+      rawCtx.arc(lx, ly, 10, 0.2, Math.PI * 2 - 0.2);
+      rawCtx.closePath();
+      rawCtx.fillStyle = '#FFD700';
+      rawCtx.fill();
     }
     
     if (this.gameOver) {
-      renderer.drawText("GAME  OVER", renderer.getWidth() / 2, renderer.getHeight() / 2 + 10, { color: "#ff0000", size: 32, align: "center" });
+      renderer.drawText("GAME  OVER", renderer.getWidth() / 2, renderer.getHeight() / 2 + 10, { color: "#ff0000", size: 36, align: "center" });
     }
   }
 
@@ -355,6 +435,9 @@ export class MazeChaserGame implements GameInstance {
         break;
       case "MOVE_RIGHT":
         this.player.nextDx = 1; this.player.nextDy = 0;
+        break;
+      case "RESTART":
+        if (this.gameOver) this.reset();
         break;
     }
   }

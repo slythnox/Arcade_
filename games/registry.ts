@@ -28,7 +28,6 @@ import { pixelQuestDefinition } from "./definitions/pixelQuestDefinition";
 import { raySectorDefinition } from "./definitions/raySectorDefinition";
 import { pixelBrawlDefinition } from "./definitions/pixelBrawlDefinition";
 import { pixelCircuitDefinition } from "./definitions/pixelCircuitDefinition";
-import { dungeonQuestDefinition } from "./definitions/dungeonQuestDefinition";
 import { diamondRunDefinition } from "./definitions/diamondRun";
 import { hotlapDefinition } from "./definitions/hotlap";
 
@@ -110,7 +109,6 @@ export const gameRegistry: readonly GameDefinition[] = [
   raySectorDefinition,
   pixelBrawlDefinition,
   pixelCircuitDefinition,
-  dungeonQuestDefinition,
 
   // Puzzle Games
   twentyFortyEightDefinition,

@@ -17,6 +17,18 @@ if (typeof globalThis.ImageData === "undefined") {
   };
 }
 
+if (typeof globalThis.Path2D === "undefined") {
+  (globalThis as any).Path2D = class Path2D {
+    moveTo = vi.fn();
+    lineTo = vi.fn();
+    arc = vi.fn();
+    closePath = vi.fn();
+    bezierCurveTo = vi.fn();
+    quadraticCurveTo = vi.fn();
+    addPath = vi.fn();
+  };
+}
+
 export function createMockRenderer(): Renderer {
   return {
     getWidth: () => 800,
@@ -34,7 +46,30 @@ export function createMockRenderer(): Renderer {
     rotate: vi.fn(),
     drawPixelBlock: vi.fn(),
     drawPixelRect: vi.fn(),
-    getContext: () => ({ canvas: { addEventListener: vi.fn(), removeEventListener: vi.fn() } }),
+    getContext: () => {
+      const gradientMock = {
+        addColorStop: vi.fn(),
+      };
+      const ctxMock = new Proxy(
+        {
+          canvas: { addEventListener: vi.fn(), removeEventListener: vi.fn() },
+          createLinearGradient: vi.fn(() => gradientMock),
+          createRadialGradient: vi.fn(() => gradientMock),
+        } as any,
+        {
+          get: (target, prop: string) => {
+            if (prop in target) return target[prop];
+            target[prop] = vi.fn(() => target);
+            return target[prop];
+          },
+          set: (target, prop: string, val: any) => {
+            target[prop] = val;
+            return true;
+          },
+        }
+      );
+      return ctxMock;
+    },
   } as any;
 }
 

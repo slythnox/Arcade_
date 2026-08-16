@@ -25,7 +25,7 @@ const MAP: number[][] = [
 interface Enemy {
   x: number;
   y: number;
-  type: number; // 0=guard, 1=soldier, 2=boss
+  type: number;
   active: boolean;
   hp: number;
 }
@@ -55,6 +55,12 @@ export class RaySectorGame implements GameInstance {
   private lives: number = 3;
   private playerHp: number = 100;
   private paused: boolean = false;
+  private gameOver: boolean = false;
+  
+  private muzzleFlash = 0;
+  private swayTimer = 0;
+  private shootCooldown = 0;
+  private ammo = 99;
   
   public init(ctx: GameContext): void {
     this.ctx = ctx;
@@ -71,6 +77,11 @@ export class RaySectorGame implements GameInstance {
     this.level = 1;
     this.score = 0;
     this.lives = 3;
+    this.playerHp = 100;
+    this.ammo = 99;
+    this.gameOver = false;
+    this.muzzleFlash = 0;
+    this.shootCooldown = 0;
     
     this.enemies = [
       { x: 3.5, y: 3.5, type: 0, active: true, hp: 10 },
@@ -80,7 +91,17 @@ export class RaySectorGame implements GameInstance {
   }
   
   public update(deltaTime: number): void {
-    if (this.paused) return;
+    if (this.paused || this.gameOver) return;
+    
+    if (this.muzzleFlash > 0) this.muzzleFlash -= deltaTime;
+    if (this.shootCooldown > 0) this.shootCooldown -= deltaTime;
+    
+    const isMoving = this.movingForward || this.movingBackward || this.turningLeft || this.turningRight;
+    if (isMoving) {
+        this.swayTimer += deltaTime;
+    } else {
+        this.swayTimer = 0;
+    }
     
     if (this.movingForward) {
       if (MAP[Math.floor(this.posY)][Math.floor(this.posX + this.dirX * this.moveSpeed * deltaTime)] === 0) {
@@ -115,9 +136,33 @@ export class RaySectorGame implements GameInstance {
       this.planeX = this.planeX * Math.cos(-this.rotSpeed * deltaTime) - this.planeY * Math.sin(-this.rotSpeed * deltaTime);
       this.planeY = oldPlaneX * Math.sin(-this.rotSpeed * deltaTime) + this.planeY * Math.cos(-this.rotSpeed * deltaTime);
     }
+    
+    // Enemy movement toward player
+    for (const e of this.enemies) {
+      if (!e.active) continue;
+      const dx = this.posX - e.x; 
+      const dy = this.posY - e.y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist > 1.5) { 
+          e.x += dx/dist * 1.5 * deltaTime; 
+          e.y += dy/dist * 1.5 * deltaTime; 
+      }
+      if (dist < 0.8) { 
+          this.playerHp -= 20 * deltaTime; 
+          this.ctx.audio.playHit();
+      }
+    }
+    
+    if (this.playerHp <= 0) {
+        this.gameOver = true;
+        this.ctx.session.setStatus("game-over");
+    }
   }
   
   public handleInput(action: GameAction, isPressed: boolean): void {
+    if (action === "RESTART" && isPressed) this.reset();
+    if (this.gameOver) return;
+    
     switch (action) {
       case "MOVE_UP":
         this.movingForward = isPressed;
@@ -132,7 +177,7 @@ export class RaySectorGame implements GameInstance {
         this.turningRight = isPressed;
         break;
       case "ACTION_PRIMARY":
-        if (isPressed && !this.isShooting) {
+        if (isPressed && !this.isShooting && this.shootCooldown <= 0 && this.ammo > 0) {
           this.shoot();
         }
         this.isShooting = isPressed;
@@ -141,6 +186,11 @@ export class RaySectorGame implements GameInstance {
   }
   
   private shoot(): void {
+    this.shootCooldown = 0.3;
+    this.muzzleFlash = 0.15;
+    this.ammo--;
+    this.ctx.audio.playLaser();
+    
     for (const e of this.enemies) {
       if (!e.active) continue;
       const dx = e.x - this.posX;
@@ -153,6 +203,7 @@ export class RaySectorGame implements GameInstance {
           if (e.hp <= 0) {
             e.active = false;
             this.score += 100;
+            this.ctx.audio.playExplosion();
           }
           break;
         }
@@ -244,9 +295,15 @@ export class RaySectorGame implements GameInstance {
       return ((b.x-this.posX)**2 + (b.y-this.posY)**2) - ((a.x-this.posX)**2 + (a.y-this.posY)**2);
     });
     
+    let allEnemiesDead = true;
+    let enemyNear = false;
     for (let i = 0; i < sortedEnemies.length; i++) {
       const sprite = sortedEnemies[i];
       if (!sprite.active) continue;
+      allEnemiesDead = false;
+      
+      const distToEnemy = Math.sqrt((sprite.x-this.posX)**2 + (sprite.y-this.posY)**2);
+      if (distToEnemy < 8) enemyNear = true;
       
       const spriteX = sprite.x - this.posX;
       const spriteY = sprite.y - this.posY;
@@ -278,18 +335,28 @@ export class RaySectorGame implements GameInstance {
       }
     }
     
-    // Gun Barrel Sprite in bottom center
+    // Enemy Indicator
+    if (enemyNear) {
+        renderer.drawCircle(w/2, 40, 10, "#FF0000", true);
+    }
+    
+    // Gun Barrel Sprite with Sway and Flash
     const gunX = w / 2 - 16;
-    const gunY = h - 100;
+    const swayOffset = Math.sin(this.swayTimer * 2) * 3;
+    const gunY = h - 100 + swayOffset;
     renderer.drawRect(gunX + 12, gunY, 8, 30, "#555555", true);
     renderer.drawRect(gunX + 10, gunY + 20, 12, 35, "#222222", true);
     renderer.drawRect(gunX + 6, gunY + 45, 20, 25, "#885522", true);
+    
+    if (this.muzzleFlash > 0) {
+        renderer.drawRect(w/2 - 4, gunY - 20, 8, 20, "#FFFF00", true);
+    }
 
     // Crosshair in Viewport
     renderer.drawRect(w / 2 - 6, h / 2 - 1, 12, 2, "#00FF00", true);
     renderer.drawRect(w / 2 - 1, h / 2 - 6, 2, 12, "#00FF00", true);
 
-    // Wolfenstein 3D Bottom Status Bar HUD
+    // Bottom Status Bar HUD
     const hudY = h - 48;
     renderer.drawRect(0, hudY, w, 48, "#0000a8", true);
     renderer.drawRect(0, hudY, w, 3, "#5555ff", true);
@@ -301,24 +368,32 @@ export class RaySectorGame implements GameInstance {
     renderer.drawText(`SCORE`, 80, hudY + 14, { color: "#aaaaaa", size: 10 });
     renderer.drawText(`${String(this.score).padStart(6, '0')}`, 80, hudY + 34, { color: "#ffd84d", size: 16 });
 
-    // BJ Blazkowicz Face Box (Center HUD)
+    // Center Face Box
     const faceBoxX = w / 2 - 20;
     renderer.drawRect(faceBoxX, hudY + 6, 40, 36, "#000055", true);
     renderer.drawRect(faceBoxX, hudY + 6, 40, 36, "#5555ff", false);
-    // Face skin + eyes + hair
     renderer.drawRect(faceBoxX + 10, hudY + 12, 20, 22, "#ffccaa", true);
-    renderer.drawRect(faceBoxX + 8, hudY + 10, 24, 6, "#cc9933", true); // Blonde hair
+    renderer.drawRect(faceBoxX + 8, hudY + 10, 24, 6, "#cc9933", true);
     const lookOffset = Math.floor(Math.sin(this.posX * 2) * 2);
-    renderer.drawRect(faceBoxX + 13 + lookOffset, hudY + 18, 3, 3, "#0000ff", true); // Left eye
-    renderer.drawRect(faceBoxX + 23 + lookOffset, hudY + 18, 3, 3, "#0000ff", true); // Right eye
-    renderer.drawRect(faceBoxX + 16, hudY + 26, 8, 2, "#aa3333", true); // Mouth
+    renderer.drawRect(faceBoxX + 13 + lookOffset, hudY + 18, 3, 3, "#0000ff", true);
+    renderer.drawRect(faceBoxX + 23 + lookOffset, hudY + 18, 3, 3, "#0000ff", true);
+    renderer.drawRect(faceBoxX + 16, hudY + 26, 8, 2, "#aa3333", true);
 
     renderer.drawText(`HEALTH`, w - 160, hudY + 14, { color: "#aaaaaa", size: 10 });
     const hpColor = this.playerHp > 50 ? "#63e66d" : (this.playerHp > 25 ? "#ffd84d" : "#ff5c8a");
-    renderer.drawText(`${this.playerHp}%`, w - 160, hudY + 34, { color: hpColor, size: 16 });
+    // HP Bar
+    renderer.drawRect(w - 160, hudY + 22, 60, 16, "#333333", true);
+    renderer.drawRect(w - 160, hudY + 22, Math.max(0, this.playerHp / 100 * 60), 16, hpColor, true);
 
     renderer.drawText(`AMMO`, w - 70, hudY + 14, { color: "#aaaaaa", size: 10 });
-    renderer.drawText(`99`, w - 70, hudY + 34, { color: "#ffffff", size: 16 });
+    renderer.drawText(`${this.ammo}`, w - 70, hudY + 34, { color: "#ffffff", size: 16 });
+
+    if (this.gameOver) {
+        renderer.drawRect(0, h/2 - 40, w, 80, "rgba(0,0,0,0.8)", true);
+        renderer.drawText("GAME OVER", w/2, h/2 + 10, { color: "#FF0000", size: 40, align: "center" });
+    } else if (allEnemiesDead) {
+        renderer.drawText("VICTORY!", w/2, h/2, { color: "#00FF00", size: 40, align: "center" });
+    }
   }
   
   public pause(): void { this.paused = true; }

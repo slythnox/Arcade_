@@ -1,6 +1,7 @@
 import type { GameInstance } from "../types";
 import type { GameContext } from "../../engine/GameContext";
 import type { Renderer } from "../../engine/rendering/Renderer";
+import type { PixelRenderer } from "../../engine/rendering/PixelRenderer";
 import type { GameAction } from "../../core/types/game";
 
 export class RoadHopperGame implements GameInstance {
@@ -18,6 +19,8 @@ export class RoadHopperGame implements GameInstance {
   private obstacles: { y: number, x: number, speed: number, size: number, isLog: boolean }[] = [];
   private goals: boolean[] = [false, false, false, false, false];
   
+  private time = 0;
+
   public init(ctx: GameContext): void {
     this.ctx = ctx;
     this.reset();
@@ -29,6 +32,7 @@ export class RoadHopperGame implements GameInstance {
     this.lives = 5;
     this.gameOver = false;
     this.isPaused = false;
+    this.time = 0;
     this.resetLevel();
   }
   
@@ -63,6 +67,7 @@ export class RoadHopperGame implements GameInstance {
 
   public update(dt: number): void {
     if (this.gameOver || this.isPaused) return;
+    this.time += dt;
 
     let onLog = false;
     let logSpeed = 0;
@@ -109,38 +114,89 @@ export class RoadHopperGame implements GameInstance {
   }
 
   public render(renderer: Renderer): void {
+    const pr = renderer as PixelRenderer;
+    const rawCtx = pr.getContext();
     renderer.clear("#000000");
-    const cellSize = 32;
+    const cellSize = 56;
     const offsetX = (renderer.getWidth() - 11 * cellSize) / 2;
     const offsetY = (renderer.getHeight() - 9 * cellSize) / 2;
     
-    // Draw Lanes
-    renderer.drawRect(offsetX, offsetY + 8 * cellSize, 11 * cellSize, cellSize, "#4CAF50"); // Start
-    renderer.drawRect(offsetX, offsetY + 5 * cellSize, 11 * cellSize, 3 * cellSize, "#333333"); // Road
-    renderer.drawRect(offsetX, offsetY + 4 * cellSize, 11 * cellSize, cellSize, "#4CAF50"); // Safe
-    renderer.drawRect(offsetX, offsetY + 2 * cellSize, 11 * cellSize, 2 * cellSize, "#2196F3"); // River
-    renderer.drawRect(offsetX, offsetY + 1 * cellSize, 11 * cellSize, cellSize, "#2E7D32"); // Goal area
+    // Row 9 (start): green safe zone
+    renderer.drawRect(offsetX, offsetY + 8 * cellSize, 11 * cellSize, cellSize, "#4CAF50", true);
+    
+    // Row 6-8 and 3-4 (road)
+    renderer.drawRect(offsetX, offsetY + 5 * cellSize, 11 * cellSize, 3 * cellSize, "#333333", true);
+    for (let l = 0; l < 2; l++) {
+        for (let d = 0; d < 11; d++) {
+            renderer.drawRect(offsetX + d * cellSize + 10, offsetY + (6 + l) * cellSize - 2, 36, 4, "#EEEEEE", true);
+        }
+    }
+    
+    // Row 5 (safe median)
+    renderer.drawRect(offsetX, offsetY + 4 * cellSize, 11 * cellSize, cellSize, "#4CAF50", true);
+    renderer.drawRect(offsetX, offsetY + 4 * cellSize + 10, 11 * cellSize, cellSize - 20, "#388E3C", true);
+    
+    // Row 1-2 (river)
+    renderer.drawRect(offsetX, offsetY + 2 * cellSize, 11 * cellSize, 2 * cellSize, "#2196F3", true);
+    rawCtx.fillStyle = "#64B5F6";
+    for(let i=0; i<8; i++) {
+        const rippleY = offsetY + 2 * cellSize + i * 14;
+        const shiftX = Math.sin(this.time * 2 + i * 0.5) * 8;
+        rawCtx.fillRect(offsetX + shiftX, rippleY, 11 * cellSize, 2);
+    }
+    
+    // Row 0 (goal area background)
+    renderer.drawRect(offsetX, offsetY + cellSize, 11 * cellSize, cellSize, "#2E7D32", true);
     
     // Draw goals
     for(let i=0; i<5; i++) {
       const gx = offsetX + (1 + i * 2) * cellSize;
-      renderer.drawRect(gx, offsetY + cellSize, cellSize, cellSize, this.goals[i] ? "#FFFF00" : "#004400");
+      renderer.drawCircle(gx + cellSize/2, offsetY + cellSize + cellSize/2, cellSize/2 - 4, "#003300", true);
+      if (this.goals[i]) {
+          renderer.drawCircle(gx + cellSize/2, offsetY + cellSize + cellSize/2, cellSize/2 - 6, "#4CAF50", true);
+      }
     }
     
     // Draw Obstacles
     for (const obs of this.obstacles) {
-      const color = obs.isLog ? "#795548" : "#F44336";
-      renderer.drawRect(offsetX + obs.x * cellSize, offsetY + obs.y * cellSize, obs.size * cellSize - 2, cellSize - 2, color);
+      if (obs.isLog) {
+          renderer.drawRect(offsetX + obs.x * cellSize, offsetY + obs.y * cellSize + 8, obs.size * cellSize - 4, cellSize - 16, "#795548", true);
+          renderer.drawRect(offsetX + obs.x * cellSize, offsetY + obs.y * cellSize + 12, obs.size * cellSize - 4, 2, "#5D4037", true);
+          renderer.drawRect(offsetX + obs.x * cellSize, offsetY + obs.y * cellSize + 22, obs.size * cellSize - 4, 2, "#5D4037", true);
+          renderer.drawRect(offsetX + obs.x * cellSize, offsetY + obs.y * cellSize + 32, obs.size * cellSize - 4, 2, "#5D4037", true);
+      } else {
+          // Car
+          renderer.drawRect(offsetX + obs.x * cellSize + 2, offsetY + obs.y * cellSize + 10, obs.size * cellSize - 8, cellSize - 20, "#F44336", true);
+          const dirOffset = obs.speed > 0 ? obs.size * cellSize - 24 : 8;
+          renderer.drawRect(offsetX + obs.x * cellSize + dirOffset, offsetY + obs.y * cellSize + 14, 16, cellSize - 28, "#B71C1C", true); // Windshield
+          // Wheels
+          renderer.drawCircle(offsetX + obs.x * cellSize + 12, offsetY + obs.y * cellSize + 8, 4, "#000", true);
+          renderer.drawCircle(offsetX + obs.x * cellSize + 12, offsetY + obs.y * cellSize + cellSize - 8, 4, "#000", true);
+          renderer.drawCircle(offsetX + obs.x * cellSize + obs.size * cellSize - 16, offsetY + obs.y * cellSize + 8, 4, "#000", true);
+          renderer.drawCircle(offsetX + obs.x * cellSize + obs.size * cellSize - 16, offsetY + obs.y * cellSize + cellSize - 8, 4, "#000", true);
+      }
     }
     
     // Draw Player
-    renderer.drawRect(offsetX + this.player.x * cellSize + 4, offsetY + this.player.y * cellSize + 4, cellSize - 8, cellSize - 8, "#8BC34A");
+    const px = offsetX + this.player.x * cellSize + cellSize/2;
+    const py = offsetY + this.player.y * cellSize + cellSize/2;
+    renderer.drawCircle(px, py, 16, "#8BC34A", true);
+    renderer.drawCircle(px - 6, py - 12, 4, "#8BC34A", true); // left eye
+    renderer.drawCircle(px + 6, py - 12, 4, "#8BC34A", true); // right eye
+    renderer.drawRect(px - 18, py - 4, 8, 12, "#8BC34A", true); // left leg
+    renderer.drawRect(px + 10, py - 4, 8, 12, "#8BC34A", true); // right leg
     
-    // UI
-    renderer.drawText(`SCORE: ${this.score}`, 10, 20, {color: "#FFF", size: 16});
-    renderer.drawText(`LIVES: ${this.lives}`, renderer.getWidth() - 80, 20, {color: "#FFF", size: 16});
+    // HUD
+    renderer.drawRect(0, 0, renderer.getWidth(), 44, "#222222", true);
+    renderer.drawText(`SCORE: ${this.score}`, 20, 26, {color: "#FFF", size: 16});
+    renderer.drawText(`LEVEL: ${this.level}`, renderer.getWidth() / 2, 26, {color: "#FFF", size: 16, align: "center"});
+    renderer.drawText(`LIVES:`, renderer.getWidth() - 140, 26, {color: "#FFF", size: 16});
+    for (let i = 0; i < this.lives; i++) {
+        renderer.drawCircle(renderer.getWidth() - 80 + i * 14, 20, 5, "#8BC34A", true);
+    }
     
     if (this.gameOver) {
+      renderer.drawRect(0, renderer.getHeight()/2 - 40, renderer.getWidth(), 80, "rgba(0,0,0,0.8)", true);
       renderer.drawText("GAME OVER", renderer.getWidth()/2, renderer.getHeight()/2, {color: "#F00", size: 32, align: "center"});
     }
   }

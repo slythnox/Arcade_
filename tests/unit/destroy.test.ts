@@ -4,7 +4,7 @@ import { createMockContext, createMockRenderer } from "../helpers/mockContext";
 
 // Test the top 10 largest games by name (the ones most likely to have leaks)
 const AUDIT_GAMES = [
-  "maze-chaser", "pixel-quest", "monster-arena", "dungeon-quest",
+  "maze-chaser", "pixel-quest", "monster-arena",
   "pixel-brawl", "ray-sector", "pixel-circuit", "garden-defense",
   "bomb-grid", "star-formation",
 ];

@@ -5,6 +5,20 @@ import type { PixelRenderer } from "../../engine/rendering/PixelRenderer";
 import type { GameAction } from "../../core/types/game";
 import { globalParticles } from "../../engine/particles/ParticleSystem";
 
+const TILE_COLORS: Record<number, {bg: string, text: string}> = {
+  2:    {bg: '#eee4da', text: '#776e65'},
+  4:    {bg: '#ede0c8', text: '#776e65'},
+  8:    {bg: '#f2b179', text: '#ffffff'},
+  16:   {bg: '#f59563', text: '#ffffff'},
+  32:   {bg: '#f67c5f', text: '#ffffff'},
+  64:   {bg: '#f65e3b', text: '#ffffff'},
+  128:  {bg: '#edcf72', text: '#ffffff'},
+  256:  {bg: '#edcc61', text: '#ffffff'},
+  512:  {bg: '#edc850', text: '#ffffff'},
+  1024: {bg: '#edc53f', text: '#ffffff'},
+  2048: {bg: '#edc22e', text: '#ffffff'},
+};
+
 export class TwentyFortyEightGame implements GameInstance {
   private ctx!: GameContext;
   private readonly size: number = 4;
@@ -101,10 +115,11 @@ export class TwentyFortyEightGame implements GameInstance {
 
     if (anyMoved) {
       this.score += addedScore;
+      if (this.score > this.bestScore) this.bestScore = this.score;
       this.ctx.audio.playMove();
       if (addedScore > 0) {
-        globalParticles.emitBurst(300, 350, 16, ["#FFB703", "#FF5C8A", "#00FF66", "#ffffff"], 70, 220);
-        globalParticles.emitText(`+${addedScore}`, 300, 150, "#FFB703", 20);
+        globalParticles.emitBurst(300, 350, 16, ["#f2b179", "#f59563", "#edc22e", "#ffffff"], 70, 220);
+        globalParticles.emitText(`+${addedScore}`, 300, 150, "#edc22e", 20);
       }
       this.spawnTile();
       this.checkGameOver();
@@ -146,47 +161,61 @@ export class TwentyFortyEightGame implements GameInstance {
 
   public render(renderer: Renderer): void {
     const pr = renderer as PixelRenderer;
-    pr.clear("#040604");
+    const rawCtx = pr.getContext();
+    pr.clear("#faf8ef");
     const w = renderer.getWidth();
     const h = renderer.getHeight();
 
+    // Top Header
+    pr.drawText("2048", 56, 50, { size: 48, color: "#776e65" });
+    
+    rawCtx.fillStyle = "#bbada0";
+    rawCtx.beginPath();
+    rawCtx.roundRect(w - 220, 20, 90, 50, 5);
+    rawCtx.fill();
+    pr.drawText("SCORE", w - 175, 40, { size: 12, color: "#eee4da", align: "center" });
+    pr.drawText(this.score.toString(), w - 175, 60, { size: 20, color: "#ffffff", align: "center" });
+
+    rawCtx.beginPath();
+    rawCtx.roundRect(w - 110, 20, 90, 50, 5);
+    rawCtx.fill();
+    pr.drawText("BEST", w - 65, 40, { size: 12, color: "#eee4da", align: "center" });
+    pr.drawText(this.bestScore.toString(), w - 65, 60, { size: 20, color: "#ffffff", align: "center" });
+
     const cellSize = 110;
     const gap = 12;
-    const boardWidth = this.size * cellSize + (this.size - 1) * gap;
-    const offX = Math.floor((w - boardWidth) / 2);
-    const offY = Math.floor((h - boardWidth) / 2) + 10;
+    const boardWidth = this.size * cellSize + (this.size + 1) * gap;
+    const offX = 56;
+    const offY = 106;
 
-    pr.drawRect(offX - 8, offY - 8, boardWidth + 16, boardWidth + 16, "#080e08", true);
-    pr.drawRect(offX - 8, offY - 8, boardWidth + 16, boardWidth + 16, "rgba(0, 255, 102, 0.4)", false);
-
-    const tileColors: Record<number, { bg: string; text: string }> = {
-      2: { bg: "#0f2316", text: "#A3B3A3" },
-      4: { bg: "#143320", text: "#00FF66" },
-      8: { bg: "#1f4a2e", text: "#00F0FF" },
-      16: { bg: "#2a663e", text: "#FFFFFF" },
-      32: { bg: "#00FF66", text: "#030604" },
-      64: { bg: "#FFB703", text: "#030604" },
-      128: { bg: "#F97316", text: "#FFFFFF" },
-      256: { bg: "#FF3366", text: "#FFFFFF" },
-      512: { bg: "#A855F7", text: "#FFFFFF" },
-      1024: { bg: "#00F0FF", text: "#030604" },
-      2048: { bg: "#FFFFFF", text: "#00FF66" },
-    };
+    // Board Background
+    rawCtx.fillStyle = "#bbada0";
+    rawCtx.beginPath();
+    rawCtx.roundRect(offX, offY, boardWidth, boardWidth, 10);
+    rawCtx.fill();
 
     for (let r = 0; r < this.size; r++) {
       for (let c = 0; c < this.size; c++) {
         const val = this.grid[r][c];
-        const cx = offX + c * (cellSize + gap);
-        const cy = offY + r * (cellSize + gap);
+        const cx = offX + gap + c * (cellSize + gap);
+        const cy = offY + gap + r * (cellSize + gap);
 
+        rawCtx.beginPath();
+        rawCtx.roundRect(cx, cy, cellSize, cellSize, 8);
         if (val === 0) {
-          pr.drawRect(cx, cy, cellSize, cellSize, "#060a06", true);
-          pr.drawRect(cx, cy, cellSize, cellSize, "rgba(0, 255, 102, 0.1)", false);
+          rawCtx.fillStyle = "rgba(238, 228, 218, 0.35)";
+          rawCtx.fill();
         } else {
-          const style = tileColors[val] || { bg: "#FF3366", text: "#FFFFFF" };
-          pr.drawPixelBlock(cx, cy, cellSize, style.bg, "#FFFFFF", "rgba(0,0,0,0.5)");
-          pr.drawText(val.toString(), cx + cellSize / 2, cy + cellSize / 2 + 10, {
-            size: val >= 1024 ? 26 : val >= 128 ? 32 : 36,
+          const style = TILE_COLORS[val] || { bg: "#3c3a32", text: "#f9f6f2" };
+          rawCtx.fillStyle = style.bg;
+          rawCtx.fill();
+          
+          let fontSize = 48;
+          if (val >= 100 && val < 1000) fontSize = 40;
+          if (val >= 1000) fontSize = 32;
+          
+          pr.drawText(val.toString(), cx + cellSize / 2, cy + cellSize / 2 + (fontSize/3), {
+            size: fontSize,
             color: style.text,
             align: "center",
           });
@@ -197,17 +226,25 @@ export class TwentyFortyEightGame implements GameInstance {
     // Render Particles & Text Popups
     globalParticles.render(pr);
 
-    pr.drawText(`SCORE: ${this.score}  •  [← ↑ → ↓ TO SLIDE]`, w / 2, 28, {
-      size: 13,
-      color: "#00FF66",
-      align: "center",
+    pr.drawText("Join the numbers and get to the 2048 tile!", 56, offY + boardWidth + 30, {
+      size: 16,
+      color: "#776e65",
+    });
+    pr.drawText("HOW TO PLAY: Use Arrow Keys to move tiles.", 56, offY + boardWidth + 55, {
+      size: 14,
+      color: "#776e65",
     });
 
-    if (this.gameOver) {
-      pr.drawRect(0, h / 2 - 45, w, 90, "rgba(4,6,4,0.95)", true);
-      pr.drawRect(0, h / 2 - 45, w, 90, "#FF3366", false);
-      pr.drawText("NO MORE MOVES — GAME OVER", w / 2, h / 2 - 10, { size: 22, color: "#FF3366", align: "center" });
-      pr.drawText("PRESS R TO RESTART", w / 2, h / 2 + 18, { size: 12, color: "#F0F4F0", align: "center" });
+    if (this.gameOver || this.isWon) {
+      rawCtx.fillStyle = "rgba(238, 228, 218, 0.73)";
+      rawCtx.beginPath();
+      rawCtx.roundRect(offX, offY, boardWidth, boardWidth, 10);
+      rawCtx.fill();
+      
+      const msg = this.isWon ? "You win!" : "Game over!";
+      const c = this.isWon ? "#f67c5f" : "#776e65";
+      pr.drawText(msg, offX + boardWidth/2, offY + boardWidth/2 - 20, { size: 48, color: c, align: "center" });
+      pr.drawText("PRESS RESTART", offX + boardWidth/2, offY + boardWidth/2 + 30, { size: 24, color: "#776e65", align: "center" });
     }
   }
 }

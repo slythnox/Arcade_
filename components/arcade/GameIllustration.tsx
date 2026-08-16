@@ -225,8 +225,6 @@ export const GAME_THEMES: Record<string, GameTheme> = {
   monsterArena: { primary: "#ff5c8a", secondary: "#ffffff", accent: "#ffd84d", glow: "rgba(255, 92, 138, 0.4)" },
   "pixel-circuit": { primary: "#ffd84d", secondary: "#ff5c8a", accent: "#63e66d", glow: "rgba(255, 216, 77, 0.4)" },
   pixelCircuit: { primary: "#ffd84d", secondary: "#ff5c8a", accent: "#63e66d", glow: "rgba(255, 216, 77, 0.4)" },
-  "dungeon-quest": { primary: "#63e66d", secondary: "#ffd84d", accent: "#4da3ff", glow: "rgba(99, 230, 109, 0.4)" },
-  dungeonQuest: { primary: "#63e66d", secondary: "#ffd84d", accent: "#4da3ff", glow: "rgba(99, 230, 109, 0.4)" },
   hotlap: { primary: "#ff7a45", secondary: "#ffd84d", accent: "#4de8e8", glow: "rgba(255, 122, 69, 0.45)" },
 };
 
@@ -1324,16 +1322,6 @@ export const GameIllustration: React.FC<GameIllustrationProps> = ({ game, size =
             <path d="M 6 6 L 24 6 L 24 24 L 6 24 Z" fill="none" stroke="#475569" strokeWidth="5" />
             <rect x="18" y="4" width="5" height="8" fill="#ff5c8a" rx="1" />
             <circle cx="20" cy="8" r="1.5" fill="#ffd84d" />
-          </>
-        );
-
-      case "dungeon-quest":
-      case "dungeonQuest":
-        return (
-          <>
-            <polygon points="15,4 7,16 15,14 23,16" fill="#63e66d" />
-            <line x1="15" y1="4" x2="15" y2="26" stroke="#ffd84d" strokeWidth="2" />
-            <line x1="10" y1="20" x2="20" y2="20" stroke="#4da3ff" strokeWidth="2" />
           </>
         );
 

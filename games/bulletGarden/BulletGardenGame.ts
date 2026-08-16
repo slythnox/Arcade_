@@ -28,6 +28,12 @@ export class BulletGardenGame implements GameInstance {
   private lives: number = 3;
   private gameOver: boolean = false;
   private isPaused: boolean = false;
+  
+  private time = 0;
+  private hitFlash = 0;
+  private stars: {x: number, y: number}[] = [];
+  private phaseTextTime = 0;
+  private phaseAnnounced = 0;
 
   public init(ctx: GameContext): void {
     this.ctx = ctx;
@@ -45,6 +51,14 @@ export class BulletGardenGame implements GameInstance {
     this.lives = 3;
     this.gameOver = false;
     this.isPaused = false;
+    this.time = 0;
+    this.hitFlash = 0;
+    this.phaseAnnounced = 0;
+    this.phaseTextTime = 0;
+    this.stars = [];
+    for (let i = 0; i < 50; i++) {
+        this.stars.push({x: Math.random() * 600, y: Math.random() * 700});
+    }
   }
 
   private emitSpiralBlossom(): void {
@@ -65,6 +79,13 @@ export class BulletGardenGame implements GameInstance {
 
   public update(dt: number): void {
     if (this.gameOver || this.isPaused) return;
+    this.time += dt;
+    if (this.hitFlash > 0) {
+        this.hitFlash -= dt;
+    }
+    if (this.phaseTextTime > 0) {
+        this.phaseTextTime -= dt;
+    }
 
     // Precision focus movement (slow & precise)
     const speed = 190;
@@ -98,6 +119,7 @@ export class BulletGardenGame implements GameInstance {
       // Micro-Hitbox collision with player
       if (Math.hypot(b.pos.x - this.playerPos.x, b.pos.y - this.playerPos.y) < this.playerHitboxRadius + 3) {
         this.lives--;
+        this.hitFlash = 0.3;
         this.ctx.audio.playExplosion();
         this.bullets = [];
         if (this.lives <= 0) {
@@ -112,6 +134,16 @@ export class BulletGardenGame implements GameInstance {
     if (this.score >= this.level * 3000) {
       this.level++;
       this.ctx.audio.playPowerUp();
+      this.phaseTextTime = 2.0;
+      this.phaseAnnounced = this.level;
+    }
+    if (this.score >= 3000 && this.phaseAnnounced < 2) {
+        this.phaseAnnounced = 2;
+        this.phaseTextTime = 2.0;
+    }
+    if (this.score >= 8000 && this.phaseAnnounced < 3) {
+        this.phaseAnnounced = 3;
+        this.phaseTextTime = 2.0;
     }
   }
 
@@ -132,15 +164,50 @@ export class BulletGardenGame implements GameInstance {
 
   public render(renderer: Renderer): void {
     const pr = renderer as PixelRenderer;
+    const rawCtx = pr.getContext();
     pr.clear("#040604");
     const w = renderer.getWidth();
     const h = renderer.getHeight();
 
-    pr.drawRect(10, 10, w - 20, h - 20, "rgba(0, 255, 102, 0.4)", false);
+    // Starfield
+    rawCtx.fillStyle = "#FFFFFF";
+    for (const star of this.stars) {
+        rawCtx.fillRect(star.x, star.y, 1, 1);
+    }
 
-    // Draw Boss Core
-    pr.drawCircle(this.bossPos.x, this.bossPos.y, 28, "#FF3366", true);
-    pr.drawCircle(this.bossPos.x, this.bossPos.y, 10, "#FFFFFF", true);
+    pr.drawRect(10, 10, w - 20, h - 20, "rgba(0, 255, 102, 0.2)", false);
+    
+    // Draw Boss Body
+    rawCtx.save();
+    rawCtx.translate(this.bossPos.x, this.bossPos.y);
+    rawCtx.rotate(this.bossAngle);
+    
+    if (this.score >= 8000) { // Phase 3 outer ring
+        for (let i = 0; i < 8; i++) {
+            const rAng = (i * Math.PI) / 4;
+            const rx = Math.cos(rAng) * 60;
+            const ry = Math.sin(rAng) * 60;
+            pr.drawCircle(rx, ry, 6, "#AA00FF", true);
+        }
+    }
+    
+    if (this.score >= 3000) { // Phase 2 arms
+        pr.drawRect(-80, -8, 160, 16, "#333333", true);
+        pr.drawRect(-80, -8, 160, 16, "#FF3366", false);
+    }
+    
+    // Main boss body
+    pr.drawCircle(0, 0, 40, "#111111", true);
+    
+    // Glowing core
+    rawCtx.shadowBlur = 20;
+    rawCtx.shadowColor = "#FF3366";
+    const pulseRad = 15 + Math.sin(this.time * 4) * 5;
+    pr.drawCircle(0, 0, pulseRad, "#FF3366", true);
+    rawCtx.shadowBlur = 0;
+    
+    pr.drawCircle(0, 0, 8, "#FFFFFF", true);
+    rawCtx.restore();
 
     // Draw Danmaku Bullets
     for (const b of this.bullets) {
@@ -148,8 +215,31 @@ export class BulletGardenGame implements GameInstance {
     }
 
     // Draw Player Ship & Micro-Hitbox Dot
-    pr.drawPixelBlock(this.playerPos.x - 12, this.playerPos.y - 12, 24, "#00FF66", "#FFFFFF", "#040604");
-    pr.drawCircle(this.playerPos.x, this.playerPos.y, this.playerHitboxRadius, "#FF3366", true);
+    const cx = this.playerPos.x;
+    const cy = this.playerPos.y;
+    rawCtx.beginPath();
+    rawCtx.moveTo(cx, cy - 12);
+    rawCtx.lineTo(cx - 10, cy + 10);
+    rawCtx.lineTo(cx + 10, cy + 10);
+    rawCtx.closePath();
+    rawCtx.fillStyle = "#00FF66";
+    rawCtx.fill();
+    
+    // Exhaust
+    if (Math.random() > 0.5) {
+        rawCtx.fillStyle = "#FFB703";
+        rawCtx.fillRect(cx - 3, cy + 12, 6, 8);
+    }
+    
+    pr.drawCircle(cx, cy, this.playerHitboxRadius, "#FFFFFF", true);
+
+    if (this.hitFlash > 0) {
+        pr.drawRect(0, 0, w, h, "rgba(255,0,0,0.4)", true);
+    }
+
+    if (this.phaseTextTime > 0) {
+        pr.drawText(`PHASE ${this.phaseAnnounced}`, w / 2, h / 2 - 60, { size: 30, color: "#FF3366", align: "center", shadowBlur: 10, shadowColor: "#FF3366" });
+    }
 
     pr.drawText(
       `SURVIVAL SCORE: ${this.score}  •  LEVEL: ${this.level}  •  LIVES: ${this.lives}`,

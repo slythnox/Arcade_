@@ -1,7 +1,7 @@
 import type { GameInstance } from "../types";
 import type { GameContext } from "../../engine/GameContext";
 import type { Renderer } from "../../engine/rendering/Renderer";
-import type { CanvasRenderer } from "../../engine/rendering/CanvasRenderer";
+import type { PixelRenderer } from "../../engine/rendering/PixelRenderer";
 import type { GameAction } from "../../core/types/game";
 
 class Vector2 {
@@ -26,6 +26,13 @@ interface Peg {
   hit: boolean;
 }
 
+interface Popup {
+  x: number;
+  y: number;
+  text: string;
+  life: number;
+}
+
 export class PegBlastGame implements GameInstance {
   private ctx!: GameContext;
   private isPaused: boolean = false;
@@ -45,11 +52,16 @@ export class PegBlastGame implements GameInstance {
   private ballRadius: number = 6;
   
   private bucketX: number = 0;
-  private bucketY: number = 550;
-  private bucketWidth: number = 80;
-  private bucketHeight: number = 30;
+  private bucketY: number = 650; // Modified for 700 canvas height
+  private bucketWidth: number = 100;
+  private bucketHeight: number = 40;
   private bucketDir: number = 1;
   private bucketSpeed: number = 150;
+
+  private ballTrail: {x: number, y: number}[] = [];
+  private popups: Popup[] = [];
+  private time: number = 0;
+  private stars: {x: number, y: number}[] = [];
   
   public init(ctx: GameContext): void {
     this.ctx = ctx;
@@ -63,15 +75,24 @@ export class PegBlastGame implements GameInstance {
     this.score = 0;
     this.level = 1;
     this.ballsLeft = 10;
+    this.time = 0;
+    this.stars = [];
+    for (let i = 0; i < 50; i++) {
+      this.stars.push({
+        x: this.ctx.random.next() * 600,
+        y: this.ctx.random.next() * 700
+      });
+    }
     this.loadLevel();
   }
   
   private loadLevel(): void {
     this.pegs = [];
     this.ballActive = false;
+    this.ballTrail = [];
+    this.popups = [];
     this.aimAngle = Math.PI / 2;
     
-    // Generate a simple pattern based on level
     const cols = 10 + this.level;
     const rows = 5 + Math.floor(this.level / 2);
     
@@ -80,15 +101,14 @@ export class PegBlastGame implements GameInstance {
     const positions: Vector2[] = [];
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
-        const x = 100 + c * 50 + (r % 2) * 25;
-        const y = 100 + r * 45;
-        if (x < 700) {
+        const x = 50 + c * (500 / cols) + (r % 2) * 15;
+        const y = 150 + r * 45;
+        if (x < 550) {
           positions.push(new Vector2(x, y));
         }
       }
     }
     
-    // randomly pick oranges
     const shuffled = this.ctx.random.shuffle(positions);
     
     for (let i = 0; i < shuffled.length; i++) {
@@ -103,19 +123,33 @@ export class PegBlastGame implements GameInstance {
   
   public update(deltaTime: number): void {
     if (this.isPaused || this.gameOver) return;
+    this.time += deltaTime;
+
+    for (let i = this.popups.length - 1; i >= 0; i--) {
+      this.popups[i].life -= deltaTime;
+      this.popups[i].y -= deltaTime * 30;
+      if (this.popups[i].life <= 0) {
+        this.popups.splice(i, 1);
+      }
+    }
     
-    // Update bucket
+    // Update bucket (Canvas is 600 wide)
     this.bucketX += this.bucketDir * this.bucketSpeed * deltaTime;
     if (this.bucketX < 0) {
       this.bucketX = 0;
       this.bucketDir = 1;
     }
-    if (this.bucketX > 800 - this.bucketWidth) {
-      this.bucketX = 800 - this.bucketWidth;
+    if (this.bucketX > 600 - this.bucketWidth) {
+      this.bucketX = 600 - this.bucketWidth;
       this.bucketDir = -1;
     }
     
     if (this.ballActive) {
+      this.ballTrail.push({ x: this.ballPos.x, y: this.ballPos.y });
+      if (this.ballTrail.length > 8) {
+        this.ballTrail.shift();
+      }
+
       // Gravity
       this.ballVel.y += 480 * deltaTime;
       this.ballPos = this.ballPos.add(this.ballVel.mul(deltaTime));
@@ -124,8 +158,8 @@ export class PegBlastGame implements GameInstance {
       if (this.ballPos.x - this.ballRadius < 0) {
         this.ballPos.x = this.ballRadius;
         this.ballVel.x *= -0.8;
-      } else if (this.ballPos.x + this.ballRadius > 800) {
-        this.ballPos.x = 800 - this.ballRadius;
+      } else if (this.ballPos.x + this.ballRadius > 600) {
+        this.ballPos.x = 600 - this.ballRadius;
         this.ballVel.x *= -0.8;
       }
       
@@ -144,8 +178,9 @@ export class PegBlastGame implements GameInstance {
         this.score += 500;
         this.ballsLeft++;
         this.ctx.audio.playLineClear();
+        this.popups.push({ x: this.ballPos.x, y: this.ballPos.y, text: "FREE BALL!", life: 1.5 });
         this.endBall();
-      } else if (this.ballPos.y > 600) {
+      } else if (this.ballPos.y > 700) {
         this.endBall();
       }
       
@@ -163,11 +198,12 @@ export class PegBlastGame implements GameInstance {
             this.ballPos = peg.pos.add(n.mul(this.ballRadius + peg.radius));
             
             peg.hit = true;
+            let pts = 10;
             if (peg.isOrange) {
-              this.score += 100;
-            } else {
-              this.score += 10;
+              pts = 100;
             }
+            this.score += pts;
+            this.popups.push({ x: peg.pos.x, y: peg.pos.y, text: `+${pts}`, life: 0.8 });
             this.ctx.audio.playDrop();
           }
         }
@@ -177,7 +213,7 @@ export class PegBlastGame implements GameInstance {
   
   private endBall(): void {
     this.ballActive = false;
-    // Remove hit pegs
+    this.ballTrail = [];
     const remainingOrange = this.pegs.filter(p => p.isOrange && !p.hit).length;
     this.pegs = this.pegs.filter(p => !p.hit);
     
@@ -216,7 +252,7 @@ export class PegBlastGame implements GameInstance {
         if (!this.ballActive && this.ballsLeft > 0) {
           this.ballActive = true;
           this.ballsLeft--;
-          this.ballPos = new Vector2(400, 30);
+          this.ballPos = new Vector2(300, 50);
           this.ballVel = new Vector2(Math.cos(this.aimAngle), Math.sin(this.aimAngle)).mul(600);
           this.ctx.audio.playMove();
         }
@@ -225,44 +261,100 @@ export class PegBlastGame implements GameInstance {
   }
   
   public render(renderer: Renderer): void {
-    const cr = renderer as CanvasRenderer;
-    cr.clear("#001a33");
-    
-    const w = cr.getWidth();
-    const h = cr.getHeight();
-    
-    // Launcher
-    cr.drawRect(390, 0, 20, 30, "#666", true);
-    if (!this.ballActive) {
-      const endX = 400 + Math.cos(this.aimAngle) * 50;
-      const endY = 30 + Math.sin(this.aimAngle) * 50;
-      cr.drawLine(400, 30, endX, endY, "#FFF", 2);
+    const pr = renderer as PixelRenderer;
+    const rawCtx = pr.getContext();
+    const w = renderer.getWidth();
+    const h = renderer.getHeight();
+
+    // Background
+    pr.clear("#050918");
+    for (const star of this.stars) {
+      pr.drawRect(star.x, star.y, 2, 2, "#FFFFFF", true);
     }
     
-    // Bucket
-    cr.drawRect(this.bucketX, this.bucketY, this.bucketWidth, this.bucketHeight, "#0F0", true);
-    
-    // Pegs
-    for (const peg of this.pegs) {
-      if (peg.isOrange) {
-        cr.drawCircle(peg.pos.x, peg.pos.y, peg.radius + (peg.hit ? 4 : 0), peg.hit ? "#FFC" : "#FF6600", true);
-      } else {
-        cr.drawCircle(peg.pos.x, peg.pos.y, peg.radius + (peg.hit ? 4 : 0), peg.hit ? "#CFF" : "#0066FF", true);
+    // Trajectory dots
+    if (!this.ballActive) {
+      let simX = 300;
+      let simY = 50;
+      let simVx = Math.cos(this.aimAngle) * 600;
+      let simVy = Math.sin(this.aimAngle) * 600;
+      const stepDt = 0.03;
+      
+      for (let i = 0; i < 20; i++) {
+        simVy += 480 * stepDt;
+        simX += simVx * stepDt;
+        simY += simVy * stepDt;
+        if (simX < 0 || simX > 600 || simY > 700) break;
+        
+        const size = Math.max(1, 4 - i * 0.15);
+        pr.drawCircle(simX, simY, size, `rgba(255, 255, 255, ${0.8 - i*0.03})`, true);
       }
     }
     
-    // Ball
+    // Cannon
+    rawCtx.save();
+    rawCtx.translate(300, 50);
+    rawCtx.rotate(this.aimAngle - Math.PI/2);
+    pr.drawRect(-12, 0, 24, 40, "#555", true);
+    pr.drawRect(-10, 0, 20, 40, "#777", true);
+    pr.drawCircle(0, 0, 20, "#444", true);
+    pr.drawCircle(0, 0, 15, "#666", true);
+    rawCtx.restore();
+    
+    // Bucket (Trapezoid container)
+    rawCtx.save();
+    rawCtx.fillStyle = "#228822";
+    rawCtx.beginPath();
+    rawCtx.moveTo(this.bucketX, this.bucketY);
+    rawCtx.lineTo(this.bucketX + this.bucketWidth, this.bucketY);
+    rawCtx.lineTo(this.bucketX + this.bucketWidth - 10, this.bucketY + this.bucketHeight);
+    rawCtx.lineTo(this.bucketX + 10, this.bucketY + this.bucketHeight);
+    rawCtx.closePath();
+    rawCtx.fill();
+    rawCtx.strokeStyle = "#44FF44";
+    rawCtx.lineWidth = 3;
+    rawCtx.stroke();
+    rawCtx.restore();
+    
+    // Pegs with glow
+    for (const peg of this.pegs) {
+      rawCtx.save();
+      rawCtx.shadowBlur = 8;
+      rawCtx.shadowColor = peg.isOrange ? '#FF6B00' : '#0077FF';
+      if (peg.isOrange) {
+        pr.drawCircle(peg.pos.x, peg.pos.y, peg.radius + (peg.hit ? 4 : 0), peg.hit ? "#FFC" : "#FF6B00", true);
+      } else {
+        pr.drawCircle(peg.pos.x, peg.pos.y, peg.radius + (peg.hit ? 4 : 0), peg.hit ? "#CFF" : "#0077FF", true);
+      }
+      rawCtx.restore();
+    }
+    
+    // Ball & trail
     if (this.ballActive) {
-      cr.drawCircle(this.ballPos.x, this.ballPos.y, this.ballRadius, "#FF0", true);
+      for (let i = 0; i < this.ballTrail.length; i++) {
+        const t = this.ballTrail[i];
+        const alpha = (i + 1) / this.ballTrail.length;
+        pr.drawCircle(t.x, t.y, this.ballRadius * alpha, `rgba(255, 255, 0, ${alpha * 0.5})`, true);
+      }
+      pr.drawCircle(this.ballPos.x, this.ballPos.y, this.ballRadius, "#FFFF00", true);
+    }
+    
+    // Popups
+    for (const p of this.popups) {
+      rawCtx.save();
+      rawCtx.globalAlpha = p.life;
+      pr.drawText(p.text, p.x, p.y, { size: 16, color: "#FFF", align: "center", shadowBlur: 4, shadowColor: "#000" });
+      rawCtx.restore();
     }
     
     // HUD
-    cr.drawText(`Score: ${this.score}`, 10, 20, { size: 16, color: "#FFF" });
-    cr.drawText(`Level: ${this.level}`, 10, 40, { size: 16, color: "#FFF" });
-    cr.drawText(`Balls: ${this.ballsLeft}`, w - 100, 20, { size: 16, color: "#FFF" });
+    pr.drawText(`Score: ${this.score}`, 10, 20, { size: 16, color: "#FFF" });
+    pr.drawText(`Level: ${this.level}`, 10, 40, { size: 16, color: "#FFF" });
+    pr.drawText(`Balls: ${this.ballsLeft}`, w - 80, 20, { size: 16, color: "#FFF" });
     
     if (this.gameOver) {
-      cr.drawText("GAME OVER", w / 2, h / 2, { size: 32, color: "#F00", align: "center" });
+      pr.drawRect(0, h/2 - 40, w, 80, "rgba(0,0,0,0.8)", true);
+      pr.drawText("GAME OVER", w / 2, h / 2, { size: 32, color: "#F00", align: "center" });
     }
   }
   

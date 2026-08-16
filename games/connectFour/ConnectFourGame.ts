@@ -9,11 +9,18 @@ export class ConnectFourGame implements GameInstance {
   private readonly cols: number = 7;
   private readonly rows: number = 6;
   private grid: number[][] = []; // 0 = empty, 1 = player, 2 = AI
-  private currentCol: number = 3;
+  private hoverCol: number = 3;
   private turn: "player" | "ai" = "player";
   private winner: number | "draw" | null = null;
+  private winCells: {r: number, c: number}[] = [];
+  
+  private p1Wins: number = 0;
+  private aiWins: number = 0;
   private score: number = 0;
   private isPaused: boolean = false;
+  private time: number = 0;
+
+  private dropping: {col: number, fromRow: number, toRow: number, progress: number, player: number} | null = null;
 
   public init(ctx: GameContext): void {
     this.ctx = ctx;
@@ -23,135 +30,246 @@ export class ConnectFourGame implements GameInstance {
   public reset(seed?: number): void {
     if (seed !== undefined) this.ctx.random.reset(seed);
     this.grid = Array.from({ length: this.rows }, () => Array(this.cols).fill(0));
-    this.currentCol = 3;
+    this.hoverCol = 3;
     this.turn = "player";
     this.winner = null;
-    this.score = 0;
+    this.winCells = [];
+    this.dropping = null;
     this.isPaused = false;
   }
 
-  private dropPiece(col: number, player: number): boolean {
+  private dropPieceLogic(col: number, player: number): number {
     for (let r = this.rows - 1; r >= 0; r--) {
       if (this.grid[r][col] === 0) {
-        this.grid[r][col] = player;
-        return true;
+        return r;
       }
+    }
+    return -1;
+  }
+
+  private dropPiece(col: number, player: number): boolean {
+    const toRow = this.dropPieceLogic(col, player);
+    if (toRow !== -1) {
+      this.grid[toRow][col] = player;
+      return true;
     }
     return false;
   }
 
-  private checkWin(p: number): boolean {
-    // Horizontal, Vertical, Diagonal 4-in-a-row
+  private checkWinFull(p: number, testGrid = this.grid): {r:number,c:number}[] | null {
     for (let r = 0; r < this.rows; r++) {
       for (let c = 0; c < this.cols; c++) {
-        if (this.grid[r][c] !== p) continue;
-
-        // Horizontal right
-        if (c <= this.cols - 4 && this.grid[r][c + 1] === p && this.grid[r][c + 2] === p && this.grid[r][c + 3] === p) return true;
-        // Vertical down
-        if (r <= this.rows - 4 && this.grid[r + 1][c] === p && this.grid[r + 2][c] === p && this.grid[r + 3][c] === p) return true;
-        // Diagonal down-right
-        if (r <= this.rows - 4 && c <= this.cols - 4 && this.grid[r + 1][c + 1] === p && this.grid[r + 2][c + 2] === p && this.grid[r + 3][c + 3] === p) return true;
-        // Diagonal down-left
-        if (r <= this.rows - 4 && c >= 3 && this.grid[r + 1][c - 1] === p && this.grid[r + 2][c - 2] === p && this.grid[r + 3][c - 3] === p) return true;
+        if (testGrid[r][c] !== p) continue;
+        if (c <= this.cols - 4 && testGrid[r][c + 1] === p && testGrid[r][c + 2] === p && testGrid[r][c + 3] === p) return [{r,c}, {r,c:c+1}, {r,c:c+2}, {r,c:c+3}];
+        if (r <= this.rows - 4 && testGrid[r + 1][c] === p && testGrid[r + 2][c] === p && testGrid[r + 3][c] === p) return [{r,c}, {r:r+1,c}, {r:r+2,c}, {r:r+3,c}];
+        if (r <= this.rows - 4 && c <= this.cols - 4 && testGrid[r + 1][c + 1] === p && testGrid[r + 2][c + 2] === p && testGrid[r + 3][c + 3] === p) return [{r,c}, {r:r+1,c:c+1}, {r:r+2,c:c+2}, {r:r+3,c:c+3}];
+        if (r <= this.rows - 4 && c >= 3 && testGrid[r + 1][c - 1] === p && testGrid[r + 2][c - 2] === p && testGrid[r + 3][c - 3] === p) return [{r,c}, {r:r+1,c:c-1}, {r:r+2,c:c-2}, {r:r+3,c:c-3}];
       }
     }
-    return false;
+    return null;
+  }
+
+  // Improved evaluate function
+  private evaluateBoard(player: number): number {
+    let score = 0;
+    const opp = player === 1 ? 2 : 1;
+
+    // Center column preference
+    let centerCount = 0;
+    for (let r = 0; r < this.rows; r++) {
+      if (this.grid[r][3] === player) centerCount++;
+    }
+    score += centerCount * 3;
+
+    // We can evaluate windows of 4
+    const evaluateWindow = (window: number[]) => {
+      let score = 0;
+      let pCount = window.filter(c => c === player).length;
+      let emptyCount = window.filter(c => c === 0).length;
+      let oppCount = window.filter(c => c === opp).length;
+
+      if (pCount === 4) score += 1000000;
+      else if (pCount === 3 && emptyCount === 1) score += 100;
+      else if (pCount === 2 && emptyCount === 2) score += 10;
+
+      if (oppCount === 3 && emptyCount === 1) score -= 1000;
+      
+      return score;
+    };
+
+    // Horizontal
+    for (let r = 0; r < this.rows; r++) {
+      for (let c = 0; c < this.cols - 3; c++) {
+        let window = [this.grid[r][c], this.grid[r][c+1], this.grid[r][c+2], this.grid[r][c+3]];
+        score += evaluateWindow(window);
+      }
+    }
+    // Vertical
+    for (let c = 0; c < this.cols; c++) {
+      for (let r = 0; r < this.rows - 3; r++) {
+        let window = [this.grid[r][c], this.grid[r+1][c], this.grid[r+2][c], this.grid[r+3][c]];
+        score += evaluateWindow(window);
+      }
+    }
+    // Diag
+    for (let r = 0; r < this.rows - 3; r++) {
+      for (let c = 0; c < this.cols - 3; c++) {
+        let window = [this.grid[r][c], this.grid[r+1][c+1], this.grid[r+2][c+2], this.grid[r+3][c+3]];
+        score += evaluateWindow(window);
+      }
+    }
+    // Anti-Diag
+    for (let r = 0; r < this.rows - 3; r++) {
+      for (let c = 0; c < this.cols - 3; c++) {
+        let window = [this.grid[r+3][c], this.grid[r+2][c+1], this.grid[r+1][c+2], this.grid[r][c+3]];
+        score += evaluateWindow(window);
+      }
+    }
+
+    return score;
   }
 
   private triggerAIMove(): void {
-    // Minimax / heuristic: Check if AI can win next, else block player win, else pick center
+    let bestScore = -Infinity;
     let bestCol = -1;
-
-    // 1. Can AI win?
+    
+    // Depth 3 Minimax (adjusting to avoid slow execution while providing good challenge)
     for (let c = 0; c < this.cols; c++) {
-      if (this.dropPiece(c, 2)) {
-        if (this.checkWin(2)) {
+      let r = this.dropPieceLogic(c, 2);
+      if (r !== -1) {
+        this.grid[r][c] = 2;
+        if (this.checkWinFull(2)) { // Immediate win
           bestCol = c;
-          this.undoDrop(c);
+          this.grid[r][c] = 0;
           break;
         }
-        this.undoDrop(c);
-      }
-    }
-
-    // 2. Can player win? Block it!
-    if (bestCol === -1) {
-      for (let c = 0; c < this.cols; c++) {
-        if (this.dropPiece(c, 1)) {
-          if (this.checkWin(1)) {
-            bestCol = c;
-            this.undoDrop(c);
-            break;
-          }
-          this.undoDrop(c);
+        let score = this.minimax(3, false, -Infinity, Infinity);
+        this.grid[r][c] = 0;
+        
+        if (score > bestScore) {
+          bestScore = score;
+          bestCol = c;
+        } else if (score === bestScore && Math.random() < 0.5) {
+          bestCol = c;
         }
       }
     }
 
-    // 3. Pick preferential center column
+    // Fallback if somehow -1 (e.g. board full but not caught)
     if (bestCol === -1) {
-      const preferred = [3, 2, 4, 1, 5, 0, 6];
-      for (const c of preferred) {
-        if (this.grid[0][c] === 0) {
-          bestCol = c;
-          break;
-        }
-      }
+      for (let c = 0; c < this.cols; c++) if (this.grid[0][c] === 0) bestCol = c;
     }
 
     if (bestCol !== -1) {
-      this.dropPiece(bestCol, 2);
+      const toRow = this.dropPieceLogic(bestCol, 2);
+      this.dropping = { col: bestCol, fromRow: -1, toRow, progress: 0, player: 2 };
       this.ctx.audio.playMove();
-
-      if (this.checkWin(2)) {
-        this.winner = 2;
-        this.ctx.session.setStatus("game-over");
-        this.ctx.audio.playExplosion();
-      } else {
-        this.turn = "player";
-      }
+      this.turn = "player"; // Let player wait while dropping visually
     }
   }
 
-  private undoDrop(col: number): void {
-    for (let r = 0; r < this.rows; r++) {
-      if (this.grid[r][col] !== 0) {
-        this.grid[r][col] = 0;
-        break;
+  private minimax(depth: number, isMaximizing: boolean, alpha: number, beta: number): number {
+    if (this.checkWinFull(2)) return 1000000;
+    if (this.checkWinFull(1)) return -1000000;
+    
+    let isFull = true;
+    for (let c = 0; c < this.cols; c++) if (this.grid[0][c] === 0) isFull = false;
+    if (isFull) return 0;
+
+    if (depth === 0) return this.evaluateBoard(2);
+
+    if (isMaximizing) {
+      let value = -Infinity;
+      for (let c = 0; c < this.cols; c++) {
+        let r = this.dropPieceLogic(c, 2);
+        if (r !== -1) {
+          this.grid[r][c] = 2;
+          value = Math.max(value, this.minimax(depth - 1, false, alpha, beta));
+          this.grid[r][c] = 0;
+          alpha = Math.max(alpha, value);
+          if (alpha >= beta) break;
+        }
       }
+      return value;
+    } else {
+      let value = Infinity;
+      for (let c = 0; c < this.cols; c++) {
+        let r = this.dropPieceLogic(c, 1);
+        if (r !== -1) {
+          this.grid[r][c] = 1;
+          value = Math.min(value, this.minimax(depth - 1, true, alpha, beta));
+          this.grid[r][c] = 0;
+          beta = Math.min(beta, value);
+          if (alpha >= beta) break;
+        }
+      }
+      return value;
     }
   }
 
-  public update(_dt: number): void {}
+  public update(dt: number): void {
+    if (this.isPaused) return;
+    this.time += dt;
 
-  public handleInput(action: GameAction, isPressed: boolean): void {
-    if (!isPressed || this.isPaused || this.winner !== null) return;
-
-    if (action === "MOVE_LEFT") {
-      this.currentCol = Math.max(0, this.currentCol - 1);
-      this.ctx.audio.playMove();
-    } else if (action === "MOVE_RIGHT") {
-      this.currentCol = Math.min(this.cols - 1, this.currentCol + 1);
-      this.ctx.audio.playMove();
-    } else if (action === "ACTION_PRIMARY" || action === "MOVE_DOWN") {
-      if (this.turn === "player") {
-        const success = this.dropPiece(this.currentCol, 1);
-        if (success) {
-          this.ctx.audio.playMove();
-          if (this.checkWin(1)) {
-            this.winner = 1;
-            this.score = 2500;
-            this.ctx.session.setStatus("ready");
+    if (this.dropping) {
+      this.dropping.progress += dt * 8; // Drop speed
+      if (this.dropping.progress >= 1.0) {
+        // Finalize drop
+        this.grid[this.dropping.toRow][this.dropping.col] = this.dropping.player;
+        this.ctx.audio.playDrop();
+        
+        const win = this.checkWinFull(this.dropping.player);
+        if (win) {
+          this.winner = this.dropping.player;
+          this.winCells = win;
+          if (this.winner === 1) {
+            this.score += 2500;
+            this.p1Wins++;
             this.ctx.audio.playVictory();
           } else {
+            this.aiWins++;
+            this.ctx.audio.playExplosion();
+          }
+          this.ctx.session.setStatus("game-over");
+        } else {
+          // Check draw
+          let full = true;
+          for (let c = 0; c < this.cols; c++) if (this.grid[0][c] === 0) full = false;
+          if (full) {
+            this.winner = "draw";
+            this.ctx.session.setStatus("game-over");
+          } else if (this.dropping.player === 1) {
             this.turn = "ai";
             setTimeout(() => this.triggerAIMove(), 250);
           }
         }
+        this.dropping = null;
       }
-    } else if (action === "RESTART") {
+    }
+  }
+
+  public handleInput(action: GameAction, isPressed: boolean): void {
+    if (!isPressed || this.isPaused) return;
+
+    if (action === "RESTART" && this.winner !== null) {
       this.reset();
+      return;
+    }
+
+    if (this.winner !== null || this.dropping !== null || this.turn !== "player") return;
+
+    if (action === "MOVE_LEFT") {
+      this.hoverCol = Math.max(0, this.hoverCol - 1);
+      this.ctx.audio.playMove();
+    } else if (action === "MOVE_RIGHT") {
+      this.hoverCol = Math.min(this.cols - 1, this.hoverCol + 1);
+      this.ctx.audio.playMove();
+    } else if (action === "ACTION_PRIMARY" || action === "MOVE_DOWN") {
+      const toRow = this.dropPieceLogic(this.hoverCol, 1);
+      if (toRow !== -1) {
+        this.dropping = { col: this.hoverCol, fromRow: -1, toRow, progress: 0, player: 1 };
+        this.ctx.audio.playMove();
+      }
     }
   }
 
@@ -163,67 +281,96 @@ export class ConnectFourGame implements GameInstance {
 
   public render(renderer: Renderer): void {
     const pr = renderer as PixelRenderer;
-    pr.clear("#040604");
+    const rawCtx = pr.getContext();
+    pr.clear("#000000"); // Dark background
     const w = renderer.getWidth();
     const h = renderer.getHeight();
 
-    const cellSize = 68;
+    const cellSize = 75;
     const boardWidth = this.cols * cellSize;
     const boardHeight = this.rows * cellSize;
     const offX = Math.floor((w - boardWidth) / 2);
-    const offY = 140;
+    const offY = 160;
 
-    // Drop Preview Indicator
-    if (this.winner === null && this.turn === "player") {
-      const px = offX + this.currentCol * cellSize + cellSize / 2;
-      pr.drawCircle(px, 90, 24, "#00FF66", true);
-      pr.drawCircle(px, 90, 8, "#FFFFFF", true);
+    // HUD
+    pr.drawText(`CONNECT FOUR`, w / 2, 40, { size: 32, color: "#FFFFFF", align: "center" });
+    pr.drawText(`P1 WINS: ${this.p1Wins}`, 50, 90, { size: 18, color: "#f44336" });
+    pr.drawText(`AI WINS: ${this.aiWins}`, w - 50, 90, { size: 18, color: "#ffeb3b", align: "right" });
+    pr.drawText(`SCORE: ${this.score}`, w / 2, 90, { size: 18, color: "#FFFFFF", align: "center" });
+
+    // Hover Preview
+    if (this.winner === null && this.turn === "player" && !this.dropping) {
+      const px = offX + this.hoverCol * cellSize + cellSize / 2;
+      pr.drawCircle(px, offY - 40, 30, "#f44336", true); // Player red
     }
 
-    pr.drawRect(offX - 8, offY - 8, boardWidth + 16, boardHeight + 16, "#080e08", true);
-    pr.drawRect(offX - 8, offY - 8, boardWidth + 16, boardHeight + 16, "rgba(0, 255, 102, 0.4)", false);
+    // Board Background
+    rawCtx.fillStyle = '#1a237e'; // Dark blue board
+    rawCtx.fillRect(offX - 10, offY - 10, boardWidth + 20, boardHeight + 20);
 
-    // Draw Grid Slots
+    // Draw Pieces & Holes
     for (let r = 0; r < this.rows; r++) {
       for (let c = 0; c < this.cols; c++) {
-        const val = this.grid[r][c];
+        let val = this.grid[r][c];
+        
+        // If this exact slot is where dropping piece is going, it is visually empty right now
+        if (this.dropping && this.dropping.col === c && this.dropping.toRow === r) {
+          val = 0;
+        }
+
         const cx = offX + c * cellSize + cellSize / 2;
         const cy = offY + r * cellSize + cellSize / 2;
 
         if (val === 0) {
-          pr.drawCircle(cx, cy, 26, "#030604", true);
-          pr.drawCircle(cx, cy, 26, "rgba(0, 255, 102, 0.2)", false);
-        } else if (val === 1) {
-          pr.drawCircle(cx, cy, 26, "#00FF66", true);
-          pr.drawCircle(cx, cy, 10, "#FFFFFF", true);
-        } else if (val === 2) {
-          pr.drawCircle(cx, cy, 26, "#FF3366", true);
-          pr.drawCircle(cx, cy, 10, "#FFFFFF", true);
+          pr.drawCircle(cx, cy, 32, "#000000", true); // Hole
+        } else {
+          const color = val === 1 ? "#f44336" : "#ffeb3b";
+          const isWin = this.winCells.some(wc => wc.r === r && wc.c === c);
+          
+          if (isWin) {
+            rawCtx.shadowColor = color;
+            rawCtx.shadowBlur = 15 + Math.sin(this.time * 5) * 5;
+          }
+          pr.drawCircle(cx, cy, 32, color, true);
+          // Inner shadow/depth
+          pr.drawCircle(cx, cy, 24, val === 1 ? "#d32f2f" : "#fbc02d", true);
+          if (isWin) {
+            rawCtx.shadowBlur = 0; // reset
+          }
         }
       }
     }
 
-    pr.drawText(
-      `CONNECT FOUR  •  TURN: ${this.turn.toUpperCase()}  •  [← → MOVE, SPACE/↓ DROP]`,
-      w / 2,
-      28,
-      {
-        size: 11,
-        color: "#00FF66",
-        align: "center",
-      }
-    );
+    // Draw Dropping Piece
+    if (this.dropping) {
+      const startY = offY - 40;
+      const targetY = offY + this.dropping.toRow * cellSize + cellSize / 2;
+      const currentY = startY + (targetY - startY) * this.dropping.progress;
+      const cx = offX + this.dropping.col * cellSize + cellSize / 2;
+      
+      const color = this.dropping.player === 1 ? "#f44336" : "#ffeb3b";
+      const innerColor = this.dropping.player === 1 ? "#d32f2f" : "#fbc02d";
+      
+      // Draw over board (partially clipping logic would be ideal but rendering above is fine)
+      pr.drawCircle(cx, currentY, 32, color, true);
+      pr.drawCircle(cx, currentY, 24, innerColor, true);
+    }
 
-    if (this.winner === 1) {
-      pr.drawRect(0, h / 2 - 45, w, 90, "rgba(4,6,4,0.95)", true);
-      pr.drawRect(0, h / 2 - 45, w, 90, "#00FF66", false);
-      pr.drawText("PLAYER CONNECT FOUR — VICTORY", w / 2, h / 2 - 10, { size: 20, color: "#00FF66", align: "center" });
-      pr.drawText("PRESS R TO RESTART", w / 2, h / 2 + 18, { size: 12, color: "#F0F4F0", align: "center" });
-    } else if (this.winner === 2) {
-      pr.drawRect(0, h / 2 - 45, w, 90, "rgba(4,6,4,0.95)", true);
-      pr.drawRect(0, h / 2 - 45, w, 90, "#FF3366", false);
-      pr.drawText("AI CONNECT FOUR — DEFEAT", w / 2, h / 2 - 10, { size: 22, color: "#FF3366", align: "center" });
-      pr.drawText("PRESS R TO RESTART", w / 2, h / 2 + 18, { size: 12, color: "#F0F4F0", align: "center" });
+    // Board front overlay (to make pieces look inside holes)
+    rawCtx.globalCompositeOperation = 'destination-out';
+    // Punch holes in an overlay? Simple rendering is ok as is, pieces over holes.
+    rawCtx.globalCompositeOperation = 'source-over';
+
+    if (this.winner) {
+      pr.drawRect(0, h / 2 - 50, w, 100, "rgba(0,0,0,0.85)", true);
+      if (this.winner === "draw") {
+        pr.drawText("DRAW", w / 2, h / 2 - 10, { size: 32, color: "#FFF", align: "center" });
+      } else {
+        const tColor = this.winner === 1 ? "#f44336" : "#ffeb3b";
+        const tText = this.winner === 1 ? "PLAYER WINS!" : "AI WINS!";
+        pr.drawText(tText, w / 2, h / 2 - 10, { size: 36, color: tColor, align: "center" });
+      }
+      pr.drawText("PRESS R TO RESTART", w / 2, h / 2 + 25, { size: 16, color: "#FFF", align: "center" });
     }
   }
 }
