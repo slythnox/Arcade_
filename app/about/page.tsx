@@ -13,31 +13,32 @@ export default function AboutPage() {
       {/* HERO SECTION */}
       <div style={{
         width: "100%",
-        padding: "100px 20px",
+        padding: "clamp(48px, 8vw, 100px) clamp(16px, 4vw, 40px)",
         backgroundColor: "rgba(0,0,0,0.4)",
         borderBottom: "1px solid var(--color-surface-border, #1E293B)",
         textAlign: "center"
       }}>
         <h1 style={{
           fontFamily: "var(--font-pixel), monospace",
-          fontSize: "3rem",
+          fontSize: "clamp(1.6rem, 4vw, 3rem)",
           color: "var(--arcade-yellow, #FFD84D)",
           marginBottom: "20px",
-          textShadow: "4px 4px 0px rgba(0,0,0,0.8)"
+          textShadow: "4px 4px 0px rgba(0,0,0,0.8)",
+          lineHeight: 1.3,
         }}>
           ARCADE_ ARCHITECTURE
         </h1>
         <p style={{
           maxWidth: "800px",
           margin: "0 auto",
-          fontSize: "1.2rem",
+          fontSize: "clamp(1rem, 1.8vw, 1.25rem)",
           color: "var(--arcade-cyan, #4DE8E8)"
         }}>
           Engineering documentation for a deterministic, zero-dependency browser game platform.
         </p>
       </div>
 
-      <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "40px 20px" }}>
+      <div style={{ maxWidth: "min(1400px, 94vw)", margin: "0 auto", padding: "40px clamp(16px, 3vw, 32px)" }}>
         
         {/* 1. WHAT IS ARCADE_ */}
         <section style={{ marginBottom: "60px" }}>

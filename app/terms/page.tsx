@@ -7,17 +7,18 @@ export default function TermsPage() {
       backgroundColor: '#080B12',
       color: 'var(--color-text-dim, #ccc)',
       fontFamily: 'var(--font-sans, sans-serif)',
-      padding: '4rem 2rem',
+      padding: 'clamp(2rem, 5vw, 4rem) clamp(1rem, 3vw, 2rem)',
       lineHeight: 1.6
     }}>
-      <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-        <header style={{ marginBottom: '4rem', textAlign: 'center' }}>
+      <div style={{ maxWidth: 'min(960px, 94vw)', margin: '0 auto' }}>
+        <header style={{ marginBottom: 'clamp(2rem, 4vw, 4rem)', textAlign: 'center' }}>
           <h1 style={{
             fontFamily: 'var(--font-pixel, monospace)',
             color: 'var(--arcade-purple, #A879FF)',
-            fontSize: '2rem',
+            fontSize: 'clamp(1.3rem, 3.5vw, 2.2rem)',
             marginBottom: '1rem',
-            textShadow: '2px 2px 0px rgba(168,121,255,0.3)'
+            textShadow: '2px 2px 0px rgba(168,121,255,0.3)',
+            lineHeight: 1.3
           }}>TERMS OF ENGAGEMENT</h1>
           <p style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: '0.9rem' }}>
             LAST UPDATED: AUGUST 2026

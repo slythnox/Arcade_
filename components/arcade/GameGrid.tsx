@@ -92,8 +92,8 @@ export const GameGrid: React.FC<GameGridProps> = ({
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(290px, 1fr))",
-            gap: "24px",
+            gridTemplateColumns: "repeat(auto-fill, minmax(clamp(250px, 18vw, 320px), 1fr))",
+            gap: "clamp(16px, 1.8vw, 28px)",
           }}
         >
           {games.map((game) => (

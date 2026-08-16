@@ -504,15 +504,15 @@ export const GameShell: React.FC<GameShellProps> = ({ gameSlug, mode = "arcade" 
       className={`arcade-cockpit-stage ${isFullscreen ? "is-fullscreen steam-deck-mode" : ""}`}
       style={{
         width: "100%",
-        maxWidth: isFullscreen ? "100vw" : "1280px",
-        height: isFullscreen ? "100vh" : "calc(100vh - var(--header-height, 64px) - 24px)",
-        maxHeight: isFullscreen ? "100vh" : "calc(100vh - var(--header-height, 64px) - 24px)",
+        maxWidth: isFullscreen ? "100vw" : "min(1920px, 98vw)",
+        height: isFullscreen ? "100vh" : "calc(100vh - var(--header-height, 64px) - 16px)",
+        maxHeight: isFullscreen ? "100vh" : "calc(100vh - var(--header-height, 64px) - 16px)",
         display: "flex",
         flexDirection: isFullscreen ? "column" : "row",
-        justifyContent: isFullscreen ? "space-between" : "center",
+        justifyContent: "center",
         alignItems: "stretch",
-        gap: isFullscreen ? "0" : "18px",
-        padding: isFullscreen ? "0" : "0 16px 12px 16px",
+        gap: isFullscreen ? "0" : "clamp(12px, 1.5vw, 24px)",
+        padding: isFullscreen ? "0" : "0 clamp(8px, 1.5vw, 24px) 12px clamp(8px, 1.5vw, 24px)",
         boxSizing: "border-box",
         overflow: "hidden",
         backgroundColor: isFullscreen ? "#04060d" : "transparent",
@@ -615,8 +615,9 @@ export const GameShell: React.FC<GameShellProps> = ({ gameSlug, mode = "arcade" 
         <aside
           className="arcade-info-box"
           style={{
-            width: "300px",
-            minWidth: "300px",
+            width: "clamp(240px, 18vw, 320px)",
+            minWidth: "220px",
+            maxWidth: "340px",
             backgroundColor: "#080e1c",
             border: "1px solid #1a2b4c",
             borderRadius: "8px",
@@ -893,7 +894,7 @@ export const GameShell: React.FC<GameShellProps> = ({ gameSlug, mode = "arcade" 
         style={{
           flex: 1,
           width: isFullscreen ? "100%" : "auto",
-          maxWidth: isFullscreen ? "860px" : "800px",
+          maxWidth: isFullscreen ? "100%" : "min(1360px, 100%)",
           height: isFullscreen ? "calc(100vh - 84px)" : "100%",
           display: "flex",
           flexDirection: "column",
@@ -1062,6 +1063,10 @@ export const GameShell: React.FC<GameShellProps> = ({ gameSlug, mode = "arcade" 
                 display: "block",
                 width: "100%",
                 height: "100%",
+                maxWidth: "100%",
+                maxHeight: "100%",
+                aspectRatio: "600 / 700",
+                objectFit: "contain",
                 backgroundColor: "#050914",
                 borderRadius: "4px",
               }}
@@ -1636,6 +1641,15 @@ export const GameShell: React.FC<GameShellProps> = ({ gameSlug, mode = "arcade" 
           border: 2px solid #f3e8ff;
         }
 
+        /* Medium screens (861px - 1080px): Compact sidebar to prioritize play area */
+        @media (max-width: 1080px) and (min-width: 861px) {
+          .arcade-info-box {
+            width: 220px !important;
+            min-width: 220px !important;
+            padding: 10px !important;
+          }
+        }
+
         /* 75-25 Mobile Ratio Optimization */
         @media (max-width: 860px) {
           .arcade-info-box {
@@ -1662,6 +1676,13 @@ export const GameShell: React.FC<GameShellProps> = ({ gameSlug, mode = "arcade" 
             padding: 24px 10px 8px 10px !important;
             margin-top: 0 !important;
             max-height: 25vh !important;
+          }
+        }
+
+        /* Large & Ultra-Wide Displays (1440p / 4K / Ultrawides) */
+        @media (min-width: 1600px) {
+          .arcade-cockpit-stage {
+            max-height: calc(100vh - var(--header-height, 64px) - 20px) !important;
           }
         }
       `}</style>

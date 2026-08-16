@@ -51,7 +51,7 @@ export default function CaseStudiesPage() {
         </p>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "20px", maxWidth: "840px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(clamp(320px, 30vw, 480px), 1fr))", gap: "24px", maxWidth: "min(1200px, 100%)" }}>
         {studies.map((study, idx) => {
           const cardAccents = ["#ff5c8a", "#4de8e8", "#ffd84d", "#a879ff"];
           const accent = cardAccents[idx % cardAccents.length];

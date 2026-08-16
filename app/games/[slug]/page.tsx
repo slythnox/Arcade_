@@ -47,8 +47,8 @@ export default async function GameDetailPage({ params }: Props) {
         justifyContent: "flex-start",
         alignItems: "center",
         boxSizing: "border-box",
-        paddingTop: "12px",
-        paddingBottom: "12px",
+        paddingTop: "clamp(4px, 1vw, 12px)",
+        paddingBottom: "clamp(4px, 1vw, 12px)",
       }}
     >
       <script
