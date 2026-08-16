@@ -227,6 +227,7 @@ export const GAME_THEMES: Record<string, GameTheme> = {
   pixelCircuit: { primary: "#ffd84d", secondary: "#ff5c8a", accent: "#63e66d", glow: "rgba(255, 216, 77, 0.4)" },
   "dungeon-quest": { primary: "#63e66d", secondary: "#ffd84d", accent: "#4da3ff", glow: "rgba(99, 230, 109, 0.4)" },
   dungeonQuest: { primary: "#63e66d", secondary: "#ffd84d", accent: "#4da3ff", glow: "rgba(99, 230, 109, 0.4)" },
+  hotlap: { primary: "#ff7a45", secondary: "#ffd84d", accent: "#4de8e8", glow: "rgba(255, 122, 69, 0.45)" },
 };
 
 export function getGameTheme(game: GameDefinition): GameTheme {
@@ -1345,6 +1346,74 @@ export const GameIllustration: React.FC<GameIllustrationProps> = ({ game, size =
             <polygon points="15,9 20,15 15,21 10,15" fill="#e0f2fe" />
             <circle cx="9" cy="8" r="1" fill="#ffd84d" />
             <circle cx="21" cy="22" r="1.5" fill="#a879ff" />
+          </>
+        );
+
+      case "hotlap":
+        return (
+          <>
+            {/* Speed trails & asphalt road markings */}
+            <rect x="14" y="2" width="2" height="4" fill="rgba(255,255,255,0.3)" />
+            <rect x="14" y="9" width="2" height="4" fill="rgba(255,255,255,0.3)" />
+            <rect x="14" y="24" width="2" height="5" fill="rgba(255,255,255,0.3)" />
+            {/* Kerb borders */}
+            <rect x="1" y="2" width="3" height="5" fill="#ff3d5a" />
+            <rect x="1" y="7" width="3" height="5" fill="#ffffff" />
+            <rect x="1" y="12" width="3" height="5" fill="#ff3d5a" />
+            <rect x="1" y="17" width="3" height="5" fill="#ffffff" />
+            <rect x="1" y="22" width="3" height="5" fill="#ff3d5a" />
+            <rect x="26" y="4" width="3" height="5" fill="#ffffff" />
+            <rect x="26" y="9" width="3" height="5" fill="#ff3d5a" />
+            <rect x="26" y="14" width="3" height="5" fill="#ffffff" />
+            <rect x="26" y="19" width="3" height="5" fill="#ff3d5a" />
+            <rect x="26" y="24" width="3" height="5" fill="#ffffff" />
+
+            {/* Formula Car Shadow */}
+            <ellipse cx="15" cy="16" rx="9" ry="11" fill="rgba(0,0,0,0.5)" />
+
+            {/* 4 Tires */}
+            <rect x="5" y="8" width="4" height="6" fill="#1b2028" />
+            <rect x="6" y="9" width="2" height="4" fill="#384152" />
+            <rect x="21" y="8" width="4" height="6" fill="#1b2028" />
+            <rect x="22" y="9" width="2" height="4" fill="#384152" />
+            <rect x="5" y="19" width="5" height="7" fill="#1b2028" />
+            <rect x="6" y="20" width="3" height="5" fill="#384152" />
+            <rect x="20" y="19" width="5" height="7" fill="#1b2028" />
+            <rect x="21" y="20" width="3" height="5" fill="#384152" />
+
+            {/* Carbon Wishbones */}
+            <line x1="13" y1="11" x2="8" y2="11" stroke="#2a303c" strokeWidth="1.2" />
+            <line x1="17" y1="11" x2="22" y2="11" stroke="#2a303c" strokeWidth="1.2" />
+            <line x1="13" y1="22" x2="8" y2="22" stroke="#2a303c" strokeWidth="1.2" />
+            <line x1="17" y1="22" x2="22" y2="22" stroke="#2a303c" strokeWidth="1.2" />
+
+            {/* Rear Wing Assembly */}
+            <rect x="8" y="26" width="14" height="2.5" fill="#d4380d" />
+            <rect x="7" y="25" width="2" height="4" fill="#1f242e" />
+            <rect x="21" y="25" width="2" height="4" fill="#1f242e" />
+            <rect x="14" y="26.5" width="2" height="1.5" fill="#ff3838" />
+
+            {/* Sidepods & Monocoque */}
+            <rect x="10" y="15" width="10" height="9" rx="2" fill="#ff7a45" />
+            <rect x="11" y="16" width="2" height="6" fill="#ffa940" />
+            <rect x="17" y="16" width="2" height="6" fill="#ffa940" />
+            <rect x="10" y="16" width="1.5" height="2" fill="#fffb8f" />
+            <rect x="18.5" y="16" width="1.5" height="2" fill="#fffb8f" />
+
+            {/* Cockpit & Helmet */}
+            <rect x="13" y="13" width="4" height="5" rx="1" fill="#18202c" />
+            <circle cx="15" cy="15" r="1.5" fill="#ffd666" />
+            <rect x="14" y="14" width="2" height="1" fill="#0c1018" />
+
+            {/* Tapered Nosecone */}
+            <polygon points="15,4 12,14 18,14" fill="#ff7a45" />
+            <polygon points="15,5 14,13 16,13" fill="#ffa940" />
+            <rect x="14" y="8" width="2" height="2" fill="#fffb8f" />
+
+            {/* Front Wing */}
+            <polygon points="8,5 15,3 22,5 21,7 15,5 9,7" fill="#d4380d" />
+            <rect x="7" y="4" width="2" height="3" fill="#fffb8f" />
+            <rect x="21" y="4" width="2" height="3" fill="#fffb8f" />
           </>
         );
 
