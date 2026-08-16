@@ -71,7 +71,7 @@ export const SiteFooter: React.FC = () => {
                 maxWidth: "340px",
               }}
             >
-              A mathematical browser arcade platform built from scratch in TypeScript with 60 deterministic game cartridges, procedural shaders, and zero third-party game frameworks.
+              A mathematical browser arcade platform built from scratch in TypeScript with 61 deterministic game cartridges, procedural shaders, and zero third-party game frameworks.
             </p>
           </div>
 
@@ -128,9 +128,7 @@ export const SiteFooter: React.FC = () => {
               <Link href="/faq" style={{ color: "var(--color-text-dim)" }}>
                 Engineering FAQ
               </Link>
-              <Link href="/contact" style={{ color: "var(--color-text-dim)" }}>
-                Contact & Dispatch
-              </Link>
+
               <Link href="/privacy" style={{ color: "var(--color-text-dim)" }}>
                 Privacy Statement
               </Link>
@@ -171,7 +169,7 @@ export const SiteFooter: React.FC = () => {
               }}
             />
             <span style={{ color: "var(--arcade-green)", fontWeight: 700 }}>
-              60 DETERMINISTIC CARTRIDGES · 60HZ FIXED ACCUMULATOR
+              61 DETERMINISTIC CARTRIDGES · 60HZ FIXED ACCUMULATOR
             </span>
           </div>
         </div>

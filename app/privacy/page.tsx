@@ -45,9 +45,9 @@ export default function PrivacyPage() {
           </section>
 
           <section style={cardStyle('var(--arcade-yellow, #FFD84D)')}>
-            <h2 style={titleStyle('var(--arcade-yellow, #FFD84D)')}>3. No Analytics or Trackers</h2>
+            <h2 style={titleStyle('var(--arcade-yellow, #FFD84D)')}>3. Analytics</h2>
             <p>
-              We firmly reject the modern web's surveillance capitalism. ARCADE_ contains absolutely no third-party analytics (e.g., Google Analytics, Mixpanel), no tracking pixels, and no behavioral profiling scripts. Your presence here is known only to you.
+              ARCADE_ uses <strong>Vercel Analytics</strong> for aggregate, anonymous page-view metrics. This collects no personal data, no cookies, and no behavioral profiling. Your gameplay inputs, game state, and in-game events are never transmitted to any server. We do not use Google Analytics, Mixpanel, or any tracking pixels.
             </p>
           </section>
 
@@ -65,22 +65,15 @@ export default function PrivacyPage() {
             </p>
           </section>
 
-          <section style={cardStyle('var(--arcade-green, #63E66D)')}>
-            <h2 style={titleStyle('var(--arcade-green, #63E66D)')}>6. Contact Form Data</h2>
-            <p>
-              If you choose to use our contact form to report bugs or provide feedback, the information you submit (such as your email address) is used exclusively for correspondence regarding your inquiry. It is not added to marketing lists or sold to third parties.
-            </p>
-          </section>
-
           <section style={cardStyle('var(--arcade-pink, #FF5C8A)')}>
-            <h2 style={titleStyle('var(--arcade-pink, #FF5C8A)')}>7. GitHub Open Source</h2>
+            <h2 style={titleStyle('var(--arcade-pink, #FF5C8A)')}>6. GitHub Open Source</h2>
             <p>
-              Trust requires transparency. The entirety of ARCADE_'s client-side codebase is open-source and available for public audit. You can verify our privacy claims by inspecting the source code on our <a href="#" style={{ color: 'var(--arcade-pink, #FF5C8A)' }}>GitHub repository</a>.
+              Trust requires transparency. The entirety of ARCADE_'s client-side codebase is open-source and available for public audit. You can verify our privacy claims by inspecting the source code on our <a href="https://github.com/slythnox/Arcade_" style={{ color: 'var(--arcade-pink, #FF5C8A)' }}>GitHub repository</a>.
             </p>
           </section>
 
           <section style={cardStyle('var(--arcade-yellow, #FFD84D)')}>
-            <h2 style={titleStyle('var(--arcade-yellow, #FFD84D)')}>8. Your Rights</h2>
+            <h2 style={titleStyle('var(--arcade-yellow, #FFD84D)')}>7. Your Rights</h2>
             <p>
               Because all data resides locally on your device, you have absolute control over it. You can exercise your right to be forgotten simply by clearing your browser's local storage or clearing your site data. No requests to our team are necessary.
             </p>

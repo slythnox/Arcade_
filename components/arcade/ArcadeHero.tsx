@@ -294,7 +294,7 @@ export const ArcadeHero: React.FC<ArcadeHeroProps> = ({
               margin: 0,
             }}
           >
-            THE ARCADE<span style={{ color: "#ff5c8a" }}>_</span>
+            THE ARCADE<span className="morse-cursor-underscore" style={{ color: "#ff5c8a" }} title="Morse Code: A · R · C · A · D · E">_</span>
           </h1>
         </div>
 
@@ -309,7 +309,7 @@ export const ArcadeHero: React.FC<ArcadeHeroProps> = ({
             marginBottom: "32px",
           }}
         >
-          60 deterministic cartridges · zero ROMs · pure TypeScript mathematics
+          61 deterministic cartridges · zero ROMs · pure TypeScript mathematics
         </div>
 
         {/* Search bar */}
@@ -343,7 +343,7 @@ export const ArcadeHero: React.FC<ArcadeHeroProps> = ({
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search 60 cartridges — tetris, physics, retro, diamond run..."
+            placeholder="Search 61 cartridges — tetris, physics, retro, diamond run..."
             style={{
               width: "100%",
               padding: "16px 20px 16px 52px",
@@ -448,5 +448,57 @@ const HERO_ANIMATIONS = `
   @keyframes helmSpin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+  }
+
+  @keyframes morseArcadeBlink {
+    /* Morse code sequence for "A-R-C-A-D-E" across 58 standard timing units */
+    /* A: . (0-1.72% ON), - (3.45-8.62% ON) */
+    0%, 1.72% { opacity: 1; text-shadow: 0 0 3px rgba(255, 92, 138, 0.4), 2px 2px 0px rgba(0, 0, 0, 0.6); }
+    1.73%, 3.45% { opacity: 0; text-shadow: none; }
+    3.46%, 8.62% { opacity: 1; text-shadow: 0 0 3px rgba(255, 92, 138, 0.4), 2px 2px 0px rgba(0, 0, 0, 0.6); }
+    8.63%, 13.79% { opacity: 0; text-shadow: none; }
+    
+    /* R: . (13.79-15.52% ON), - (17.24-22.41% ON), . (24.14-25.86% ON) */
+    13.80%, 15.52% { opacity: 1; text-shadow: 0 0 3px rgba(255, 92, 138, 0.4), 2px 2px 0px rgba(0, 0, 0, 0.6); }
+    15.53%, 17.24% { opacity: 0; text-shadow: none; }
+    17.25%, 22.41% { opacity: 1; text-shadow: 0 0 3px rgba(255, 92, 138, 0.4), 2px 2px 0px rgba(0, 0, 0, 0.6); }
+    22.42%, 24.14% { opacity: 0; text-shadow: none; }
+    24.15%, 25.86% { opacity: 1; text-shadow: 0 0 3px rgba(255, 92, 138, 0.4), 2px 2px 0px rgba(0, 0, 0, 0.6); }
+    25.87%, 31.03% { opacity: 0; text-shadow: none; }
+    
+    /* C: - (31.03-36.21% ON), . (37.93-39.66% ON), - (41.38-46.55% ON), . (48.28-50.00% ON) */
+    31.04%, 36.21% { opacity: 1; text-shadow: 0 0 3px rgba(255, 92, 138, 0.4), 2px 2px 0px rgba(0, 0, 0, 0.6); }
+    36.22%, 37.93% { opacity: 0; text-shadow: none; }
+    37.94%, 39.66% { opacity: 1; text-shadow: 0 0 3px rgba(255, 92, 138, 0.4), 2px 2px 0px rgba(0, 0, 0, 0.6); }
+    39.67%, 41.38% { opacity: 0; text-shadow: none; }
+    41.39%, 46.55% { opacity: 1; text-shadow: 0 0 3px rgba(255, 92, 138, 0.4), 2px 2px 0px rgba(0, 0, 0, 0.6); }
+    46.56%, 48.28% { opacity: 0; text-shadow: none; }
+    48.29%, 50.00% { opacity: 1; text-shadow: 0 0 3px rgba(255, 92, 138, 0.4), 2px 2px 0px rgba(0, 0, 0, 0.6); }
+    50.01%, 55.17% { opacity: 0; text-shadow: none; }
+    
+    /* A: . (55.17-56.90% ON), - (58.62-63.79% ON) */
+    55.18%, 56.90% { opacity: 1; text-shadow: 0 0 3px rgba(255, 92, 138, 0.4), 2px 2px 0px rgba(0, 0, 0, 0.6); }
+    56.91%, 58.62% { opacity: 0; text-shadow: none; }
+    58.63%, 63.79% { opacity: 1; text-shadow: 0 0 3px rgba(255, 92, 138, 0.4), 2px 2px 0px rgba(0, 0, 0, 0.6); }
+    63.80%, 68.97% { opacity: 0; text-shadow: none; }
+    
+    /* D: - (68.97-74.14% ON), . (75.86-77.59% ON), . (79.31-81.03% ON) */
+    68.98%, 74.14% { opacity: 1; text-shadow: 0 0 3px rgba(255, 92, 138, 0.4), 2px 2px 0px rgba(0, 0, 0, 0.6); }
+    74.15%, 75.86% { opacity: 0; text-shadow: none; }
+    75.87%, 77.59% { opacity: 1; text-shadow: 0 0 3px rgba(255, 92, 138, 0.4), 2px 2px 0px rgba(0, 0, 0, 0.6); }
+    77.60%, 79.31% { opacity: 0; text-shadow: none; }
+    79.32%, 81.03% { opacity: 1; text-shadow: 0 0 3px rgba(255, 92, 138, 0.4), 2px 2px 0px rgba(0, 0, 0, 0.6); }
+    81.04%, 86.21% { opacity: 0; text-shadow: none; }
+    
+    /* E: . (86.21-87.93% ON), Word End Pause (87.93-100% OFF) */
+    86.22%, 87.93% { opacity: 1; text-shadow: 0 0 3px rgba(255, 92, 138, 0.4), 2px 2px 0px rgba(0, 0, 0, 0.6); }
+    87.94%, 100% { opacity: 0; text-shadow: none; }
+  }
+
+  .morse-cursor-underscore {
+    display: inline-block;
+    color: #ff5c8a;
+    animation: morseArcadeBlink 6.5s infinite linear;
+    transform: translateY(-2px);
   }
 `;

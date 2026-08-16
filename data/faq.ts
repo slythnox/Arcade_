@@ -11,7 +11,7 @@ export const faqs: FAQItem[] = [
   {
     id: "what-is-arcade",
     question: "What exactly is ARCADE_?",
-    answer: "ARCADE_ is a modern, browser-based retro gaming platform featuring 60 mathematically pure cartridge games. It is built completely from scratch using web standards, relying on zero ROMs or third-party emulators, and operates directly in your browser with zero dependencies.",
+    answer: "ARCADE_ is a modern, browser-based retro gaming platform featuring 61 mathematically pure cartridge games. It is built completely from scratch using web standards, relying on zero ROMs or third-party emulators, and operates directly in your browser with zero dependencies.",
     category: "general"
   },
   {
@@ -53,7 +53,7 @@ export const faqs: FAQItem[] = [
   {
     id: "game-count",
     question: "How many games are available?",
-    answer: "There are precisely 60 unique games built into the platform, meticulously categorized into 7 distinct tiers ranging from Core Classics like Tetris and Snake, up to complex Strategy and Experimental concepts.",
+    answer: "There are precisely 61 unique games built into the platform, meticulously categorized into 7 distinct tiers ranging from Core Classics like Tetris and Snake, up to complex Strategy and Experimental concepts.",
     category: "general"
   },
   {
@@ -113,7 +113,7 @@ export const faqs: FAQItem[] = [
   {
     id: "privacy-policy",
     question: "Is my gameplay data tracked?",
-    answer: "Absolutely not. The platform has zero backend servers, zero trackers, and zero analytics. All high scores, settings, and save states are persisted entirely locally using your browser's native localStorage.",
+    answer: "Gameplay inputs and session data are not sent to any backend. High scores and settings are stored entirely in your browser's local storage. The platform does use Vercel Analytics for aggregate page-view metrics — no personal data, no cookies, no behavioral profiling.",
     category: "general"
   },
   {

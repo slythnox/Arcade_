@@ -49,7 +49,7 @@ export default function AboutPage() {
             marginBottom: "20px"
           }}>1. WHAT IS ARCADE_?</h2>
           <p style={{ fontSize: "1.1rem" }}>
-            ARCADE_ is a modern, browser-based retro gaming platform engineered with mathematical purity. Featuring precisely 60 unique cartridge games, the platform vehemently rejects ROM dumps and third-party emulators. Every title is reverse-engineered from first principles and natively re-implemented in strict TypeScript. Built for longevity and determinism, it operates entirely within the client boundary, utilizing zero external dependencies, resulting in a blisteringly fast, hyper-optimized 60fps experience that honors the legacy of classic arcade hardware.
+            ARCADE_ is a modern, browser-based retro gaming platform engineered with mathematical purity. Featuring precisely 61 unique cartridge games, the platform vehemently rejects ROM dumps and third-party emulators. Every title is reverse-engineered from first principles and natively re-implemented in strict TypeScript. Built for longevity and determinism, it operates entirely within the client boundary, utilizing zero external dependencies, resulting in a blisteringly fast, hyper-optimized 60fps experience that honors the legacy of classic arcade hardware.
           </p>
         </section>
 
@@ -134,54 +134,42 @@ export default function AboutPage() {
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.95rem" }}>
             <thead>
               <tr style={{ borderBottom: "2px solid var(--color-surface-border, #1E293B)", textAlign: "left", color: "var(--arcade-yellow, #FFD84D)" }}>
-                <th style={{ padding: "12px", fontFamily: "var(--font-pixel), monospace", fontSize: "0.7rem" }}>TIER</th>
                 <th style={{ padding: "12px", fontFamily: "var(--font-pixel), monospace", fontSize: "0.7rem" }}>CATEGORY</th>
                 <th style={{ padding: "12px", fontFamily: "var(--font-pixel), monospace", fontSize: "0.7rem" }}>EXAMPLES</th>
-                <th style={{ padding: "12px", fontFamily: "var(--font-pixel), monospace", fontSize: "0.7rem" }}>COUNT</th>
               </tr>
             </thead>
             <tbody>
               <tr style={{ borderBottom: "1px solid rgba(30,41,59,0.5)" }}>
-                <td style={{ padding: "12px", color: "var(--arcade-pink, #FF5C8A)" }}>Tier 1</td>
                 <td style={{ padding: "12px", fontWeight: "bold" }}>Core Classics</td>
-                <td style={{ padding: "12px" }}>Tetris, Snake, Pong, Breakout, Minesweeper</td>
-                <td style={{ padding: "12px" }}>10</td>
+                <td style={{ padding: "12px" }}>Tetris, Snake, Pong, Breakout, Minesweeper, Space Defender, Asteroid Field</td>
               </tr>
               <tr style={{ borderBottom: "1px solid rgba(30,41,59,0.5)" }}>
-                <td style={{ padding: "12px", color: "var(--arcade-pink, #FF5C8A)" }}>Tier 2</td>
+                <td style={{ padding: "12px", fontWeight: "bold" }}>Retro Arcade</td>
+                <td style={{ padding: "12px" }}>Maze Chaser, Donkey Climb, Bomb Grid, Cave Hunter, Pixel Quest, Diamond Run</td>
+              </tr>
+              <tr style={{ borderBottom: "1px solid rgba(30,41,59,0.5)" }}>
                 <td style={{ padding: "12px", fontWeight: "bold" }}>Puzzle Logic</td>
-                <td style={{ padding: "12px" }}>2048, Sudoku, Picross</td>
-                <td style={{ padding: "12px" }}>8</td>
+                <td style={{ padding: "12px" }}>2048, Sudoku, Lights Out, Sliding Puzzle, Pipe Connect, Sokoban, Logic Gates</td>
               </tr>
               <tr style={{ borderBottom: "1px solid rgba(30,41,59,0.5)" }}>
-                <td style={{ padding: "12px", color: "var(--arcade-pink, #FF5C8A)" }}>Tier 3</td>
                 <td style={{ padding: "12px", fontWeight: "bold" }}>Physics & Reflex</td>
-                <td style={{ padding: "12px" }}>Lunar Lander, Flappy, Pinball</td>
-                <td style={{ padding: "12px" }}>12</td>
+                <td style={{ padding: "12px" }}>Breakout, Ball Drop, Rope Swing, Magnet Run, Newton's Box, Ricochet, Pool Simulator</td>
               </tr>
               <tr style={{ borderBottom: "1px solid rgba(30,41,59,0.5)" }}>
-                <td style={{ padding: "12px", color: "var(--arcade-pink, #FF5C8A)" }}>Tier 4</td>
-                <td style={{ padding: "12px", fontWeight: "bold" }}>Shooters & Bullet Hell</td>
-                <td style={{ padding: "12px" }}>Space Invaders, Asteroids, Galaga</td>
-                <td style={{ padding: "12px" }}>10</td>
+                <td style={{ padding: "12px", fontWeight: "bold" }}>Shooters & Action</td>
+                <td style={{ padding: "12px" }}>Twin Stick Arena, Bullet Garden, Boss Reactor, Drone Swarm, Missile Command, Ray Sector</td>
               </tr>
               <tr style={{ borderBottom: "1px solid rgba(30,41,59,0.5)" }}>
-                <td style={{ padding: "12px", color: "var(--arcade-pink, #FF5C8A)" }}>Tier 5</td>
                 <td style={{ padding: "12px", fontWeight: "bold" }}>Platformers</td>
-                <td style={{ padding: "12px" }}>Jumpman, Endless Runner</td>
-                <td style={{ padding: "12px" }}>8</td>
+                <td style={{ padding: "12px" }}>Pixel Jumper, Wall Runner, Cave Escape, Shadow Runner, Velocity Rush, Omega Run</td>
               </tr>
               <tr style={{ borderBottom: "1px solid rgba(30,41,59,0.5)" }}>
-                <td style={{ padding: "12px", color: "var(--arcade-pink, #FF5C8A)" }}>Tier 6</td>
-                <td style={{ padding: "12px", fontWeight: "bold" }}>Strategy</td>
-                <td style={{ padding: "12px" }}>Tower Defense, Turn-based Tactics</td>
-                <td style={{ padding: "12px" }}>6</td>
+                <td style={{ padding: "12px", fontWeight: "bold" }}>Strategy & Board</td>
+                <td style={{ padding: "12px" }}>Tower Defense, Connect Four, Reversi, Tic-Tac-Toe+</td>
               </tr>
               <tr>
-                <td style={{ padding: "12px", color: "var(--arcade-pink, #FF5C8A)" }}>Tier 7</td>
-                <td style={{ padding: "12px", fontWeight: "bold" }}>Experimental</td>
-                <td style={{ padding: "12px" }}>Cellular Automata, Fractal Explorer</td>
-                <td style={{ padding: "12px" }}>6</td>
+                <td style={{ padding: "12px", fontWeight: "bold" }}>Systems & Simulation</td>
+                <td style={{ padding: "12px" }}>Cell Colony, Fire Spread, Infinite Forest, Time Loop, Liquid Cells</td>
               </tr>
             </tbody>
           </table>
@@ -298,7 +286,7 @@ export default function AboutPage() {
           }}>
             <ul style={{ listStyleType: "none", padding: 0, margin: 0, lineHeight: 2 }}>
               <li><span style={{ color: "var(--arcade-yellow, #FFD84D)" }}>[ FPS ]</span> 60fps stable on Chrome / Firefox / Safari (M1 & Intel).</li>
-              <li><span style={{ color: "var(--arcade-cyan, #4DE8E8)" }}>[ BUNDLE SIZE ]</span> {'<'}2MB total payload across all 60 cartridges.</li>
+              <li><span style={{ color: "var(--arcade-cyan, #4DE8E8)" }}>[ BUNDLE SIZE ]</span> {'<'}2MB total payload across all 61 cartridges.</li>
               <li><span style={{ color: "var(--arcade-pink, #FF5C8A)" }}>[ NETWORK ]</span> Zero network requests during gameplay. Fully local simulation.</li>
               <li><span style={{ color: "var(--arcade-purple, #A879FF)" }}>[ GC PAUSES ]</span> Mitigated entirely via strict Object Pooling for ephemeral entities.</li>
             </ul>

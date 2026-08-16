@@ -36,7 +36,7 @@ export default function TermsPage() {
           <section style={cardStyle('var(--arcade-green, #63E66D)')}>
             <h2 style={titleStyle('var(--arcade-green, #63E66D)')}>2. Original Implementations</h2>
             <p>
-              All 60 deterministic cartridges available on this platform are original, from-scratch TypeScript implementations. We do not host, distribute, or run emulated ROMs of copyrighted classic arcade titles. Every line of game logic has been freshly synthesized for the modern web.
+              All 61 deterministic cartridges available on this platform are original, from-scratch TypeScript implementations. We do not host, distribute, or run emulated ROMs of copyrighted classic arcade titles. Every line of game logic has been freshly synthesized for the modern web.
             </p>
           </section>
 
@@ -50,7 +50,7 @@ export default function TermsPage() {
           <section style={cardStyle('var(--arcade-pink, #FF5C8A)')}>
             <h2 style={titleStyle('var(--arcade-pink, #FF5C8A)')}>4. Open Source License</h2>
             <p>
-              The ARCADE_ platform engine is released under the MIT License. You are free to inspect, fork, and learn from our infrastructure via our <a href="#" style={{ color: 'var(--arcade-pink, #FF5C8A)' }}>public repository</a>. Individual game modules may have separate licensing requirements detailed in their specific directories.
+              The ARCADE_ platform engine is released under the MIT License. You are free to inspect, fork, and learn from our infrastructure via our <a href="https://github.com/slythnox/Arcade_" style={{ color: 'var(--arcade-pink, #FF5C8A)' }}>public repository</a>. Individual game modules may have separate licensing requirements detailed in their specific directories.
             </p>
           </section>
 

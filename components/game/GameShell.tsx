@@ -34,7 +34,248 @@ import {
   ArrowDown,
   ArrowLeft,
   ArrowRight,
+  Gamepad2,
 } from "lucide-react";
+
+/* ─────────────── 4-Way Radial Directional Navigation Dial (Exact Look & Feel from User Reference) ─────────────── */
+const RadialNavigationDial: React.FC<{
+  onAction: (action: GameAction, isPressed: boolean) => void;
+  showHints?: boolean;
+}> = ({ onAction, showHints = false }) => {
+  const dialRef = useRef<HTMLDivElement>(null);
+  const [knobPos, setKnobPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [activeDir, setActiveDir] = useState<GameAction | null>(null);
+  const activeDirRef = useRef<GameAction | null>(null);
+  const isDraggingRef = useRef(false);
+
+  const handlePointer = useCallback(
+    (clientX: number, clientY: number) => {
+      if (!dialRef.current) return;
+      const rect = dialRef.current.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+
+      const dx = clientX - centerX;
+      const dy = clientY - centerY;
+      const distance = Math.hypot(dx, dy);
+      const maxRadius = 30;
+
+      let targetDir: GameAction | null = null;
+
+      if (distance > 6) {
+        const angle = Math.atan2(dy, dx) * (180 / Math.PI); // -180 to 180
+        if (angle >= -45 && angle <= 45) {
+          targetDir = "MOVE_RIGHT";
+        } else if (angle > 45 && angle < 135) {
+          targetDir = "MOVE_DOWN";
+        } else if (angle < -45 && angle > -135) {
+          targetDir = "MOVE_UP";
+        } else {
+          targetDir = "MOVE_LEFT";
+        }
+      }
+
+      const clampedDist = Math.min(distance, maxRadius);
+      const angleRad = Math.atan2(dy, dx);
+      const knobX = distance === 0 ? 0 : Math.cos(angleRad) * clampedDist;
+      const knobY = distance === 0 ? 0 : Math.sin(angleRad) * clampedDist;
+
+      setKnobPos({ x: knobX, y: knobY });
+
+      if (targetDir !== activeDirRef.current) {
+        if (activeDirRef.current) {
+          onAction(activeDirRef.current, false);
+        }
+        if (targetDir) {
+          onAction(targetDir, true);
+        }
+        activeDirRef.current = targetDir;
+        setActiveDir(targetDir);
+      }
+    },
+    [onAction]
+  );
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    try {
+      (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    } catch {}
+    isDraggingRef.current = true;
+    handlePointer(e.clientX, e.clientY);
+  };
+
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (isDraggingRef.current) {
+      handlePointer(e.clientX, e.clientY);
+    }
+  };
+
+  const onPointerEnd = (e: React.PointerEvent) => {
+    if (isDraggingRef.current) {
+      try {
+        (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+      } catch {}
+      isDraggingRef.current = false;
+      setKnobPos({ x: 0, y: 0 });
+      if (activeDirRef.current) {
+        onAction(activeDirRef.current, false);
+        activeDirRef.current = null;
+        setActiveDir(null);
+      }
+    }
+  };
+
+  return (
+    <div
+      ref={dialRef}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerEnd}
+      onPointerCancel={onPointerEnd}
+      style={{
+        position: "relative",
+        width: "100px",
+        height: "100px",
+        borderRadius: "50%",
+        backgroundColor: "#161a24",
+        backgroundImage: "radial-gradient(circle at center, #242c3d 0%, #161a24 60%, #0d1017 100%)",
+        border: "2px solid #2e3b52",
+        boxShadow: "inset 0 2px 10px rgba(0,0,0,0.8), 0 4px 14px rgba(0,0,0,0.6)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        touchAction: "none",
+        cursor: "grab",
+        userSelect: "none",
+      }}
+    >
+      {/* SVG Concentric Gauge, 4 Cardinal Chevrons & Glowing Vector Line */}
+      <svg
+        width="100"
+        height="100"
+        viewBox="0 0 100 100"
+        style={{ position: "absolute", inset: 0, pointerEvents: "none" }}
+      >
+        {/* Concentric rings matching user image */}
+        <circle cx="50" cy="50" r="44" fill="none" stroke="#2a384f" strokeWidth="1.2" opacity="0.6" />
+        <circle cx="50" cy="50" r="34" fill="none" stroke="#32435d" strokeWidth="1" strokeDasharray="4 2" opacity="0.4" />
+        <circle cx="50" cy="50" r="25" fill="none" stroke="#222f42" strokeWidth="1.5" opacity="0.8" />
+        <circle cx="50" cy="50" r="16" fill="none" stroke="#182333" strokeWidth="1" opacity="0.5" />
+
+        {/* Vector Line Indicator from center to active direction */}
+        {activeDir && (
+          <line
+            x1="50"
+            y1="50"
+            x2={50 + (activeDir === "MOVE_UP" ? 0 : activeDir === "MOVE_DOWN" ? 0 : activeDir === "MOVE_LEFT" ? -40 : 40)}
+            y2={50 + (activeDir === "MOVE_UP" ? -40 : activeDir === "MOVE_DOWN" ? 40 : 0)}
+            stroke="#ffffff"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            filter="drop-shadow(0 0 4px #4de8e8)"
+          />
+        )}
+
+        {/* Cardinal Direction Hints when switching */}
+        {showHints && (
+          <g fill="#ffd84d" fontSize="7" fontFamily="var(--font-mono)" fontWeight="900" textAnchor="middle">
+            <text x="50" y="24">UP</text>
+            <text x="50" y="82">DN</text>
+            <text x="24" y="52.5">LT</text>
+            <text x="76" y="52.5">RT</text>
+          </g>
+        )}
+
+        {/* Top Chevron (Up) */}
+        <path
+          d="M 45 13 L 50 7 L 55 13"
+          stroke={activeDir === "MOVE_UP" ? "#ffffff" : "rgba(255, 255, 255, 0.45)"}
+          strokeWidth={activeDir === "MOVE_UP" ? "2.5" : "1.8"}
+          fill="none"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          filter={activeDir === "MOVE_UP" ? "drop-shadow(0 0 6px #4de8e8)" : undefined}
+        />
+
+        {/* Bottom Chevron (Down) */}
+        <path
+          d="M 45 87 L 50 93 L 55 87"
+          stroke={activeDir === "MOVE_DOWN" ? "#ffffff" : "rgba(255, 255, 255, 0.45)"}
+          strokeWidth={activeDir === "MOVE_DOWN" ? "2.5" : "1.8"}
+          fill="none"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          filter={activeDir === "MOVE_DOWN" ? "drop-shadow(0 0 6px #4de8e8)" : undefined}
+        />
+
+        {/* Left Chevron (Left) */}
+        <path
+          d="M 13 45 L 7 50 L 13 55"
+          stroke={activeDir === "MOVE_LEFT" ? "#ffffff" : "rgba(255, 255, 255, 0.45)"}
+          strokeWidth={activeDir === "MOVE_LEFT" ? "2.5" : "1.8"}
+          fill="none"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          filter={activeDir === "MOVE_LEFT" ? "drop-shadow(0 0 6px #4de8e8)" : undefined}
+        />
+
+        {/* Right Chevron (Right) */}
+        <path
+          d="M 87 45 L 93 50 L 87 55"
+          stroke={activeDir === "MOVE_RIGHT" ? "#ffffff" : "rgba(255, 255, 255, 0.45)"}
+          strokeWidth={activeDir === "MOVE_RIGHT" ? "2.5" : "1.8"}
+          fill="none"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          filter={activeDir === "MOVE_RIGHT" ? "drop-shadow(0 0 6px #4de8e8)" : undefined}
+        />
+      </svg>
+
+      {/* Central Metallic Thumb Hub / Knob */}
+      <div
+        style={{
+          width: "38px",
+          height: "38px",
+          borderRadius: "50%",
+          backgroundColor: "#182030",
+          backgroundImage: "radial-gradient(circle at center, #2a3854 0%, #172030 50%, #0d131f 100%)",
+          border: "2px solid #3b4d6e",
+          boxShadow: "0 3px 12px rgba(0,0,0,0.8), inset 0 1px 3px rgba(255,255,255,0.2)",
+          transform: `translate(${knobPos.x}px, ${knobPos.y}px)`,
+          transition: isDraggingRef.current ? "none" : "transform 0.15s cubic-bezier(0.2, 0.9, 0.3, 1)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          pointerEvents: "none",
+        }}
+      >
+        {/* Inner concentric ring with central indicator dot */}
+        <div
+          style={{
+            width: "18px",
+            height: "18px",
+            borderRadius: "50%",
+            backgroundColor: "#0d131f",
+            border: "1px solid #233045",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <div
+            style={{
+              width: "5px",
+              height: "5px",
+              borderRadius: "50%",
+              backgroundColor: activeDir ? "#4de8e8" : "rgba(255,255,255,0.5)",
+              boxShadow: activeDir ? "0 0 6px #4de8e8" : "none",
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export interface GameShellProps {
   gameSlug: string;
@@ -68,6 +309,22 @@ export const GameShell: React.FC<GameShellProps> = ({ gameSlug, mode = "arcade" 
 
   // Accordion state for sidebar game guide dropdown (closed by default)
   const [isGuideOpen, setIsGuideOpen] = useState(false);
+
+  // Mobile controller layout state ('classic' = 4-way DPad + A/B; 'dpad-4btn' = 4-way DPad + 4-button cluster)
+  const [controlLayout, setControlLayout] = useState<"classic" | "dpad-4btn">("classic");
+  const [isLayoutDropdownOpen, setIsLayoutDropdownOpen] = useState(false);
+  const [showLayoutHint, setShowLayoutHint] = useState(false);
+  const hintTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleSwitchLayout = useCallback((layout: "classic" | "dpad-4btn") => {
+    setControlLayout(layout);
+    setIsLayoutDropdownOpen(false);
+    setShowLayoutHint(true);
+    if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
+    hintTimerRef.current = setTimeout(() => {
+      setShowLayoutHint(false);
+    }, 2800);
+  }, []);
 
   // Clock for Steam Big Picture Deck UI
   useEffect(() => {
@@ -799,7 +1056,7 @@ export const GameShell: React.FC<GameShellProps> = ({ gameSlug, mode = "arcade" 
           </CRTOverlay>
         </div>
 
-        {/* MOBILE CONTROLLER BAR (20-30% height on mobile screens) */}
+        {/* MOBILE CONTROLLER BAR (Exact 75-25 screen ratio on mobile screens) */}
         <div
           className="arcade-mobile-controller"
           style={{
@@ -807,105 +1064,269 @@ export const GameShell: React.FC<GameShellProps> = ({ gameSlug, mode = "arcade" 
             backgroundColor: "#080e1c",
             border: "1px solid #1a2b4c",
             borderRadius: "8px",
-            padding: "10px 16px",
-            marginTop: "8px",
+            padding: "26px 10px 6px 10px",
             boxSizing: "border-box",
             display: "none", // Displayed via media queries on mobile
             justifyContent: "space-between",
             alignItems: "center",
             touchAction: "none",
             userSelect: "none",
+            position: "relative",
           }}
         >
-          {/* Left: 4-Way Virtual D-Pad */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, 42px)",
-              gridTemplateRows: "repeat(3, 42px)",
-              gap: "3px",
-            }}
-          >
-            <div />
+          {/* TOP-MIDDLE: CONTROL LAYOUT SWITCHER DROPDOWN */}
+          <div style={{ position: "absolute", top: "4px", left: "50%", transform: "translateX(-50%)", zIndex: 40 }}>
             <button
-              onPointerDown={() => triggerAction("MOVE_UP", true)}
-              onPointerUp={() => triggerAction("MOVE_UP", false)}
-              aria-label="Up"
-              className="virtual-dpad-btn"
+              onClick={() => setIsLayoutDropdownOpen(!isLayoutDropdownOpen)}
+              className="virtual-layout-toggle-btn"
+              title="Switch Touch Control Layout"
             >
-              <ArrowUp size={20} />
-            </button>
-            <div />
-
-            <button
-              onPointerDown={() => triggerAction("MOVE_LEFT", true)}
-              onPointerUp={() => triggerAction("MOVE_LEFT", false)}
-              aria-label="Left"
-              className="virtual-dpad-btn"
-            >
-              <ArrowLeft size={20} />
-            </button>
-            <div style={{ backgroundColor: "#0f1a30", borderRadius: "4px" }} />
-            <button
-              onPointerDown={() => triggerAction("MOVE_RIGHT", true)}
-              onPointerUp={() => triggerAction("MOVE_RIGHT", false)}
-              aria-label="Right"
-              className="virtual-dpad-btn"
-            >
-              <ArrowRight size={20} />
+              <Gamepad2 size={11} color="#4de8e8" />
+              <span>{controlLayout === "classic" ? "CLASSIC D-PAD ▾" : "RADIAL DIAL ▾"}</span>
             </button>
 
-            <div />
-            <button
-              onPointerDown={() => triggerAction("MOVE_DOWN", true)}
-              onPointerUp={() => triggerAction("MOVE_DOWN", false)}
-              aria-label="Down"
-              className="virtual-dpad-btn"
-            >
-              <ArrowDown size={20} />
-            </button>
-            <div />
+            {isLayoutDropdownOpen && (
+              <div className="virtual-layout-menu">
+                <button
+                  onClick={() => handleSwitchLayout("classic")}
+                  className={`virtual-layout-menu-item ${controlLayout === "classic" ? "active" : ""}`}
+                >
+                  🎮 Layout 1: Classic D-Pad (A/B)
+                </button>
+                <button
+                  onClick={() => handleSwitchLayout("dpad-4btn")}
+                  className={`virtual-layout-menu-item ${controlLayout === "dpad-4btn" ? "active" : ""}`}
+                >
+                  🕹️ Layout 2: Radial 4-Way Dial + Buttons
+                </button>
+              </div>
+            )}
           </div>
 
-          {/* Center: Start / Pause & Restart */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px", alignItems: "center" }}>
+          {/* TOP OVERVIEW HUD BANNER (Displays for 2.8s after switching) */}
+          {showLayoutHint && (
+            <div className="layout-hud-banner">
+              {controlLayout === "classic"
+                ? "🎮 D-PAD [MOVE] · [A] ACTION · [B] ROTATE"
+                : "🕹️ RADIAL [DRAG/TAP] · [X] ROTATE · [Y] HOLD · [A] FIRE · [B] DROP"}
+            </div>
+          )}
+
+          {/* LEFT: DIRECTIONAL CONTROLS */}
+          <div style={{ position: "relative" }}>
+            {controlLayout === "classic" ? (
+              /* Classic 3x3 D-Pad */
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(3, 38px)",
+                  gridTemplateRows: "repeat(3, 38px)",
+                  gap: "3px",
+                }}
+              >
+                <div />
+                <button
+                  onPointerDown={() => triggerAction("MOVE_UP", true)}
+                  onPointerUp={() => triggerAction("MOVE_UP", false)}
+                  onPointerLeave={() => triggerAction("MOVE_UP", false)}
+                  aria-label="Up"
+                  className="virtual-dpad-btn"
+                  style={{ position: "relative" }}
+                >
+                  <ArrowUp size={18} />
+                  {showLayoutHint && <span className="btn-hint-tag">UP</span>}
+                </button>
+                <div />
+
+                <button
+                  onPointerDown={() => triggerAction("MOVE_LEFT", true)}
+                  onPointerUp={() => triggerAction("MOVE_LEFT", false)}
+                  onPointerLeave={() => triggerAction("MOVE_LEFT", false)}
+                  aria-label="Left"
+                  className="virtual-dpad-btn"
+                  style={{ position: "relative" }}
+                >
+                  <ArrowLeft size={18} />
+                  {showLayoutHint && <span className="btn-hint-tag">LEFT</span>}
+                </button>
+                <div style={{ backgroundColor: "#0f1a30", borderRadius: "4px" }} />
+                <button
+                  onPointerDown={() => triggerAction("MOVE_RIGHT", true)}
+                  onPointerUp={() => triggerAction("MOVE_RIGHT", false)}
+                  onPointerLeave={() => triggerAction("MOVE_RIGHT", false)}
+                  aria-label="Right"
+                  className="virtual-dpad-btn"
+                  style={{ position: "relative" }}
+                >
+                  <ArrowRight size={18} />
+                  {showLayoutHint && <span className="btn-hint-tag">RIGHT</span>}
+                </button>
+
+                <div />
+                <button
+                  onPointerDown={() => triggerAction("MOVE_DOWN", true)}
+                  onPointerUp={() => triggerAction("MOVE_DOWN", false)}
+                  onPointerLeave={() => triggerAction("MOVE_DOWN", false)}
+                  aria-label="Down"
+                  className="virtual-dpad-btn"
+                  style={{ position: "relative" }}
+                >
+                  <ArrowDown size={18} />
+                  {showLayoutHint && <span className="btn-hint-tag">DOWN</span>}
+                </button>
+                <div />
+              </div>
+            ) : (
+              /* Layout 2: Radial 4-Way Navigation Dial from Reference Image */
+              <RadialNavigationDial onAction={triggerAction} showHints={showLayoutHint} />
+            )}
+          </div>
+
+          {/* CENTER: SYSTEM CONTROLS (PAUSE & RESTART) */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px", alignItems: "center", position: "relative" }}>
             <button
               onPointerDown={() => triggerAction("PAUSE", true)}
               onPointerUp={() => triggerAction("PAUSE", false)}
               className="virtual-sys-btn"
+              style={{ position: "relative" }}
             >
               {isPaused ? "RESUME" : "PAUSE"}
+              {showLayoutHint && <span className="btn-hint-tag">PAUSE</span>}
             </button>
             <button
               onPointerDown={() => triggerAction("RESTART", true)}
               onPointerUp={() => triggerAction("RESTART", false)}
               className="virtual-sys-btn"
+              style={{ position: "relative" }}
             >
               RESTART
+              {showLayoutHint && <span className="btn-hint-tag">RESET</span>}
             </button>
           </div>
 
-          {/* Right: Arcade A & B Action Buttons */}
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            {/* Button B (Secondary / Rotate) */}
-            <button
-              onPointerDown={() => triggerAction("ACTION_SECONDARY", true)}
-              onPointerUp={() => triggerAction("ACTION_SECONDARY", false)}
-              className="virtual-action-btn action-b"
-              aria-label="Action B"
-            >
-              <span>B</span>
-            </button>
+          {/* RIGHT: ACTION BUTTONS */}
+          <div style={{ position: "relative" }}>
+            {controlLayout === "classic" ? (
+              /* Layout 1: Dual A & B Buttons */
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", position: "relative" }}>
+                {/* Button B (Secondary / Rotate) */}
+                <button
+                  onPointerDown={() => {
+                    triggerAction("ACTION_SECONDARY", true);
+                    triggerAction("ROTATE", true);
+                  }}
+                  onPointerUp={() => {
+                    triggerAction("ACTION_SECONDARY", false);
+                    triggerAction("ROTATE", false);
+                  }}
+                  onPointerLeave={() => {
+                    triggerAction("ACTION_SECONDARY", false);
+                    triggerAction("ROTATE", false);
+                  }}
+                  className="virtual-action-btn action-b"
+                  aria-label="Action B"
+                  style={{ position: "relative" }}
+                >
+                  <span>B</span>
+                  {showLayoutHint && <span className="btn-hint-tag">ROTATE</span>}
+                </button>
 
-            {/* Button A (Primary Action) */}
-            <button
-              onPointerDown={() => triggerAction("ACTION_PRIMARY", true)}
-              onPointerUp={() => triggerAction("ACTION_PRIMARY", false)}
-              className="virtual-action-btn action-a"
-              aria-label="Action A"
-            >
-              <span>A</span>
-            </button>
+                {/* Button A (Primary Action) */}
+                <button
+                  onPointerDown={() => triggerAction("ACTION_PRIMARY", true)}
+                  onPointerUp={() => triggerAction("ACTION_PRIMARY", false)}
+                  onPointerLeave={() => triggerAction("ACTION_PRIMARY", false)}
+                  className="virtual-action-btn action-a"
+                  aria-label="Action A"
+                  style={{ position: "relative" }}
+                >
+                  <span>A</span>
+                  {showLayoutHint && <span className="btn-hint-tag">ACTION</span>}
+                </button>
+              </div>
+            ) : (
+              /* Layout 2: 4-Button Diamond Action Cluster */
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(3, 34px)",
+                  gridTemplateRows: "repeat(3, 34px)",
+                  gap: "3px",
+                  alignItems: "center",
+                  justifyItems: "center",
+                  position: "relative",
+                }}
+              >
+                <div />
+                {/* Top: X (Rotate / Alt Action) */}
+                <button
+                  onPointerDown={() => triggerAction("ROTATE", true)}
+                  onPointerUp={() => triggerAction("ROTATE", false)}
+                  onPointerLeave={() => triggerAction("ROTATE", false)}
+                  className="virtual-action-btn-sm action-x"
+                  aria-label="Rotate / X"
+                  title="Rotate / Action X"
+                  style={{ position: "relative" }}
+                >
+                  <span>X</span>
+                  {showLayoutHint && <span className="btn-hint-tag-sm">ROTATE</span>}
+                </button>
+                <div />
+
+                {/* Left: Y (Hold / Secondary Action) */}
+                <button
+                  onPointerDown={() => triggerAction("ACTION_SECONDARY", true)}
+                  onPointerUp={() => triggerAction("ACTION_SECONDARY", false)}
+                  onPointerLeave={() => triggerAction("ACTION_SECONDARY", false)}
+                  className="virtual-action-btn-sm action-y"
+                  aria-label="Hold / Y"
+                  title="Secondary / Action Y"
+                  style={{ position: "relative" }}
+                >
+                  <span>Y</span>
+                  {showLayoutHint && <span className="btn-hint-tag-sm">HOLD</span>}
+                </button>
+                <div />
+                {/* Right: B (Secondary / Drop / Back) */}
+                <button
+                  onPointerDown={() => {
+                    triggerAction("ACTION_SECONDARY", true);
+                    triggerAction("MOVE_DOWN", true);
+                  }}
+                  onPointerUp={() => {
+                    triggerAction("ACTION_SECONDARY", false);
+                    triggerAction("MOVE_DOWN", false);
+                  }}
+                  onPointerLeave={() => {
+                    triggerAction("ACTION_SECONDARY", false);
+                    triggerAction("MOVE_DOWN", false);
+                  }}
+                  className="virtual-action-btn-sm action-b"
+                  aria-label="Action B"
+                  title="Action B"
+                  style={{ position: "relative" }}
+                >
+                  <span>B</span>
+                  {showLayoutHint && <span className="btn-hint-tag-sm">DROP</span>}
+                </button>
+
+                <div />
+                {/* Bottom: A (Primary / Confirm / Jump) */}
+                <button
+                  onPointerDown={() => triggerAction("ACTION_PRIMARY", true)}
+                  onPointerUp={() => triggerAction("ACTION_PRIMARY", false)}
+                  onPointerLeave={() => triggerAction("ACTION_PRIMARY", false)}
+                  className="virtual-action-btn-sm action-a"
+                  aria-label="Action A"
+                  title="Primary Action A"
+                  style={{ position: "relative" }}
+                >
+                  <span>A</span>
+                  {showLayoutHint && <span className="btn-hint-tag-sm">FIRE</span>}
+                </button>
+                <div />
+              </div>
+            )}
           </div>
         </div>
       </main>
@@ -971,16 +1392,90 @@ export const GameShell: React.FC<GameShellProps> = ({ gameSlug, mode = "arcade" 
           color: #04060d;
         }
 
+        .virtual-cross-btn {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background-color: #101d36;
+          color: #ffd84d;
+          border: 1px solid #2a4374;
+          border-radius: 4px;
+          cursor: pointer;
+          user-select: none;
+          touch-action: manipulation;
+        }
+        .virtual-cross-btn:active {
+          background-color: #ffd84d;
+          color: #04060d;
+        }
+
+        .virtual-layout-toggle-btn {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          background-color: rgba(77, 232, 232, 0.1);
+          color: #4de8e8;
+          border: 1px solid rgba(77, 232, 232, 0.3);
+          padding: 3px 8px;
+          font-family: var(--font-mono);
+          font-size: 9px;
+          font-weight: 800;
+          border-radius: 12px;
+          cursor: pointer;
+          touch-action: manipulation;
+          transition: all 0.15s ease;
+        }
+        .virtual-layout-toggle-btn:active {
+          background-color: rgba(77, 232, 232, 0.25);
+        }
+
+        .virtual-layout-menu {
+          position: absolute;
+          top: calc(100% + 4px);
+          left: 50%;
+          transform: translateX(-50%);
+          background-color: #0b1528;
+          border: 1px solid #233860;
+          border-radius: 6px;
+          padding: 4px;
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+          min-width: 190px;
+          z-index: 100;
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.8);
+        }
+
+        .virtual-layout-menu-item {
+          background: transparent;
+          border: none;
+          color: #94a3b8;
+          font-family: var(--font-mono);
+          font-size: 9px;
+          font-weight: 700;
+          padding: 6px 8px;
+          text-align: left;
+          border-radius: 4px;
+          cursor: pointer;
+          white-space: nowrap;
+        }
+        .virtual-layout-menu-item.active {
+          background-color: rgba(77, 232, 232, 0.15);
+          color: #4de8e8;
+          font-weight: 900;
+        }
+
         .virtual-sys-btn {
           background-color: #101b30;
           color: #94a3b8;
           border: 1px solid #233860;
-          padding: 4px 10px;
+          padding: 4px 8px;
           font-family: var(--font-mono);
           font-size: 9px;
           font-weight: 800;
           border-radius: 4px;
           cursor: pointer;
+          touch-action: manipulation;
         }
         .virtual-sys-btn:active {
           background-color: #ffd84d;
@@ -988,14 +1483,14 @@ export const GameShell: React.FC<GameShellProps> = ({ gameSlug, mode = "arcade" 
         }
 
         .virtual-action-btn {
-          width: 52px;
-          height: 52px;
+          width: 48px;
+          height: 48px;
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
           font-family: var(--font-pixel);
-          font-size: 16px;
+          font-size: 15px;
           font-weight: 900;
           cursor: pointer;
           user-select: none;
@@ -1006,6 +1501,107 @@ export const GameShell: React.FC<GameShellProps> = ({ gameSlug, mode = "arcade" 
         .virtual-action-btn:active {
           transform: scale(0.92);
         }
+
+        .virtual-action-btn-sm {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-family: var(--font-pixel);
+          font-size: 11px;
+          font-weight: 900;
+          cursor: pointer;
+          user-select: none;
+          touch-action: manipulation;
+          box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+          transition: transform 0.05s ease;
+        }
+        .virtual-action-btn-sm:active {
+          transform: scale(0.92);
+        }
+
+        .btn-hint-tag {
+          position: absolute;
+          inset: 0;
+          background: rgba(6, 12, 26, 0.95);
+          color: #ffd84d;
+          border: 1.5px solid #ffd84d;
+          border-radius: inherit;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-family: var(--font-mono);
+          font-size: 8.5px;
+          font-weight: 900;
+          letter-spacing: 0.03em;
+          pointer-events: none;
+          z-index: 50;
+          box-shadow: 0 0 10px rgba(255, 216, 77, 0.5);
+          animation: hintTagAnim 2.8s ease-in-out forwards;
+        }
+
+        .btn-hint-tag-sm {
+          position: absolute;
+          inset: 0;
+          background: rgba(6, 12, 26, 0.95);
+          color: #4de8e8;
+          border: 1.5px solid #4de8e8;
+          border-radius: inherit;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-family: var(--font-mono);
+          font-size: 7px;
+          font-weight: 900;
+          letter-spacing: 0.02em;
+          pointer-events: none;
+          z-index: 50;
+          box-shadow: 0 0 8px rgba(77, 232, 232, 0.5);
+          animation: hintTagAnim 2.8s ease-in-out forwards;
+        }
+
+        .layout-hud-banner {
+          position: absolute;
+          top: 26px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: rgba(4, 8, 18, 0.95);
+          color: #ffd84d;
+          border: 1px solid rgba(255, 216, 77, 0.6);
+          padding: 2px 10px;
+          border-radius: 10px;
+          font-family: var(--font-mono);
+          font-size: 8px;
+          font-weight: 800;
+          letter-spacing: 0.04em;
+          white-space: nowrap;
+          pointer-events: none;
+          z-index: 45;
+          box-shadow: 0 2px 12px rgba(0, 0, 0, 0.9);
+          animation: hintTagAnim 2.8s ease-in-out forwards;
+        }
+
+        @keyframes hintTagAnim {
+          0% {
+            opacity: 0;
+            transform: scale(0.92);
+          }
+          10% {
+            opacity: 1;
+            transform: scale(1);
+          }
+          85% {
+            opacity: 1;
+            transform: scale(1);
+          }
+          100% {
+            opacity: 0;
+            transform: scale(0.92);
+          }
+        }
+
         .action-a {
           background: linear-gradient(180deg, #ffd84d 0%, #f59e0b 100%);
           color: #04060d;
@@ -1016,27 +1612,43 @@ export const GameShell: React.FC<GameShellProps> = ({ gameSlug, mode = "arcade" 
           color: #ffffff;
           border: 2px solid #ffe4e6;
         }
+        .action-x {
+          background: linear-gradient(180deg, #4de8e8 0%, #0284c7 100%);
+          color: #04060d;
+          border: 2px solid #e0f2fe;
+        }
+        .action-y {
+          background: linear-gradient(180deg, #a879ff 0%, #7c3aed 100%);
+          color: #ffffff;
+          border: 2px solid #f3e8ff;
+        }
 
-        /* 70-30 / 80-20 Mobile Ratio Optimization */
+        /* 75-25 Mobile Ratio Optimization */
         @media (max-width: 860px) {
           .arcade-info-box {
             display: none !important;
           }
           .arcade-cockpit-stage {
-            height: calc(100vh - 64px) !important;
-            max-height: calc(100vh - 64px) !important;
-            padding: 4px 8px 8px 8px !important;
+            height: calc(100dvh - var(--header-height, 64px) - 8px) !important;
+            max-height: calc(100dvh - var(--header-height, 64px) - 8px) !important;
+            padding: 2px 6px 6px 6px !important;
+            gap: 4px !important;
           }
           .arcade-center-main {
             height: 100% !important;
             max-height: 100% !important;
+            gap: 4px !important;
           }
           .arcade-canvas-viewport {
-            flex: 7 1 0% !important; /* ~70-75% screen */
+            flex: 3 1 0% !important; /* 75% screen ratio */
+            min-height: 0 !important;
           }
           .arcade-mobile-controller {
             display: flex !important;
-            flex: 3 0 auto !important; /* ~25-30% screen */
+            flex: 1 0 auto !important; /* 25% screen ratio */
+            padding: 24px 10px 8px 10px !important;
+            margin-top: 0 !important;
+            max-height: 25vh !important;
           }
         }
       `}</style>

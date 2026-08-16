@@ -6,7 +6,7 @@ export function generateWebSiteSchema() {
     "@type": "WebSite",
     name: "ARCADE_",
     url: "https://arcade.games",
-    description: "A mathematical, zero-dependency retro arcade platform featuring 60 deterministic cartridges built with pure TypeScript physics and synthesized Web Audio.",
+    description: "A mathematical, zero-dependency retro arcade platform featuring 61 deterministic cartridges built with pure TypeScript physics and synthesized Web Audio.",
     potentialAction: {
       "@type": "SearchAction",
       target: "https://arcade.games/games?q={search_term_string}",

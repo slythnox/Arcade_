@@ -160,7 +160,7 @@ export const gameRegistry: readonly GameDefinition[] = [
   diamondRunDefinition,
 ];
 
-/** Games visible in the main ARCADE_ game library (60 cartridges). */
+/** Games visible in the main ARCADE_ game library (61 cartridges). */
 export const arcadeRegistry: readonly GameDefinition[] = gameRegistry;
 
 /** Legacy labs registry fallback. */
