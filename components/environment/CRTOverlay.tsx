@@ -5,6 +5,9 @@ export interface CRTOverlayProps {
   enabled?: boolean;
   scanlines?: boolean;
   flicker?: boolean;
+  aspectRatio?: string;
+  style?: React.CSSProperties;
+  className?: string;
 }
 
 export const CRTOverlay: React.FC<CRTOverlayProps> = ({
@@ -12,16 +15,24 @@ export const CRTOverlay: React.FC<CRTOverlayProps> = ({
   enabled = true,
   scanlines = true,
   flicker = false,
+  aspectRatio = "600 / 700",
+  style = {},
+  className = "",
 }) => {
   if (!enabled) {
     return (
       <div
+        className={className}
         style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          width: "100%",
           height: "100%",
+          maxHeight: "100%",
+          maxWidth: "100%",
+          aspectRatio: aspectRatio === "fill" ? "auto" : aspectRatio,
+          width: aspectRatio === "fill" ? "100%" : "auto",
+          ...style,
         }}
       >
         {children}
@@ -31,7 +42,7 @@ export const CRTOverlay: React.FC<CRTOverlayProps> = ({
 
   return (
     <div
-      className={`crt-frame ${flicker ? "crt-flicker" : ""}`}
+      className={`crt-frame ${flicker ? "crt-flicker" : ""} ${className}`}
       style={{
         position: "relative",
         overflow: "hidden",
@@ -42,9 +53,13 @@ export const CRTOverlay: React.FC<CRTOverlayProps> = ({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        width: "100%",
         height: "100%",
+        maxHeight: "100%",
+        maxWidth: "100%",
+        aspectRatio: aspectRatio === "fill" ? "auto" : aspectRatio,
+        width: aspectRatio === "fill" ? "100%" : "auto",
         boxSizing: "border-box",
+        ...style,
       }}
     >
       {/* Subtle Vignette Gradient */}
@@ -76,25 +91,13 @@ export const CRTOverlay: React.FC<CRTOverlayProps> = ({
             backgroundSize: "100% 4px",
             pointerEvents: "none",
             zIndex: 5,
-            opacity: 0.45,
+            opacity: 0.8,
           }}
         />
       )}
 
-      {/* Game Content */}
-      <div
-        style={{
-          position: "relative",
-          zIndex: 1,
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        {children}
-      </div>
+      {/* Content Canvas */}
+      {children}
     </div>
   );
 };

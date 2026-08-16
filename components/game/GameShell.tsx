@@ -36,6 +36,7 @@ import {
   ArrowLeft,
   ArrowRight,
   Gamepad2,
+  Tv,
 } from "lucide-react";
 
 /* ─────────────── 4-Way & 8-Way Radial Directional Navigation Dial ─────────────── */
@@ -316,6 +317,7 @@ export const GameShell: React.FC<GameShellProps> = ({ gameSlug, mode = "arcade" 
   const [isMuted, setIsMuted] = useState(false);
   const [crtEnabled, setCrtEnabled] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [aspectMode, setAspectMode] = useState<"fit" | "fill">("fit");
   const [highScore, setHighScore] = useState(0);
   const [showSteamLaunch, setShowSteamLaunch] = useState(false);
   const [clockTime, setClockTime] = useState("");
@@ -1017,6 +1019,28 @@ export const GameShell: React.FC<GameShellProps> = ({ gameSlug, mode = "arcade" 
             </button>
 
             <button
+              onClick={() => setAspectMode((prev) => (prev === "fit" ? "fill" : "fit"))}
+              title={aspectMode === "fit" ? "Expand Game Screen (Widescreen Fill)" : "Fit Game to 6:7 Arcade Screen"}
+              aria-label="Toggle Screen Aspect Ratio"
+              className="arcade-icon-btn"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "34px",
+                height: "34px",
+                backgroundColor: aspectMode === "fill" ? "#1e355c" : "#101b30",
+                color: aspectMode === "fill" ? "#ffd84d" : "#e2e8f0",
+                border: `1px solid ${aspectMode === "fill" ? "#ffd84d" : "#233860"}`,
+                borderRadius: "6px",
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+              }}
+            >
+              <Tv size={16} />
+            </button>
+
+            <button
               onClick={handleToggleMute}
               title={isMuted ? "Unmute Synthesizer Audio (M)" : "Mute Synthesizer Audio (M)"}
               aria-label="Toggle Audio"
@@ -1054,7 +1078,11 @@ export const GameShell: React.FC<GameShellProps> = ({ gameSlug, mode = "arcade" 
             overflow: "hidden",
           }}
         >
-          <CRTOverlay enabled={crtEnabled} scanlines={crtEnabled}>
+          <CRTOverlay
+            enabled={crtEnabled}
+            scanlines={crtEnabled}
+            aspectRatio={aspectMode === "fill" ? "fill" : "600 / 700"}
+          >
             <canvas
               ref={canvasRef}
               width={600}
@@ -1065,8 +1093,8 @@ export const GameShell: React.FC<GameShellProps> = ({ gameSlug, mode = "arcade" 
                 height: "100%",
                 maxWidth: "100%",
                 maxHeight: "100%",
-                aspectRatio: "600 / 700",
-                objectFit: "contain",
+                aspectRatio: aspectMode === "fill" ? "auto" : "600 / 700",
+                objectFit: aspectMode === "fill" ? "fill" : "contain",
                 backgroundColor: "#050914",
                 borderRadius: "4px",
               }}
