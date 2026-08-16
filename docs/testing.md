@@ -1,6 +1,6 @@
 # Testing Strategy & Quality Assurance
 
-This document details the testing architecture, mock test harnesses, 61-cartridge smoke testing suites, and unit test patterns in **ARCADE_** (`tests/`, `vitest.config.ts`).
+This document details the testing architecture, mock test harnesses, 62-cartridge smoke testing suites, and unit test patterns in **ARCADE_** (`tests/`, `vitest.config.ts`).
 
 ---
 
@@ -80,7 +80,7 @@ export function createMockRenderer(): Renderer {
 ## 3. Automated Smoke Test Suites (`tests/smoke/`)
 
 ### 1. All-Cartridge Gauntlet (`tests/smoke/allGames.smoke.test.ts`)
-Iterates over all 61 entries in `arcadeRegistry` and verifies:
+Iterates over all 62 entries in `arcadeRegistry` and verifies:
 1. `def.createGame()` factory resolves without throwing.
 2. `instance.init(ctx)` succeeds.
 3. 60 consecutive simulation ticks (`update(1/60)`) execute without error.

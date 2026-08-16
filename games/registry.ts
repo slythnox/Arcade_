@@ -30,6 +30,7 @@ import { pixelBrawlDefinition } from "./definitions/pixelBrawlDefinition";
 import { pixelCircuitDefinition } from "./definitions/pixelCircuitDefinition";
 import { dungeonQuestDefinition } from "./definitions/dungeonQuestDefinition";
 import { diamondRunDefinition } from "./definitions/diamondRun";
+import { hotlapDefinition } from "./definitions/hotlap";
 
 // Tier 2 — Puzzle Games
 import { twentyFortyEightDefinition } from "./definitions/twentyFortyEight";
@@ -159,9 +160,10 @@ export const gameRegistry: readonly GameDefinition[] = [
   sokobanDefinition,
   logicGatesDefinition,
   diamondRunDefinition,
+  hotlapDefinition,
 ];
 
-/** Games visible in the main ARCADE_ game library (61 cartridges). */
+/** Games visible in the main ARCADE_ game library (62 cartridges). */
 export const arcadeRegistry: readonly GameDefinition[] = gameRegistry;
 
 /** Legacy labs registry fallback. */

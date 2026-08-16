@@ -126,9 +126,9 @@ c:\1337\arcade_\
 │   ├── GameLoop.ts                      # 60Hz fixed accumulator loop
 │   └── GameSession.ts                   # State machine & scoring session
 │
-├── games/                               # Cartridge Implementations (61 games)
-│   ├── definitions/                     # 61 Cartridge definition metadata files
-│   ├── {gameName}/                      # 61 Game cartridge logic classes
+├── games/                               # Cartridge Implementations (62 games)
+│   ├── definitions/                     # 62 Cartridge definition metadata files
+│   ├── {gameName}/                      # 62 Game cartridge logic classes
 │   ├── registry.ts                      # Central single-source-of-truth registry
 │   └── types.ts                         # GameInstance & GameDefinition contracts
 │
@@ -149,7 +149,7 @@ c:\1337\arcade_\
 │   ├── games/                           # Cartridge-specific logic unit tests
 │   ├── helpers/                         # Mock GameContext & Mock Renderer
 │   ├── search/                          # Search ranking unit tests
-│   ├── smoke/                           # 61-cartridge smoke test suites
+│   ├── smoke/                           # 62-cartridge smoke test suites
 │   └── unit/                            # Vector, geometry, and algorithm tests
 │
 ├── CONTRIBUTING.md                      # Open-source contribution guidelines

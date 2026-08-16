@@ -6,7 +6,7 @@ This document describes the client-side search engine, query tokenization, fuzzy
 
 ## 1. Search Engine Architecture
 
-The search engine operates entirely in-memory in the browser. It indexes all 61 cartridges with sub-millisecond response times:
+The search engine operates entirely in-memory in the browser. It indexes all 62 cartridges with sub-millisecond response times:
 
 ```text
 User Search Query (e.g. "retro tetrs physics")

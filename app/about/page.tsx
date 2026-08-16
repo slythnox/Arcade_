@@ -48,8 +48,8 @@ export default function AboutPage() {
             paddingBottom: "10px",
             marginBottom: "20px"
           }}>1. WHAT IS ARCADE_?</h2>
-          <p style={{ fontSize: "1.1rem" }}>
-            ARCADE_ is a modern, browser-based retro gaming platform engineered with mathematical purity. Featuring precisely 61 unique cartridge games, the platform vehemently rejects ROM dumps and third-party emulators. Every title is reverse-engineered from first principles and natively re-implemented in strict TypeScript. Built for longevity and determinism, it operates entirely within the client boundary, utilizing zero external dependencies, resulting in a blisteringly fast, hyper-optimized 60fps experience that honors the legacy of classic arcade hardware.
+          <p style={{ fontSize: "16px", lineHeight: "1.7", color: "var(--color-text-dim)", maxWidth: "800px", margin: "0 auto 32px" }}>
+            ARCADE_ is a modern, browser-based retro gaming platform engineered with mathematical purity. Featuring precisely 62 unique cartridge games, the platform vehemently rejects ROM dumps and third-party emulators. Every title is reverse-engineered from first principles and natively re-implemented in strict TypeScript. Built for longevity and determinism, it operates entirely within the client boundary, utilizing zero external dependencies, resulting in a blisteringly fast, hyper-optimized 60fps experience that honors the legacy of classic arcade hardware.
           </p>
         </section>
 
@@ -286,7 +286,7 @@ export default function AboutPage() {
           }}>
             <ul style={{ listStyleType: "none", padding: 0, margin: 0, lineHeight: 2 }}>
               <li><span style={{ color: "var(--arcade-yellow, #FFD84D)" }}>[ FPS ]</span> 60fps stable on Chrome / Firefox / Safari (M1 & Intel).</li>
-              <li><span style={{ color: "var(--arcade-cyan, #4DE8E8)" }}>[ BUNDLE SIZE ]</span> {'<'}2MB total payload across all 61 cartridges.</li>
+              <li><span style={{ color: "var(--arcade-cyan, #4DE8E8)" }}>[ BUNDLE SIZE ]</span> {'<'}2MB total payload across all 62 cartridges.</li>
               <li><span style={{ color: "var(--arcade-pink, #FF5C8A)" }}>[ NETWORK ]</span> Zero network requests during gameplay. Fully local simulation.</li>
               <li><span style={{ color: "var(--arcade-purple, #A879FF)" }}>[ GC PAUSES ]</span> Mitigated entirely via strict Object Pooling for ephemeral entities.</li>
             </ul>

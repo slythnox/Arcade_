@@ -88,7 +88,7 @@ export function SteamLaunchOverlay({ active, gameTitle, onComplete }: SteamLaunc
   const [bootText, setBootText] = useState('');
   
   const fullText = `ARCADE_ KERNEL v2026.8 LOADED
-61 DETERMINISTIC CARTRIDGES: OK
+62 DETERMINISTIC CARTRIDGES: OK
 WEB AUDIO CORE: SYNTHESIZED
 DIGITAL WILDERNESS: GENERATED
 LAUNCH SEQUENCE: READY`;

@@ -1,6 +1,6 @@
 # ARCADE_
 
-> **A mathematical, zero-dependency retro arcade platform and 2D game engine built from scratch in pure TypeScript with 61 deterministic cartridges, procedural Web Audio sound synthesis, and pixel-quantized HTML5 Canvas rendering.**
+> **A mathematical, zero-dependency retro arcade platform and 2D game engine built from scratch in pure TypeScript with 62 deterministic cartridges, procedural Web Audio sound synthesis, and pixel-quantized HTML5 Canvas rendering.**
 
 ---
 
@@ -27,7 +27,7 @@
 
 ## What is ARCADE_?
 
-**ARCADE_** is an open-source web arcade platform running 61 original, from-scratch game cartridges. It is not an emulator and hosts zero copyrighted ROM files. Every game cartridge is an original, deterministic implementation written in strict TypeScript.
+**ARCADE_** is an open-source web arcade platform running 62 original, from-scratch game cartridges. It is not an emulator and hosts zero copyrighted ROM files. Every game cartridge is an original, deterministic implementation written in strict TypeScript.
 
 The platform provides a complete custom 2D runtime:
 - **Zero Third-Party Game Frameworks:** Built without Phaser, Pixi, Babylon, or Unity WebGL.
@@ -204,7 +204,7 @@ Read the [Input & Controls Document](docs/input.md) for keymapping and touch HUD
 
 ## Search Engine
 
-The client-side search engine (`lib/search/searchGames.ts`) matches queries across 61 cartridges with instant multi-attribute ranking:
+The client-side search engine (`lib/search/searchGames.ts`) matches queries across 62 cartridges with instant multi-attribute ranking:
 
 $$\text{Score} = w_{\text{name}} S_{\text{name}} + w_{\text{platform}} S_{\text{platform}} + w_{\text{genre}} S_{\text{genre}} + w_{\text{desc}} S_{\text{desc}} + w_{\text{tag}} S_{\text{tag}} + w_{\text{year}} S_{\text{year}}$$
 
@@ -216,10 +216,11 @@ Read the [Search Engine Document](docs/search.md) for tokenization rules and sco
 
 ## Game Library Catalogue
 
-ARCADE_ features **61 playable cartridges** across 7 genres:
+ARCADE_ features **62 playable cartridges** across 8 genres:
 
 | Slug | Name | Platform | Genre | Key Mathematical Concept |
 |---|---|---|---|---|
+| `hotlap` | Hotlap | Arcade | Racing | 2D vector tire kinematics ($v_{\text{long}}, v_{\text{lat}}$), Catmull-Rom spline projection, ghost telemetry |
 | `tetris` | Tetris | Game Boy | Puzzle | Discrete $N \times N$ matrix rotation, Super Rotation System (SRS) wall kicks |
 | `snake` | Snake | Arcade | Action | Discrete lattice queue, Manhattan distance, BFS autopilot |
 | `breakout` | Breakout | Arcade | Physics | Continuous vector reflection $\mathbf{R} = \mathbf{V} - 2(\mathbf{V}\cdot\mathbf{N})\mathbf{N}$, swept AABB collision |
@@ -334,7 +335,7 @@ c:\1337\arcade_\
 │   ├── GameLoop.ts             # 60Hz fixed accumulator loop
 │   └── GameSession.ts          # State machine & scoring session
 ├── games/                      # Individual game implementations
-│   ├── definitions/            # Static metadata definitions (61 files)
+│   ├── definitions/            # Static metadata definitions (62 files)
 │   ├── {gameName}/             # Game cartridge logic classes
 │   ├── registry.ts             # Authoritative single-source-of-truth registry
 │   └── types.ts                # GameInstance and GameDefinition interfaces
@@ -348,7 +349,7 @@ c:\1337\arcade_\
 │   ├── engine/                 # GameLoop & session tests
 │   ├── games/                  # Isolated game logic unit tests
 │   ├── search/                 # Search ranking & fuzzy matching tests
-│   ├── smoke/                  # 61 cartridge initialization smoke tests
+│   ├── smoke/                  # 62 cartridge initialization smoke tests
 │   └── unit/                   # Vector2, AABB, Math, and Algorithms tests
 ├── package.json                # Dependencies, scripts, and project metadata
 ├── tsconfig.json               # Strict TypeScript configuration
@@ -411,7 +412,7 @@ npm run build
 ```
 
 The test suite covers:
-- **61 Cartridge Smoke Tests:** Instantiates, initializes with mock `GameContext`, ticks update loops, renders, and verifies clean `destroy()` cleanup for all 61 games.
+- **62 Cartridge Smoke Tests:** Instantiates, initializes with mock `GameContext`, ticks update loops, renders, and verifies clean `destroy()` cleanup for all 62 games.
 - **Input Robustness Smoke Tests:** Simulates all `GameAction` triggers against each game to prevent unhandled exceptions.
 - **Vector & Geometric Tests:** Projections, reflections, AABB containment, circle intersection normal resolution.
 - **Mathematical & Algorithmic Tests:** A\*, BFS, FloodFill, Levenshtein distance, Matrix rotations, and PRNG distributions.

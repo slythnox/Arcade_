@@ -216,3 +216,22 @@ $$S_5(t) = t^3 \left(t (6t - 15) + 10\right), \quad t \in [0, 1]$$
 | **Manhattan ($L_1$)** | $\|x_1 - x_2\| + \|y_1 - y_2\|$ | 4-directional grid movement (Snake, Maze Runner, Pac-style) |
 | **Euclidean ($L_2$)** | $\sqrt{(x_1 - x_2)^2 + (y_1 - y_2)^2}$ | Continuous 2D distance (Shooters, Orbiters, Boids) |
 | **Chebyshev ($L_\infty$)** | $\max(\|x_1 - x_2\|, \|y_1 - y_2\|)$ | 8-directional Moore grids (Minesweeper clues, Chess Kings) |
+
+---
+
+## 8. Vector Tire Kinematics & Spline Parametrization (`games/hotlap/`)
+
+### Vector Velocity Decomposition
+The vehicle velocity vector $\mathbf{v}$ is decomposed into local longitudinal ($\hat{\mathbf{h}}$) and lateral ($\hat{\mathbf{n}}$) orthogonal bases:
+$$v_{\text{long}} = \mathbf{v} \cdot \hat{\mathbf{h}}, \quad v_{\text{lat}} = \mathbf{v} \cdot \hat{\mathbf{n}}$$
+$$\mathbf{v} = v_{\text{long}}\hat{\mathbf{h}} + v_{\text{lat}}\hat{\mathbf{n}}$$
+
+### Lateral Friction Decay & Slip
+Surface grip coefficient $\mu$ dampens lateral velocity over time step $\Delta t$:
+$$v_{\text{lat}}' = v_{\text{lat}} \cdot \max(0, 1 - \mu \cdot k \cdot \Delta t)$$
+When $|v_{\text{lat}}| > v_{\text{slip}}$, oversteer power-slides and tire smoke particle emissions are triggered.
+
+### Catmull-Rom Track Spline Projection
+Centerline progress $t \in [0, 1]$ is evaluated by minimizing the squared Euclidean distance to the closed $C^1$-continuous spline:
+$$t = \operatorname{argmin}_{u \in [0, 1]} \|\mathbf{P} - \mathbf{C}(u)\|^2$$
+

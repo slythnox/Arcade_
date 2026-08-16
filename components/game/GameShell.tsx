@@ -38,15 +38,25 @@ import {
   Gamepad2,
 } from "lucide-react";
 
-/* ─────────────── 4-Way Radial Directional Navigation Dial (Exact Look & Feel from User Reference) ─────────────── */
+/* ─────────────── 4-Way & 8-Way Radial Directional Navigation Dial ─────────────── */
 const RadialNavigationDial: React.FC<{
   onAction: (action: GameAction, isPressed: boolean) => void;
   showHints?: boolean;
 }> = ({ onAction, showHints = false }) => {
   const dialRef = useRef<HTMLDivElement>(null);
   const [knobPos, setKnobPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const [activeDir, setActiveDir] = useState<GameAction | null>(null);
-  const activeDirRef = useRef<GameAction | null>(null);
+  const [activeDirs, setActiveDirs] = useState<{ up: boolean; down: boolean; left: boolean; right: boolean }>({
+    up: false,
+    down: false,
+    left: false,
+    right: false,
+  });
+  const activeDirsRef = useRef<{ up: boolean; down: boolean; left: boolean; right: boolean }>({
+    up: false,
+    down: false,
+    left: false,
+    right: false,
+  });
   const isDraggingRef = useRef(false);
 
   const handlePointer = useCallback(
@@ -59,21 +69,20 @@ const RadialNavigationDial: React.FC<{
       const dx = clientX - centerX;
       const dy = clientY - centerY;
       const distance = Math.hypot(dx, dy);
-      const maxRadius = 30;
+      const maxRadius = 32;
 
-      let targetDir: GameAction | null = null;
+      const newDirs = {
+        up: false,
+        down: false,
+        left: false,
+        right: false,
+      };
 
-      if (distance > 6) {
-        const angle = Math.atan2(dy, dx) * (180 / Math.PI); // -180 to 180
-        if (angle >= -45 && angle <= 45) {
-          targetDir = "MOVE_RIGHT";
-        } else if (angle > 45 && angle < 135) {
-          targetDir = "MOVE_DOWN";
-        } else if (angle < -45 && angle > -135) {
-          targetDir = "MOVE_UP";
-        } else {
-          targetDir = "MOVE_LEFT";
-        }
+      if (distance > 7) {
+        if (dx > 7) newDirs.right = true;
+        if (dx < -7) newDirs.left = true;
+        if (dy < -7) newDirs.up = true;
+        if (dy > 7) newDirs.down = true;
       }
 
       const clampedDist = Math.min(distance, maxRadius);
@@ -83,16 +92,14 @@ const RadialNavigationDial: React.FC<{
 
       setKnobPos({ x: knobX, y: knobY });
 
-      if (targetDir !== activeDirRef.current) {
-        if (activeDirRef.current) {
-          onAction(activeDirRef.current, false);
-        }
-        if (targetDir) {
-          onAction(targetDir, true);
-        }
-        activeDirRef.current = targetDir;
-        setActiveDir(targetDir);
-      }
+      const prev = activeDirsRef.current;
+      if (newDirs.up !== prev.up) onAction("MOVE_UP", newDirs.up);
+      if (newDirs.down !== prev.down) onAction("MOVE_DOWN", newDirs.down);
+      if (newDirs.left !== prev.left) onAction("MOVE_LEFT", newDirs.left);
+      if (newDirs.right !== prev.right) onAction("MOVE_RIGHT", newDirs.right);
+
+      activeDirsRef.current = newDirs;
+      setActiveDirs(newDirs);
     },
     [onAction]
   );
@@ -118,13 +125,18 @@ const RadialNavigationDial: React.FC<{
       } catch {}
       isDraggingRef.current = false;
       setKnobPos({ x: 0, y: 0 });
-      if (activeDirRef.current) {
-        onAction(activeDirRef.current, false);
-        activeDirRef.current = null;
-        setActiveDir(null);
-      }
+      const prev = activeDirsRef.current;
+      if (prev.up) onAction("MOVE_UP", false);
+      if (prev.down) onAction("MOVE_DOWN", false);
+      if (prev.left) onAction("MOVE_LEFT", false);
+      if (prev.right) onAction("MOVE_RIGHT", false);
+      const cleared = { up: false, down: false, left: false, right: false };
+      activeDirsRef.current = cleared;
+      setActiveDirs(cleared);
     }
   };
+
+  const hasAnyActive = activeDirs.up || activeDirs.down || activeDirs.left || activeDirs.right;
 
   return (
     <div
@@ -157,21 +169,21 @@ const RadialNavigationDial: React.FC<{
         viewBox="0 0 100 100"
         style={{ position: "absolute", inset: 0, pointerEvents: "none" }}
       >
-        {/* Concentric rings matching user image */}
+        {/* Concentric rings */}
         <circle cx="50" cy="50" r="44" fill="none" stroke="#2a384f" strokeWidth="1.2" opacity="0.6" />
         <circle cx="50" cy="50" r="34" fill="none" stroke="#32435d" strokeWidth="1" strokeDasharray="4 2" opacity="0.4" />
         <circle cx="50" cy="50" r="25" fill="none" stroke="#222f42" strokeWidth="1.5" opacity="0.8" />
         <circle cx="50" cy="50" r="16" fill="none" stroke="#182333" strokeWidth="1" opacity="0.5" />
 
-        {/* Vector Line Indicator from center to active direction */}
-        {activeDir && (
+        {/* Vector Line Indicator from center to active knob */}
+        {hasAnyActive && (
           <line
             x1="50"
             y1="50"
-            x2={50 + (activeDir === "MOVE_UP" ? 0 : activeDir === "MOVE_DOWN" ? 0 : activeDir === "MOVE_LEFT" ? -40 : 40)}
-            y2={50 + (activeDir === "MOVE_UP" ? -40 : activeDir === "MOVE_DOWN" ? 40 : 0)}
+            x2={50 + knobPos.x * 1.15}
+            y2={50 + knobPos.y * 1.15}
             stroke="#ffffff"
-            strokeWidth="1.8"
+            strokeWidth="2.0"
             strokeLinecap="round"
             filter="drop-shadow(0 0 4px #4de8e8)"
           />
@@ -190,45 +202,45 @@ const RadialNavigationDial: React.FC<{
         {/* Top Chevron (Up) */}
         <path
           d="M 45 13 L 50 7 L 55 13"
-          stroke={activeDir === "MOVE_UP" ? "#ffffff" : "rgba(255, 255, 255, 0.45)"}
-          strokeWidth={activeDir === "MOVE_UP" ? "2.5" : "1.8"}
+          stroke={activeDirs.up ? "#ffffff" : "rgba(255, 255, 255, 0.45)"}
+          strokeWidth={activeDirs.up ? "2.5" : "1.8"}
           fill="none"
           strokeLinecap="round"
           strokeLinejoin="round"
-          filter={activeDir === "MOVE_UP" ? "drop-shadow(0 0 6px #4de8e8)" : undefined}
+          filter={activeDirs.up ? "drop-shadow(0 0 6px #4de8e8)" : undefined}
         />
 
         {/* Bottom Chevron (Down) */}
         <path
           d="M 45 87 L 50 93 L 55 87"
-          stroke={activeDir === "MOVE_DOWN" ? "#ffffff" : "rgba(255, 255, 255, 0.45)"}
-          strokeWidth={activeDir === "MOVE_DOWN" ? "2.5" : "1.8"}
+          stroke={activeDirs.down ? "#ffffff" : "rgba(255, 255, 255, 0.45)"}
+          strokeWidth={activeDirs.down ? "2.5" : "1.8"}
           fill="none"
           strokeLinecap="round"
           strokeLinejoin="round"
-          filter={activeDir === "MOVE_DOWN" ? "drop-shadow(0 0 6px #4de8e8)" : undefined}
+          filter={activeDirs.down ? "drop-shadow(0 0 6px #4de8e8)" : undefined}
         />
 
         {/* Left Chevron (Left) */}
         <path
           d="M 13 45 L 7 50 L 13 55"
-          stroke={activeDir === "MOVE_LEFT" ? "#ffffff" : "rgba(255, 255, 255, 0.45)"}
-          strokeWidth={activeDir === "MOVE_LEFT" ? "2.5" : "1.8"}
+          stroke={activeDirs.left ? "#ffffff" : "rgba(255, 255, 255, 0.45)"}
+          strokeWidth={activeDirs.left ? "2.5" : "1.8"}
           fill="none"
           strokeLinecap="round"
           strokeLinejoin="round"
-          filter={activeDir === "MOVE_LEFT" ? "drop-shadow(0 0 6px #4de8e8)" : undefined}
+          filter={activeDirs.left ? "drop-shadow(0 0 6px #4de8e8)" : undefined}
         />
 
         {/* Right Chevron (Right) */}
         <path
           d="M 87 45 L 93 50 L 87 55"
-          stroke={activeDir === "MOVE_RIGHT" ? "#ffffff" : "rgba(255, 255, 255, 0.45)"}
-          strokeWidth={activeDir === "MOVE_RIGHT" ? "2.5" : "1.8"}
+          stroke={activeDirs.right ? "#ffffff" : "rgba(255, 255, 255, 0.45)"}
+          strokeWidth={activeDirs.right ? "2.5" : "1.8"}
           fill="none"
           strokeLinecap="round"
           strokeLinejoin="round"
-          filter={activeDir === "MOVE_RIGHT" ? "drop-shadow(0 0 6px #4de8e8)" : undefined}
+          filter={activeDirs.right ? "drop-shadow(0 0 6px #4de8e8)" : undefined}
         />
       </svg>
 
@@ -268,8 +280,8 @@ const RadialNavigationDial: React.FC<{
               width: "5px",
               height: "5px",
               borderRadius: "50%",
-              backgroundColor: activeDir ? "#4de8e8" : "rgba(255,255,255,0.5)",
-              boxShadow: activeDir ? "0 0 6px #4de8e8" : "none",
+              backgroundColor: hasAnyActive ? "#4de8e8" : "rgba(255,255,255,0.5)",
+              boxShadow: hasAnyActive ? "0 0 6px #4de8e8" : "none",
             }}
           />
         </div>
