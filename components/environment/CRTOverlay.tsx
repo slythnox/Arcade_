@@ -5,7 +5,6 @@ export interface CRTOverlayProps {
   enabled?: boolean;
   scanlines?: boolean;
   flicker?: boolean;
-  aspectRatio?: string;
   style?: React.CSSProperties;
   className?: string;
 }
@@ -15,7 +14,6 @@ export const CRTOverlay: React.FC<CRTOverlayProps> = ({
   enabled = true,
   scanlines = true,
   flicker = false,
-  aspectRatio = "600 / 700",
   style = {},
   className = "",
 }) => {
@@ -27,11 +25,10 @@ export const CRTOverlay: React.FC<CRTOverlayProps> = ({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          width: "100%",
           height: "100%",
           maxHeight: "100%",
           maxWidth: "100%",
-          aspectRatio: aspectRatio === "fill" ? "auto" : aspectRatio,
-          width: aspectRatio === "fill" ? "100%" : "auto",
           ...style,
         }}
       >
@@ -53,11 +50,10 @@ export const CRTOverlay: React.FC<CRTOverlayProps> = ({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
+        width: "100%",
         height: "100%",
         maxHeight: "100%",
         maxWidth: "100%",
-        aspectRatio: aspectRatio === "fill" ? "auto" : aspectRatio,
-        width: aspectRatio === "fill" ? "100%" : "auto",
         boxSizing: "border-box",
         ...style,
       }}
@@ -77,7 +73,7 @@ export const CRTOverlay: React.FC<CRTOverlayProps> = ({
         }}
       />
 
-      {/* Subtle Neutral Raster Scanlines (No green cast) */}
+      {/* Subtle Neutral Raster Scanlines */}
       {scanlines && (
         <div
           style={{
