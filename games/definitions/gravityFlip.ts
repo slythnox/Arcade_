@@ -24,11 +24,11 @@ export const gravityFlipDefinition: GameDefinition = {
   },
   controls: {
     keyboard: [
-      { key: "SPACE / ↑", description: "Flip Gravitational Vector" },
+      { key: "SPACE / Click / ↑ / W", description: "Invert Gravity Polarity" },
       { key: "P", description: "Pause / Resume" },
-      { key: "R", description: "Restart" },
+      { key: "R", description: "Restart Run" },
     ],
-    touch: "Tap anywhere on screen to flip gravity.",
+    touch: "Tap anywhere on screen to flip gravity instantaneously.",
   },
   seo: {
     title: "Gravity Flip — High-Speed Gravity Inversion Runner",

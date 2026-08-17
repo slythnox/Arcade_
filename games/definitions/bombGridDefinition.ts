@@ -23,9 +23,12 @@ export const bombGridDefinition: GameDefinition = {
   controls: {
     keyboard: [
       { key: "WASD / Arrows", description: "Move Player" },
-      { key: "SPACE", description: "Place Bomb" },
+      { key: "SPACE / X", description: "Place Bomb" },
       { key: "P", description: "Pause / Resume" },
+      { key: "R", description: "Restart" },
     ],
+    touch: "Use left directional dial to run through alleys, tap right A button to drop bomb.",
+    gamepad: "D-pad to move, A button to drop bomb."
   },
   seo: {
     title: "Play Bomb Grid Online - Retro Explosive Action",

@@ -18,7 +18,8 @@ export default function HomePage() {
   const gridTitle = searchQuery.trim() ? "SEARCH RESULTS" : "ALL CARTRIDGES";
 
   return (
-    <div className="container" style={{ paddingBottom: "var(--space-12)" }}>
+    <div style={{ paddingBottom: "var(--space-12)" }}>
+      {/* Full-bleed edge-to-edge Hero Header with zero side borders */}
       <ArcadeHero
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
@@ -26,11 +27,14 @@ export default function HomePage() {
         onPlatformChange={setSelectedPlatform}
       />
 
-      <GameGrid
-        games={filteredGames}
-        title={gridTitle}
-        emptyMessage="No cartridges match your search — try a different query."
-      />
+      {/* Cartridge Grid in Centered Container */}
+      <div className="container">
+        <GameGrid
+          games={filteredGames}
+          title={gridTitle}
+          emptyMessage="No cartridges match your search — try a different query."
+        />
+      </div>
     </div>
   );
 }

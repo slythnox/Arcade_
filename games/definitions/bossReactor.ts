@@ -2,15 +2,15 @@ import type { GameDefinition } from "../types";
 export const bossReactorDefinition: GameDefinition = {
   id: "boss-reactor",
   slug: "boss-reactor",
-  name: "Boss Reactor",
+  name: "Void Vanguard",
   platform: "arcade",
   genre: "shooter",
   era: "1980s",
   year: 1987,
-  tags: ["Boss Fight", "Shooter", "Multi-Phase", "Action"],
-  tagline: "Engage a massive mothership boss with multi-phase attacks and laser sweeps.",
+  tags: ["Boss Fight", "Space Shooter", "Dreadnought", "Action"],
+  tagline: "Assault the purple dreadnought mothership and its blue escort armada amid perilous asteroid fields.",
   description:
-    "Battle an escalating multi-phase dreadnought boss core with oscillating attack spreads and enrage transitions.",
+    "Battle an escalating multi-phase purple dreadnought boss core with minion starfighter fleets, sweeping death rays, and drifting asteroid hazards.",
   difficulty: "hard",
   players: "single",
   category: "arcade",
@@ -18,7 +18,7 @@ export const bossReactorDefinition: GameDefinition = {
   estimatedPlayTime: "5-10 min",
   thumbnail: {
     src: "/assets/thumbnails/boss-reactor.png",
-    alt: "Boss Reactor Arcade",
+    alt: "Void Vanguard Arcade",
     width: 600,
     height: 700,
   },

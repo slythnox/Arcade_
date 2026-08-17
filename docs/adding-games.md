@@ -78,20 +78,23 @@ export const myNewGameDefinition: GameDefinition = {
     summary: "Simple jump parabolas.",
     concepts: [{ name: "Gravity", description: "v = v_0 + g*t" }]
   },
-  createGame: () => new MyNewGame(),
+  createGame: async () => {
+    const { MyNewGame } = await import("../myNewGame/MyNewGame");
+    return new MyNewGame();
+  },
 };
 ```
 
 ## 4. Register the Game
-Open `games/registry.ts` and append your definition to the master list:
+Open `games/registry.ts` and append your definition to the `gameRegistry` array:
 
 ```typescript
 import { myNewGameDefinition } from "./definitions/myNewGame";
 
-export const GAMES_REGISTRY: Record<string, GameDefinition> = {
+export const gameRegistry: readonly GameDefinition[] = [
   // ... existing games
-  [myNewGameDefinition.id]: myNewGameDefinition,
-};
+  myNewGameDefinition,
+];
 ```
 
 ## 5. Typecheck

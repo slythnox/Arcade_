@@ -25,11 +25,11 @@ export const magnetRunDefinition: GameDefinition = {
   controls: {
     keyboard: [
       { key: "← → / A D", description: "Steer Ship Horizontal" },
-      { key: "SPACE", description: "Switch Magnetic Polarity (+ / -)" },
+      { key: "SPACE / Click / W / ↑", description: "Switch Magnetic Polarity (+ / -)" },
       { key: "P", description: "Pause / Resume" },
       { key: "R", description: "Restart" },
     ],
-    touch: "Tap left/right to steer, tap polarity button to invert charge.",
+    touch: "Tap anywhere on screen to toggle magnetic polarity instantaneous.",
   },
   seo: {
     title: "Magnet Run — Inverse-Square Electro-Magnetic Reflex Runner",

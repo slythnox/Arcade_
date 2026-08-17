@@ -33,13 +33,18 @@ export class InputManager {
     this.keyBindings.set("KeyW", "MOVE_UP");
     this.keyBindings.set("KeyS", "MOVE_DOWN");
 
-    // Actions
+    // Actions: Standard 3-Button Arcade Layout (Z/X/C, J/K/L, Space/Shift)
     this.keyBindings.set("Space", "ACTION_PRIMARY");
-    this.keyBindings.set("KeyZ", "ROTATE");
-    this.keyBindings.set("KeyX", "ACTION_PRIMARY");
-    this.keyBindings.set("KeyC", "ACTION_SECONDARY");
+    this.keyBindings.set("KeyZ", "ACTION_PRIMARY");
+    this.keyBindings.set("KeyJ", "ACTION_PRIMARY");
+
+    this.keyBindings.set("KeyX", "ACTION_SECONDARY");
+    this.keyBindings.set("KeyK", "ACTION_SECONDARY");
     this.keyBindings.set("ShiftLeft", "ACTION_SECONDARY");
     this.keyBindings.set("ShiftRight", "ACTION_SECONDARY");
+
+    this.keyBindings.set("KeyC", "ROTATE");
+    this.keyBindings.set("KeyL", "ROTATE");
 
     // System keys
     this.keyBindings.set("KeyP", "PAUSE");

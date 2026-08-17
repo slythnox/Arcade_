@@ -1,6 +1,6 @@
 # ARCADE_
 
-> **A mathematical, zero-dependency retro arcade platform and 2D game engine built from scratch in pure TypeScript with 61 deterministic cartridges, procedural Web Audio sound synthesis, and pixel-quantized HTML5 Canvas rendering.**
+> **A mathematical, zero-dependency retro arcade platform and 2D game engine built from scratch in pure TypeScript with 60 deterministic cartridges, procedural Web Audio sound synthesis, and pixel-quantized HTML5 Canvas rendering.**
 
 ---
 
@@ -27,7 +27,7 @@
 
 ## What is ARCADE_?
 
-**ARCADE_** is an open-source web arcade platform running 61 original, from-scratch game cartridges. It is not an emulator and hosts zero copyrighted ROM files. Every game cartridge is an original, deterministic implementation written in strict TypeScript.
+**ARCADE_** is an open-source web arcade platform running 60 original, from-scratch game cartridges. It is not an emulator and hosts zero copyrighted ROM files. Every game cartridge is an original, deterministic implementation written in strict TypeScript.
 
 The platform provides a complete custom 2D runtime:
 - **Zero Third-Party Game Frameworks:** Built without Phaser, Pixi, Babylon, or Unity WebGL.
@@ -204,7 +204,7 @@ Read the [Input & Controls Document](docs/input.md) for keymapping and touch HUD
 
 ## Search Engine
 
-The client-side search engine (`lib/search/searchGames.ts`) matches queries across 61 cartridges with instant multi-attribute ranking:
+The client-side search engine (`lib/search/searchGames.ts`) matches queries across 60 cartridges with instant multi-attribute ranking:
 
 $$\text{Score} = w_{\text{name}} S_{\text{name}} + w_{\text{platform}} S_{\text{platform}} + w_{\text{genre}} S_{\text{genre}} + w_{\text{desc}} S_{\text{desc}} + w_{\text{tag}} S_{\text{tag}} + w_{\text{year}} S_{\text{year}}$$
 
@@ -216,7 +216,7 @@ Read the [Search Engine Document](docs/search.md) for tokenization rules and sco
 
 ## Game Library Catalogue
 
-ARCADE_ features **61 playable cartridges** across 8 genres:
+ARCADE_ features **60 playable cartridges** across 8 genres:
 
 | Slug | Name | Platform | Genre | Key Mathematical Concept |
 |---|---|---|---|---|
@@ -232,7 +232,7 @@ ARCADE_ features **61 playable cartridges** across 8 genres:
 | `laser-grid` | Laser Grid | Arcade | Puzzle | Discrete raycasting, orthogonal beam deflection |
 | `maze-chaser` | Maze Chaser | Arcade | Action | Grid intersection decision trees, Manhattan pursuit AI |
 | `road-hopper` | Road Hopper | Arcade | Action | Multi-lane velocity lanes, discrete step-based hopping |
-| `star-formation` | Star Formation | Arcade | Shooter | Parametric Bézier curve swoops, radial bullet bursts |
+| `star-formation` | Rail Storm | Arcade | Shooter | Parametric Bézier curve swoops, radial bullet bursts |
 | `bomb-grid` | Bomb Grid | NES | Action | Cross-pattern orthogonal explosion rays, destructible tile maps |
 | `peg-blast` | Peg Blast | Arcade | Puzzle | Ballistics trajectories, circle-peg elastic restitution |
 | `cave-hunter` | Cave Hunter | Arcade | Action | Subterranean gravity kinematics, rope swinging pendulum physics |
@@ -240,9 +240,9 @@ ARCADE_ features **61 playable cartridges** across 8 genres:
 | `marble-rush` | Marble Rush | Arcade | Puzzle | Tangent rail physics, match-3 topological grouping |
 | `velocity-rush` | Velocity Rush | NES | Platformer | Variable jump height via release-clamped velocity, momentum dampening |
 | `pixel-quest` | Pixel Quest | NES | Platformer | Tilemap collision resolution, enemy patrol state machines |
-| `ray-sector` | Ray Sector | Arcade | Shooter | Forward projection raycasting, lock-on targeting systems |
+| `ray-sector` | Ray Sector | Arcade | Shooter | 2.5D DDA raycasting, endless concentric corridor loops, line-of-sight opponent AI |
 | `pixel-brawl` | Pixel Brawl | Arcade | Fighting | Hitbox vs Hurtbox frame windows, state-machine combat |
-| `pixel-circuit` | Pixel Circuit | NES | Racing | Centripetal cornering force, forward projection slipstream |
+| `pixel-circuit` | Pixel Kart | NES | Racing | Longitudinal/lateral drift decomposition, mini-turbos, slipstream drafting |
 | `2048` | 2048 | Arcade | Puzzle | Array slide-and-merge compaction, powers-of-two arithmetic |
 | `lights-out` | Lights Out | Handheld | Puzzle | GF(2) linear algebra matrix state flips |
 | `match-3` | Match-3 | Arcade | Puzzle | 2D matrix pattern recognition, gravity-cascade drop logic |
@@ -258,24 +258,23 @@ ARCADE_ features **61 playable cartridges** across 8 genres:
 | `ricochet` | Ricochet | Arcade | Physics | Multi-surface specular reflection ray tracing |
 | `twin-stick-arena` | Twin Stick Arena | Arcade | Shooter | Dual polar coordinate targeting, spatial hash broadphase |
 | `bullet-garden` | Bullet Garden | Arcade | Shooter | Parametric bullet curtains, polar pattern generation |
-| `boss-reactor` | Boss Reactor | Arcade | Shooter | Multi-phase boss finite state machine (FSM), radial lasers |
+| `boss-reactor` | Void Vanguard | Arcade | Shooter | Multi-phase boss finite state machine (FSM), radial lasers |
 | `drone-swarm` | Drone Swarm | Arcade | Shooter | Craig Reynolds boid steering (Separation, Alignment, Cohesion) |
 | `missile-command` | Missile Command | Arcade | Shooter | Vector intercept trajectories, expanding explosive shockwaves |
 | `pixel-jumper` | Pixel Jumper | Arcade | Platformer | Parabolic jump curves, procedural vertical platform generation |
 | `wall-runner` | Wall Runner | Arcade | Platformer | Wall-slide friction damping, wall-jump directional impulses |
 | `cave-escape` | Cave Escape | Arcade | Platformer | Procedural terrain scrolling, upward thrust kinematics |
-| `ladder-climb` | Ladder Climb | Arcade | Platformer | Dual-axis movement modes (free-fall vs ladder climbing) |
 | `shadow-runner` | Shadow Runner | Arcade | Action | Dynamic 2D shadow ray projection and visibility polygons |
 | `connect-four` | Connect Four | Arcade | Strategy | Minimax tree search, diagonal bitmask line evaluation |
 | `tic-tac-toe-plus` | Tic-Tac-Toe+ | Arcade | Strategy | Complete game-tree traversal, optimal minimax AI |
 | `reversi` | Reversi | Arcade | Strategy | 8-directional flank evaluation, positional corner weighting |
 | `tower-defense` | Tower Defense | Arcade | Strategy | Dijkstra distance maps, continuous target angle tracking |
-| `cell-colony` | Cell Colony | Arcade | Experimental | Conway B3/S23 cellular automata transition rules |
-| `pool-simulator` | Pool Simulator | Arcade | Experimental | 2D rigid-body circle collisions, rotational friction |
-| `infinite-forest` | Infinite Forest | Arcade | Experimental | Seeded 2D ValueNoise terrain generation, procedural foliage |
-| `time-loop` | Time Loop | Arcade | Experimental | Recorded input replay buffers, multi-timeline simulation |
-| `fire-spread` | Fire Spread | Arcade | Experimental | Probabilistic stochastic cellular automata propagation |
-| `liquid-cells` | Liquid Cells | Arcade | Experimental | Cellular fluid dynamics, lateral pressure equalization |
+| `cell-colony` | Cell Colony | Arcade | Strategy | Microbial node graph expansion, exponential spore swarms, resource allocation |
+| `pool-simulator` | Pool Simulator | Arcade | Physics | 2D rigid-body circle collisions, cue impulse vectors, rotational friction |
+| `infinite-forest` | Tractor Mulcher | Arcade | Action | ValueNoise terrain heightmaps, carbide grinder wood shredding, projectile splinter ballistics |
+| `time-loop` | Circuit Lab | Handheld | Puzzle | Ohm's Law ($V = IR$), RC time constants ($\tau = RC$), NE555 multivibrator logic |
+| `fire-spread` | Inferno Strike | Arcade | Action | Aerial fire retardant dispersal physics, chemical flame suppression barriers |
+| `liquid-cells` | Liquid Cells | Arcade | Physics | Cellular fluid dynamics, lateral pressure equalization |
 | `omega-run` | Omega Run | Arcade | Platformer | Infinite speed acceleration curves, procedural obstacle layout |
 | `sokoban` | Sokoban | Arcade | Puzzle | Push mechanics, state-space search, undo history stack |
 | `logic-gates` | Logic Gates | Arcade | Puzzle | Boolean logic gate evaluation (AND, OR, NOT, XOR, NAND, NOR) |
@@ -334,7 +333,7 @@ c:\1337\arcade_\
 │   ├── GameLoop.ts             # 60Hz fixed accumulator loop
 │   └── GameSession.ts          # State machine & scoring session
 ├── games/                      # Individual game implementations
-│   ├── definitions/            # Static metadata definitions (61 files)
+│   ├── definitions/            # Static metadata definitions (60 files)
 │   ├── {gameName}/             # Game cartridge logic classes
 │   ├── registry.ts             # Authoritative single-source-of-truth registry
 │   └── types.ts                # GameInstance and GameDefinition interfaces
@@ -348,7 +347,7 @@ c:\1337\arcade_\
 │   ├── engine/                 # GameLoop & session tests
 │   ├── games/                  # Isolated game logic unit tests
 │   ├── search/                 # Search ranking & fuzzy matching tests
-│   ├── smoke/                  # 61 cartridge initialization smoke tests
+│   ├── smoke/                  # 60 cartridge initialization smoke tests
 │   └── unit/                   # Vector2, AABB, Math, and Algorithms tests
 ├── package.json                # Dependencies, scripts, and project metadata
 ├── tsconfig.json               # Strict TypeScript configuration
@@ -411,7 +410,7 @@ npm run build
 ```
 
 The test suite covers:
-- **61 Cartridge Smoke Tests:** Instantiates, initializes with mock `GameContext`, ticks update loops, renders, and verifies clean `destroy()` cleanup for all 61 games.
+- **60 Cartridge Smoke Tests:** Instantiates, initializes with mock `GameContext`, ticks update loops, renders, and verifies clean `destroy()` cleanup for all 60 games.
 - **Input Robustness Smoke Tests:** Simulates all `GameAction` triggers against each game to prevent unhandled exceptions.
 - **Vector & Geometric Tests:** Projections, reflections, AABB containment, circle intersection normal resolution.
 - **Mathematical & Algorithmic Tests:** A\*, BFS, FloodFill, Levenshtein distance, Matrix rotations, and PRNG distributions.

@@ -8,32 +8,41 @@ export const pixelBrawlDefinition: GameDefinition = {
   genre: "fighting",
   era: "1990s",
   year: 1991,
-  tags: ["fighting", "2d", "brawler"],
-  description: "Street Fighter-inspired 2D fighter.",
-  tagline: "Head-to-head arcade fighting.",
+  tags: ["Fighting", "Brawler", "2D Combat", "Frame Data", "Hitboxes", "Arcade"],
+  description:
+    "A 1990s head-to-head fighting game. Master frame data, execute high/low attacks, cancel into special moves, and deplete your opponent's health bar in best-of-three round combat.",
+  tagline: "Head-to-head arcade fighting with frame-perfect hitboxes.",
   difficulty: "hard",
   players: "single",
   category: "arcade",
   subcategory: "fighting",
-  estimatedPlayTime: "5 min",
-  thumbnail: { src: "/placeholder.png", alt: "Pixel Brawl" },
+  estimatedPlayTime: "5-10 min",
+  thumbnail: { src: "/games/pixelBrawl/thumb.png", alt: "Pixel Brawl" },
   controls: {
     keyboard: [
-      { key: "WASD", description: "Move/Jump/Crouch" },
-      { key: "Space", description: "Light Attack" },
-      { key: "Enter", description: "Heavy Attack" },
-      { key: "Shift", description: "Special" }
-    ]
+      { key: "A / D (or LEFT / RIGHT)", description: "Move Forward / Retreat (Block)" },
+      { key: "W / UP", description: "Jump" },
+      { key: "S / DOWN", description: "Crouch Guard" },
+      { key: "SPACE / Z", description: "Light Punch (Jab)" },
+      { key: "X / SHIFT", description: "Heavy Kick (Roundhouse)" },
+      { key: "C", description: "Special Surge Wave (Hadouken)" },
+      { key: "P", description: "Pause" },
+      { key: "R", description: "Restart Match" },
+    ],
+    touch: "Use left directional dial for walking/guarding, tap A for Light Punch, B for Heavy Kick, ROT for Special Surge Wave.",
+    gamepad: "D-pad to move, A for Light Punch, B for Heavy Kick, X for Special Surge Wave."
   },
   seo: {
-    title: "Pixel Brawl",
-    description: "Play Pixel Brawl, a classic 2D fighting game."
+    title: "Pixel Brawl — 2D Arcade Fighting Game",
+    description: "Play Pixel Brawl, a retro 1990s head-to-head fighting game with frame data and hitbox combat systems.",
+    keywords: ["pixel brawl", "street fighter arcade", "2d fighting game", "hitbox combat", "retro brawler"]
   },
   math: {
-    title: "Frame Data & AABB",
-    summary: "Hitbox detection and animation frame timing.",
+    title: "Frame Data & Hitbox Disjoint Intersection",
+    summary: "\\text{Hit}(\\text{Atk}, \\text{Def}) = \\operatorname{AABB}(\\text{Hitbox}_{\\text{active}}, \\text{Hurtbox}_{\\text{defender}}).",
     concepts: [
-      { name: "AABB", description: "Axis-Aligned Bounding Box" }
+      { name: "Frame Window Windows", description: "Startup, active, and recovery animation frames defining attack priority." },
+      { name: "Knockback Impulse Vectors", description: "Linear momentum transfer scaled by attack severity and guard state." }
     ]
   },
   createGame: async () => {

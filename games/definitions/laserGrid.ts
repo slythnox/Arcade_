@@ -38,10 +38,12 @@ export const laserGridDefinition: GameDefinition = {
   },
   math: {
     title: "Optical Ray Tracing & Specular Inversion",
-    summary: "2D discrete ray marching with 45-degree specular reflection transformations.",
+    summary: "2D discrete ray marching with 45-degree specular reflection transformations, chromatic filtration, and prism beam splitting.",
     concepts: [
-      { name: "Slash Mirror Matrix", description: "(dx, dy) \\to (-dy, -dx)." },
-      { name: "Backslash Mirror Matrix", description: "(dx, dy) \\to (dy, dx)." },
+      { name: "Slash Mirror Matrix", description: "(dx, dy) \\to (-dy, -dx)" },
+      { name: "Backslash Mirror Matrix", description: "(dx, dy) \\to (dy, dx)" },
+      { name: "Prism Beam Splitting", description: "Incoming (dx, dy) splits into dual orthogonal rays (-dy, dx) and (dy, -dx)" },
+      { name: "Quantum Portal Translation", description: "Laser beam coordinates map seamlessly from Portal Alpha to Portal Beta" },
     ],
   },
   createGame: async () => {

@@ -18,10 +18,12 @@ export const sokobanDefinition: GameDefinition = {
   thumbnail: { src: "/games/sokoban/thumb.png", alt: "Sokoban" },
   controls: {
     keyboard: [
-      { key: "ARROWS", description: "Move & Push Box" },
-      { key: "Z / SHIFT", description: "Undo Last Move" },
+      { key: "ARROWS / WASD", description: "Move & Push Box" },
+      { key: "Z / SHIFT / C", description: "Undo Last Move" },
       { key: "R", description: "Restart Level" },
     ],
+    touch: "Swipe or use the left directional dial to push crates onto docks, tap right B button to undo last move.",
+    gamepad: "D-pad to move, B button to undo move."
   },
   seo: {
     title: "Sokoban — Classic Box Pushing Warehouse Puzzle",

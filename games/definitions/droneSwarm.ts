@@ -24,10 +24,11 @@ export const droneSwarmDefinition: GameDefinition = {
   },
   controls: {
     keyboard: [
-      { key: "WASD / Arrow Keys", description: "Maneuver Defense Core" },
-      { key: "SPACE", description: "Fire 4-Way Cross Pulse" },
+      { key: "WASD / Arrow Keys", description: "Flight Thrusters" },
+      { key: "Mouse Pointer", description: "360° Precision Aim" },
+      { key: "SPACE / Right Click", description: "EMP Shockwave Burst" },
       { key: "P", description: "Pause / Resume" },
-      { key: "R", description: "Restart" },
+      { key: "R", description: "Restart Sortie" },
     ],
     touch: "Touch to move, tap pulse button to fire radial burst.",
   },

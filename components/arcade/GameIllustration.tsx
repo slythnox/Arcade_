@@ -102,8 +102,6 @@ export const GAME_THEMES: Record<string, GameTheme> = {
   dashRunner: { primary: "#ff9f43", secondary: "#63e66d", accent: "#ffd84d", glow: "rgba(255, 159, 67, 0.4)" },
   "cave-escape": { primary: "#4de8e8", secondary: "#a879ff", accent: "#ffd84d", glow: "rgba(77, 232, 232, 0.4)" },
   caveEscape: { primary: "#4de8e8", secondary: "#a879ff", accent: "#ffd84d", glow: "rgba(77, 232, 232, 0.4)" },
-  "ladder-climb": { primary: "#ffd84d", secondary: "#ff5c8a", accent: "#63e66d", glow: "rgba(255, 216, 77, 0.4)" },
-  ladderClimb: { primary: "#ffd84d", secondary: "#ff5c8a", accent: "#63e66d", glow: "rgba(255, 216, 77, 0.4)" },
   "one-button-jump": { primary: "#ff5c8a", secondary: "#4de8e8", accent: "#ffd84d", glow: "rgba(255, 92, 138, 0.4)" },
   oneButtonJump: { primary: "#ff5c8a", secondary: "#4de8e8", accent: "#ffd84d", glow: "rgba(255, 92, 138, 0.4)" },
   "shadow-runner": { primary: "#a879ff", secondary: "#4de8e8", accent: "#ffd84d", glow: "rgba(168, 121, 255, 0.4)" },
@@ -375,15 +373,22 @@ export const GameIllustration: React.FC<GameIllustrationProps> = ({ game, size =
       case "lightsOut":
         return (
           <>
-            <rect x="4" y="4" width="6" height="6" fill="#a879ff" />
-            <rect x="12" y="4" width="6" height="6" fill="#ffd84d" />
-            <rect x="20" y="4" width="6" height="6" fill="#a879ff" />
-            <rect x="4" y="12" width="6" height="6" fill="#ffd84d" />
-            <rect x="12" y="12" width="6" height="6" fill="#a879ff" />
-            <rect x="20" y="12" width="6" height="6" fill="#ffd84d" />
-            <rect x="4" y="20" width="6" height="6" fill="#a879ff" />
-            <rect x="12" y="20" width="6" height="6" fill="#ffd84d" />
-            <rect x="20" y="20" width="6" height="6" fill="#a879ff" />
+            {/* 16-Bit Tactile Amber & Slate Pixel Blocks */}
+            <rect x="4" y="4" width="6" height="6" fill="#1e293b" stroke="#334155" strokeWidth="0.8" rx="1" />
+            <rect x="12" y="4" width="6" height="6" fill="#d97706" stroke="#f59e0b" strokeWidth="0.8" rx="1" />
+            <rect x="13.5" y="5.5" width="3" height="3" fill="#fde047" />
+            <rect x="20" y="4" width="6" height="6" fill="#1e293b" stroke="#334155" strokeWidth="0.8" rx="1" />
+
+            <rect x="4" y="12" width="6" height="6" fill="#d97706" stroke="#f59e0b" strokeWidth="0.8" rx="1" />
+            <rect x="5.5" y="13.5" width="3" height="3" fill="#fde047" />
+            <rect x="12" y="12" width="6" height="6" fill="#1e293b" stroke="#334155" strokeWidth="0.8" rx="1" />
+            <rect x="20" y="12" width="6" height="6" fill="#d97706" stroke="#f59e0b" strokeWidth="0.8" rx="1" />
+            <rect x="21.5" y="13.5" width="3" height="3" fill="#fde047" />
+
+            <rect x="4" y="20" width="6" height="6" fill="#1e293b" stroke="#334155" strokeWidth="0.8" rx="1" />
+            <rect x="12" y="20" width="6" height="6" fill="#d97706" stroke="#f59e0b" strokeWidth="0.8" rx="1" />
+            <rect x="13.5" y="21.5" width="3" height="3" fill="#fde047" />
+            <rect x="20" y="20" width="6" height="6" fill="#1e293b" stroke="#334155" strokeWidth="0.8" rx="1" />
           </>
         );
       case "flood-fill":
@@ -424,43 +429,79 @@ export const GameIllustration: React.FC<GameIllustrationProps> = ({ game, size =
       case "slidingPuzzle":
         return (
           <>
-            <rect x="4" y="4" width="9" height="9" fill="#ff9f43" rx="1" />
-            <rect x="17" y="4" width="9" height="9" fill="#4da3ff" rx="1" />
-            <rect x="4" y="17" width="9" height="9" fill="#ffd84d" rx="1" />
-            <rect x="17" y="17" width="9" height="9" fill="#131a2c" stroke="#232f4c" rx="1" />
+            {/* Polished Hardwood Outer Frame */}
+            <rect x="3" y="3" width="24" height="24" fill="#451a03" stroke="#78350f" strokeWidth="1" rx="2" />
+            {/* Numbered Sliding Wooden Tiles [1] [2] / [3] [Empty] */}
+            <rect x="5" y="5" width="9" height="9" fill="#b45309" stroke="#d97706" strokeWidth="0.8" rx="1" />
+            <rect x="8" y="7" width="3" height="5" fill="#fef08a" />
+            <rect x="16" y="5" width="9" height="9" fill="#b45309" stroke="#d97706" strokeWidth="0.8" rx="1" />
+            <rect x="18" y="7" width="5" height="5" fill="#fef08a" rx="0.5" />
+            <rect x="5" y="16" width="9" height="9" fill="#b45309" stroke="#d97706" strokeWidth="0.8" rx="1" />
+            <circle cx="9.5" cy="20.5" r="2.5" fill="#fef08a" />
+            {/* Empty Slot with Beveled Drop Shadow */}
+            <rect x="16" y="16" width="9" height="9" fill="#1c1917" rx="1" />
           </>
         );
+
       case "maze-runner":
       case "mazeRunner":
         return (
           <>
-            <rect x="4" y="4" width="22" height="3" fill="#63e66d" />
-            <rect x="4" y="7" width="3" height="15" fill="#63e66d" />
-            <rect x="11" y="11" width="15" height="3" fill="#63e66d" />
-            <rect x="23" y="14" width="3" height="12" fill="#63e66d" />
-            <circle cx="9" cy="18" r="3" fill="#ffd84d" />
+            {/* Spacious Multi-Biome Labyrinth Walls */}
+            <path d="M 3,3 L 27,3 L 27,27 L 3,27 Z" fill="#090d16" stroke="#38bdf8" strokeWidth="1.5" />
+            <path d="M 3,11 L 18,11 L 18,19 L 10,19" fill="none" stroke="#38bdf8" strokeWidth="1.5" strokeLinecap="round" />
+            <path d="M 10,3 L 10,7" fill="none" stroke="#38bdf8" strokeWidth="1.5" />
+            <path d="M 22,11 L 22,23" fill="none" stroke="#38bdf8" strokeWidth="1.5" />
+            {/* Collectible Crystal */}
+            <polygon points="7,7 9,5 7,3 5,5" fill="#f43f5e" />
+            {/* Glowing Portal Vortex Exit */}
+            <circle cx="23" cy="23" r="3.5" fill="#a855f7" />
+            <circle cx="23" cy="23" r="2" fill="#38bdf8" />
+            <circle cx="23" cy="23" r="0.8" fill="#ffffff" />
+            {/* Runner Hero */}
+            <circle cx="6" cy="15" r="2.2" fill="#fbbf24" />
           </>
         );
+
       case "pipe-connect":
       case "pipeConnect":
         return (
           <>
-            <rect x="4" y="12" width="10" height="6" fill="#4da3ff" />
-            <rect x="14" y="12" width="6" height="14" fill="#4da3ff" />
-            <circle cx="9" cy="15" r="2" fill="#4de8e8" />
-            <circle cx="17" cy="21" r="2" fill="#4de8e8" />
+            {/* Industrial Plumbing Tile Grid */}
+            <rect x="3" y="3" width="24" height="24" fill="#0f172a" stroke="#334155" strokeWidth="1" rx="2" />
+            {/* Interlocking Copper & Steel Elbows with Flowing Water */}
+            <path d="M 4,15 L 15,15 L 15,26" fill="none" stroke="#475569" strokeWidth="5" strokeLinecap="round" />
+            <path d="M 4,15 L 15,15 L 15,26" fill="none" stroke="#0284c7" strokeWidth="2.5" strokeLinecap="round" />
+            {/* Upper Right Curved Pipe */}
+            <path d="M 15,4 L 15,10 L 26,10" fill="none" stroke="#475569" strokeWidth="5" strokeLinecap="round" />
+            <path d="M 15,4 L 15,10 L 26,10" fill="none" stroke="#38bdf8" strokeWidth="2.5" strokeLinecap="round" />
+            {/* Brass Flange Couplings */}
+            <circle cx="15" cy="15" r="3.5" fill="#f59e0b" stroke="#b45309" strokeWidth="0.8" />
+            <circle cx="15" cy="15" r="1.5" fill="#fde047" />
+            {/* Water Flow Sparkles */}
+            <circle cx="8" cy="15" r="0.8" fill="#ffffff" />
+            <circle cx="15" cy="22" r="0.8" fill="#ffffff" />
+            <circle cx="22" cy="10" r="0.8" fill="#ffffff" />
           </>
         );
       case "sudoku":
         return (
           <>
-            <rect x="4" y="4" width="22" height="22" fill="#101524" stroke="#a879ff" strokeWidth="2" />
-            <line x1="11" y1="4" x2="11" y2="26" stroke="#a879ff" />
-            <line x1="19" y1="4" x2="19" y2="26" stroke="#a879ff" />
-            <line x1="4" y1="11" x2="26" y2="11" stroke="#a879ff" />
-            <line x1="4" y1="19" x2="26" y2="19" stroke="#a879ff" />
-            <rect x="6" y="6" width="3" height="3" fill="#ffd84d" />
-            <rect x="14" y="14" width="3" height="3" fill="#ff5c8a" />
+            {/* Golden Slate Sudoku Grid */}
+            <rect x="4" y="3" width="22" height="18" fill="#0f172a" stroke="#d97706" strokeWidth="1.5" rx="1.5" />
+            <line x1="11.3" y1="3" x2="11.3" y2="21" stroke="#b45309" strokeWidth="0.8" />
+            <line x1="18.6" y1="3" x2="18.6" y2="21" stroke="#b45309" strokeWidth="0.8" />
+            <line x1="4" y1="9" x2="26" y2="9" stroke="#b45309" strokeWidth="0.8" />
+            <line x1="4" y1="15" x2="26" y2="15" stroke="#b45309" strokeWidth="0.8" />
+            {/* Filled Numbers */}
+            <rect x="6" y="5" width="3" height="3" fill="#fbbf24" rx="0.5" />
+            <rect x="21" y="5" width="3" height="3" fill="#38bdf8" rx="0.5" />
+            <rect x="13" y="11" width="3" height="3" fill="#f43f5e" rx="0.5" />
+            <rect x="6" y="17" width="3" height="3" fill="#34d399" rx="0.5" />
+            {/* 3 Interactive Candidate Choice Chips [1] [2] [3] */}
+            <rect x="5" y="23" width="5.5" height="4" fill="#1e293b" stroke="#38bdf8" strokeWidth="0.8" rx="1" />
+            <rect x="12.2" y="23" width="5.5" height="4" fill="#0284c7" stroke="#38bdf8" strokeWidth="0.8" rx="1" />
+            <rect x="19.5" y="23" width="5.5" height="4" fill="#1e293b" stroke="#38bdf8" strokeWidth="0.8" rx="1" />
           </>
         );
       case "nonogram":
@@ -507,31 +548,65 @@ export const GameIllustration: React.FC<GameIllustrationProps> = ({ game, size =
       case "gravityFlip":
         return (
           <>
-            <rect x="4" y="4" width="22" height="3" fill="#a879ff" />
-            <rect x="4" y="23" width="22" height="3" fill="#a879ff" />
-            <polygon points="15,8 10,16 20,16" fill="#ffd84d" />
-            <polygon points="15,22 10,14 20,14" fill="#ff5c8a" opacity="0.5" />
+            {/* Top & Bottom Hazard Spike Tracks */}
+            <rect x="2" y="2" width="26" height="3" fill="#1e1b4b" />
+            <polygon points="6,5 8,8 10,5" fill="#ef4444" />
+            <polygon points="16,5 18,8 20,5" fill="#ef4444" />
+            <rect x="2" y="25" width="26" height="3" fill="#1e1b4b" />
+            <polygon points="11,25 13,22 15,25" fill="#ef4444" />
+            <polygon points="21,25 23,22 25,25" fill="#ef4444" />
+            {/* Gravity Flip Inversion Arrows */}
+            <path d="M 8,11 L 8,19 M 6,14 L 8,11 L 10,14" fill="none" stroke="#a855f7" strokeWidth="1.2" />
+            <path d="M 22,19 L 22,11 M 20,16 L 22,19 L 24,16" fill="none" stroke="#38bdf8" strokeWidth="1.2" />
+            {/* Runner Flipping in Mid-Air */}
+            <circle cx="15" cy="15" r="3.2" fill="#ffd84d" />
+            <rect x="13.5" y="12" width="3" height="6" fill="#ec4899" rx="0.5" />
           </>
         );
+
       case "ball-drop":
       case "ballDrop":
         return (
           <>
-            <line x1="4" y1="10" x2="20" y2="14" stroke="#4de8e8" strokeWidth="2" />
-            <line x1="26" y1="18" x2="10" y2="22" stroke="#4de8e8" strokeWidth="2" />
-            <circle cx="12" cy="7" r="3" fill="#ffd84d" />
-            <circle cx="18" cy="17" r="3" fill="#ff5c8a" />
+            {/* Galton Board Funnel & Peg Lattice */}
+            <polygon points="11,2 19,2 17,6 13,6" fill="#334155" />
+            <circle cx="15" cy="9" r="1.2" fill="#38bdf8" />
+            <circle cx="11" cy="13" r="1.2" fill="#38bdf8" />
+            <circle cx="19" cy="13" r="1.2" fill="#38bdf8" />
+            <circle cx="8" cy="17" r="1.2" fill="#38bdf8" />
+            <circle cx="15" cy="17" r="1.2" fill="#38bdf8" />
+            <circle cx="22" cy="17" r="1.2" fill="#38bdf8" />
+            {/* Cascading Bouncing Balls */}
+            <circle cx="13" cy="11" r="2" fill="#ffd84d" />
+            <circle cx="17.5" cy="15" r="2" fill="#ef4444" />
+            {/* Normal Distribution Bottom Bins */}
+            <line x1="3" y1="28" x2="27" y2="28" stroke="#64748b" strokeWidth="1.5" />
+            <line x1="9" y1="28" x2="9" y2="22" stroke="#64748b" strokeWidth="1" />
+            <line x1="15" y1="28" x2="15" y2="20" stroke="#64748b" strokeWidth="1" />
+            <line x1="21" y1="28" x2="21" y2="22" stroke="#64748b" strokeWidth="1" />
+            <rect x="11" y="24" width="3" height="4" fill="#ffd84d" />
+            <rect x="16" y="22" width="3" height="6" fill="#ef4444" />
           </>
         );
+
       case "rope-swing":
       case "ropeSwing":
         return (
           <>
-            <rect x="13" y="3" width="4" height="4" fill="#ffd84d" />
-            <line x1="15" y1="5" x2="23" y2="18" stroke="#ff9f43" strokeWidth="1.5" />
-            <circle cx="23" cy="18" r="4" fill="#63e66d" />
+            {/* Top Anchor Pivot */}
+            <circle cx="15" cy="3" r="2.5" fill="#facc15" stroke="#ca8a04" strokeWidth="0.8" />
+            {/* Taut Swinging Rope Pendulum */}
+            <line x1="15" y1="3" x2="23" y2="17" stroke="#d97706" strokeWidth="1.5" />
+            {/* Acrobatic Hero at Peak of Swing */}
+            <circle cx="23" cy="17" r="3" fill="#38bdf8" />
+            <rect x="21" y="19" width="4" height="6" fill="#22c55e" rx="1" transform="rotate(-25 23 22)" />
+            {/* Floating Golden Catch Ring */}
+            <circle cx="7" cy="18" r="3.5" fill="none" stroke="#ffd84d" strokeWidth="1.5" />
+            {/* Hazard Pit Below */}
+            <polygon points="2,28 6,23 10,28 14,23 18,28 22,23 26,28" fill="#ef4444" />
           </>
         );
+
       case "particle-lab":
       case "particleLab":
         return (
@@ -543,33 +618,63 @@ export const GameIllustration: React.FC<GameIllustrationProps> = ({ game, size =
             <circle cx="22" cy="20" r="2" fill="#63e66d" />
           </>
         );
+
       case "magnet-run":
       case "magnetRun":
         return (
           <>
-            <path d="M 8,6 L 8,16 A 7,7 0 0,0 22,16 L 22,6" fill="none" stroke="#ff5c8a" strokeWidth="4" />
-            <rect x="6" y="4" width="4" height="5" fill="#4da3ff" />
-            <rect x="20" y="4" width="4" height="5" fill="#4da3ff" />
-            <circle cx="15" cy="23" r="3" fill="#ffd84d" />
+            {/* Horseshoe Electromagnet */}
+            <path d="M 7,4 L 7,16 A 8,8 0 0,0 23,16 L 23,4" fill="none" stroke="#dc2626" strokeWidth="4.5" />
+            {/* North Pole (Red) & South Pole (Blue) */}
+            <rect x="4.5" y="3" width="5" height="5" fill="#ef4444" rx="0.5" />
+            <rect x="20.5" y="3" width="5" height="5" fill="#3b82f6" rx="0.5" />
+            {/* Magnetic Flux Field Lines */}
+            <path d="M 7,18 Q 15,25 23,18" fill="none" stroke="#38bdf8" strokeWidth="1" strokeDasharray="2,2" />
+            <path d="M 7,21 Q 15,28 23,21" fill="none" stroke="#38bdf8" strokeWidth="1" strokeDasharray="2,2" />
+            {/* Metallic Ball in Force Field */}
+            <circle cx="15" cy="22" r="3" fill="#facc15" stroke="#ca8a04" strokeWidth="0.8" />
           </>
         );
+
       case "newtons-box":
       case "newtonsBox":
         return (
           <>
-            <rect x="4" y="4" width="22" height="22" fill="none" stroke="#ffd84d" strokeWidth="2" />
-            <circle cx="10" cy="10" r="3" fill="#ff5c8a" />
-            <circle cx="19" cy="18" r="4" fill="#4de8e8" />
+            {/* Top Suspension Frame */}
+            <rect x="3" y="3" width="24" height="2.5" fill="#64748b" rx="1" />
+            {/* 5 Suspension Wires */}
+            <line x1="7" y1="4" x2="3" y2="17" stroke="#94a3b8" strokeWidth="1" />
+            <line x1="11" y1="4" x2="11" y2="19" stroke="#94a3b8" strokeWidth="1" />
+            <line x1="15" y1="4" x2="15" y2="19" stroke="#94a3b8" strokeWidth="1" />
+            <line x1="19" y1="4" x2="19" y2="19" stroke="#94a3b8" strokeWidth="1" />
+            <line x1="23" y1="4" x2="27" y2="17" stroke="#94a3b8" strokeWidth="1" />
+            {/* Steel Spheres */}
+            <circle cx="3" cy="17" r="2.8" fill="#f8fafc" stroke="#334155" strokeWidth="0.8" />
+            <circle cx="11" cy="19" r="2.8" fill="#cbd5e1" stroke="#334155" strokeWidth="0.8" />
+            <circle cx="15" cy="19" r="2.8" fill="#cbd5e1" stroke="#334155" strokeWidth="0.8" />
+            <circle cx="19" cy="19" r="2.8" fill="#cbd5e1" stroke="#334155" strokeWidth="0.8" />
+            <circle cx="27" cy="17" r="2.8" fill="#f8fafc" stroke="#334155" strokeWidth="0.8" />
+            {/* Collision Spark */}
+            <polygon points="7,17 9,16 8,18" fill="#ffd84d" />
           </>
         );
+
       case "ricochet":
         return (
           <>
-            <polyline points="4,24 12,6 20,24 26,10" fill="none" stroke="#ff9f43" strokeWidth="2" />
-            <circle cx="12" cy="6" r="2.5" fill="#4de8e8" />
-            <circle cx="20" cy="24" r="2.5" fill="#ffd84d" />
+            {/* Laser Diode Emitter */}
+            <rect x="2" y="22" width="6" height="4" fill="#0284c7" rx="0.5" />
+            {/* Angled Specular Prisms */}
+            <polygon points="12,6 16,3 15,9" fill="#38bdf8" stroke="#ffffff" strokeWidth="0.6" />
+            <polygon points="24,14 27,10 26,17" fill="#38bdf8" stroke="#ffffff" strokeWidth="0.6" />
+            <polygon points="11,22 15,19 14,25" fill="#38bdf8" stroke="#ffffff" strokeWidth="0.6" />
+            {/* Reflected Laser Beam Pathway */}
+            <polyline points="8,24 14,6 25,14 13,22 25,27" fill="none" stroke="#f43f5e" strokeWidth="1.5" />
+            {/* Target Crystal Exploding */}
+            <circle cx="25" cy="27" r="2.5" fill="#facc15" />
           </>
         );
+
       case "pendulum":
         return (
           <>
@@ -578,6 +683,7 @@ export const GameIllustration: React.FC<GameIllustrationProps> = ({ game, size =
             <circle cx="22" cy="21" r="5" fill="#ffd84d" />
           </>
         );
+
       case "cannonball":
         return (
           <>
@@ -592,25 +698,45 @@ export const GameIllustration: React.FC<GameIllustrationProps> = ({ game, size =
       case "twinStickArena":
         return (
           <>
-            <circle cx="15" cy="15" r="6" fill="#ff5c8a" />
-            <line x1="15" y1="15" x2="25" y2="9" stroke="#ffd84d" strokeWidth="2" />
-            <circle cx="8" cy="8" r="2" fill="#4de8e8" />
-            <circle cx="22" cy="22" r="2" fill="#4de8e8" />
+            {/* Arena Grid Floor */}
+            <rect x="3" y="3" width="24" height="24" fill="#0f172a" stroke="#334155" strokeWidth="1" rx="2" />
+            {/* Armored Combat Turret Body */}
+            <circle cx="15" cy="15" r="6" fill="#0284c7" stroke="#38bdf8" strokeWidth="1.2" />
+            <circle cx="15" cy="15" r="3" fill="#0f172a" />
+            {/* Twin Aimed Laser Barrels */}
+            <line x1="15" y1="13" x2="26" y2="7" stroke="#facc15" strokeWidth="2" />
+            <line x1="15" y1="17" x2="26" y2="11" stroke="#facc15" strokeWidth="2" />
+            {/* Surrounding Enemy Drones */}
+            <circle cx="6" cy="8" r="2.2" fill="#ef4444" />
+            <circle cx="7" cy="23" r="2.2" fill="#ef4444" />
+            <circle cx="24" cy="23" r="2.2" fill="#ef4444" />
           </>
         );
+
       case "bullet-garden":
       case "bulletGarden":
         return (
           <>
-            <circle cx="15" cy="15" r="4" fill="#a879ff" />
-            <circle cx="15" cy="6" r="2" fill="#ff5c8a" />
-            <circle cx="24" cy="15" r="2" fill="#ff5c8a" />
-            <circle cx="15" cy="24" r="2" fill="#ff5c8a" />
-            <circle cx="6" cy="15" r="2" fill="#ff5c8a" />
-            <circle cx="21" cy="9" r="1.5" fill="#ffd84d" />
-            <circle cx="9" cy="21" r="1.5" fill="#ffd84d" />
+            {/* Center Shrine Maiden / Player Core */}
+            <circle cx="15" cy="15" r="3.5" fill="#f43f5e" stroke="#ffffff" strokeWidth="1" />
+            <circle cx="15" cy="15" r="1.2" fill="#ffffff" />
+            {/* Dual Spiral Bullet Vortex */}
+            <circle cx="15" cy="6" r="1.8" fill="#a855f7" />
+            <circle cx="21" cy="9" r="1.8" fill="#a855f7" />
+            <circle cx="24" cy="15" r="1.8" fill="#a855f7" />
+            <circle cx="21" cy="21" r="1.8" fill="#a855f7" />
+            <circle cx="15" cy="24" r="1.8" fill="#a855f7" />
+            <circle cx="9" cy="21" r="1.8" fill="#a855f7" />
+            <circle cx="6" cy="15" r="1.8" fill="#a855f7" />
+            <circle cx="9" cy="9" r="1.8" fill="#a855f7" />
+            {/* Inner Golden Radial Bullets */}
+            <circle cx="15" cy="10" r="1.4" fill="#facc15" />
+            <circle cx="20" cy="15" r="1.4" fill="#facc15" />
+            <circle cx="15" cy="20" r="1.4" fill="#facc15" />
+            <circle cx="10" cy="15" r="1.4" fill="#facc15" />
           </>
         );
+
       case "meteor-rush":
       case "meteorRush":
         return (
@@ -621,14 +747,22 @@ export const GameIllustration: React.FC<GameIllustrationProps> = ({ game, size =
             <circle cx="15" cy="4" r="2" fill="#ff5c8a" />
           </>
         );
+
       case "boss-reactor":
       case "bossReactor":
         return (
           <>
-            <circle cx="15" cy="15" r="8" fill="#ff5c8a" />
-            <circle cx="15" cy="15" r="4" fill="#ffd84d" />
-            <rect x="13" y="2" width="4" height="4" fill="#4de8e8" />
-            <rect x="13" y="24" width="4" height="4" fill="#4de8e8" />
+            {/* Void Vanguard Mechanical Boss Core */}
+            <circle cx="15" cy="15" r="9" fill="#0f172a" stroke="#475569" strokeWidth="1" />
+            {/* Rotating Segmented Red Armor Plates */}
+            <path d="M 15,6 A 9,9 0 0,1 24,15" fill="none" stroke="#ef4444" strokeWidth="3" />
+            <path d="M 15,24 A 9,9 0 0,1 6,15" fill="none" stroke="#ef4444" strokeWidth="3" />
+            {/* Pulsating Glowing Core Plasma */}
+            <circle cx="15" cy="15" r="4.5" fill="#f97316" stroke="#fde047" strokeWidth="1" />
+            <circle cx="15" cy="15" r="2" fill="#ffffff" />
+            {/* Twin Angular Laser Sweeps */}
+            <line x1="6" y1="6" x2="1" y2="1" stroke="#38bdf8" strokeWidth="1.5" />
+            <line x1="24" y1="24" x2="29" y2="29" stroke="#38bdf8" strokeWidth="1.5" />
           </>
         );
       case "rail-blaster":
@@ -645,13 +779,20 @@ export const GameIllustration: React.FC<GameIllustrationProps> = ({ game, size =
       case "droneSwarm":
         return (
           <>
-            <rect x="7" y="7" width="4" height="4" fill="#ff5c8a" rx="1" />
-            <rect x="19" y="7" width="4" height="4" fill="#ff5c8a" rx="1" />
-            <rect x="13" y="14" width="4" height="4" fill="#ffd84d" rx="1" />
-            <rect x="7" y="21" width="4" height="4" fill="#ff5c8a" rx="1" />
-            <rect x="19" y="21" width="4" height="4" fill="#ff5c8a" rx="1" />
+            {/* Boid Radar & Communication Field Waves */}
+            <circle cx="15" cy="15" r="10" fill="none" stroke="#38bdf8" strokeWidth="0.8" strokeDasharray="2,2" opacity="0.6" />
+            {/* Golden Leader Drone */}
+            <polygon points="15,10 12,16 18,16" fill="#facc15" stroke="#ca8a04" strokeWidth="0.8" />
+            <circle cx="15" cy="13" r="1.2" fill="#ffffff" />
+            {/* Flocking Micro-Drones in Formation */}
+            <polygon points="8,8 6,12 10,12" fill="#38bdf8" />
+            <polygon points="22,8 20,12 24,12" fill="#38bdf8" />
+            <polygon points="6,19 4,23 8,23" fill="#22c55e" />
+            <polygon points="24,19 22,23 26,23" fill="#22c55e" />
+            <polygon points="15,22 13,26 17,26" fill="#ec4899" />
           </>
         );
+
       case "target-range":
       case "targetRange":
         return (
@@ -661,15 +802,27 @@ export const GameIllustration: React.FC<GameIllustrationProps> = ({ game, size =
             <circle cx="15" cy="15" r="2" fill="#4da3ff" />
           </>
         );
+
       case "missile-command":
       case "missileCommand":
         return (
           <>
-            <line x1="4" y1="4" x2="12" y2="18" stroke="#ff5c8a" strokeWidth="1.5" />
-            <line x1="26" y1="4" x2="18" y2="18" stroke="#ff5c8a" strokeWidth="1.5" />
-            <circle cx="12" cy="18" r="3" fill="#ffd84d" />
-            <circle cx="18" cy="18" r="3" fill="#ffd84d" />
-            <rect x="4" y="24" width="22" height="3" fill="#15803d" />
+            {/* Incoming ICBM Warhead Trajectories */}
+            <line x1="2" y1="2" x2="11" y2="15" stroke="#ef4444" strokeWidth="1.2" strokeDasharray="2,2" />
+            <line x1="28" y1="2" x2="19" y2="14" stroke="#ef4444" strokeWidth="1.2" strokeDasharray="2,2" />
+            {/* Interceptor Flak Explosions */}
+            <circle cx="11" cy="15" r="4.5" fill="#f97316" opacity="0.85" />
+            <circle cx="11" cy="15" r="2" fill="#fde047" />
+            <circle cx="19" cy="14" r="4" fill="#f97316" opacity="0.85" />
+            <circle cx="19" cy="14" r="1.8" fill="#fde047" />
+            {/* Interceptor Missile Trails */}
+            <line x1="6" y1="25" x2="11" y2="15" stroke="#38bdf8" strokeWidth="1.2" />
+            <line x1="24" y1="25" x2="19" y2="14" stroke="#38bdf8" strokeWidth="1.2" />
+            {/* City Base & ABM Batteries */}
+            <rect x="2" y="25" width="26" height="4" fill="#0f172a" stroke="#334155" strokeWidth="1" />
+            <rect x="5" y="22" width="4" height="4" fill="#22c55e" rx="1" />
+            <rect x="13" y="21" width="4" height="5" fill="#64748b" rx="0.5" />
+            <rect x="21" y="22" width="4" height="4" fill="#22c55e" rx="1" />
           </>
         );
 
@@ -678,21 +831,44 @@ export const GameIllustration: React.FC<GameIllustrationProps> = ({ game, size =
       case "pixelJumper":
         return (
           <>
-            <rect x="4" y="22" width="22" height="3" fill="#15803d" />
-            <rect x="12" y="8" width="6" height="8" fill="#63e66d" />
-            <rect x="14" y="4" width="2" height="4" fill="#ffd84d" />
+            {/* Floating Cloud */}
+            <ellipse cx="22" cy="7" rx="5" ry="2.5" fill="#334155" />
+            {/* Green Alien Jumper in Mid-Air Bounce */}
+            <circle cx="15" cy="11" r="4" fill="#22c55e" stroke="#15803d" strokeWidth="0.8" />
+            <circle cx="13" cy="10" r="1.2" fill="#ffffff" />
+            <circle cx="17" cy="10" r="1.2" fill="#ffffff" />
+            <circle cx="13" cy="10" r="0.6" fill="#000000" />
+            <circle cx="17" cy="10" r="0.6" fill="#000000" />
+            <rect x="13" y="14" width="4" height="3" fill="#15803d" rx="1" />
+            {/* Wooden Spring Platform */}
+            <rect x="6" y="22" width="18" height="4" fill="#92400e" stroke="#78350f" strokeWidth="0.8" rx="1" />
+            {/* Coiled Golden Spring */}
+            <path d="M 13,22 Q 17,20 13,18 Q 17,16 15,15" fill="none" stroke="#facc15" strokeWidth="1.8" />
+            <circle cx="15" cy="15" r="1.2" fill="#ca8a04" />
           </>
         );
+
       case "wall-runner":
       case "wallRunner":
         return (
           <>
-            <rect x="3" y="4" width="4" height="22" fill="#475569" />
-            <rect x="23" y="4" width="4" height="22" fill="#475569" />
-            <rect x="8" y="12" width="6" height="6" fill="#ff5c8a" />
-            <polyline points="8,15 15,10 22,14" fill="none" stroke="#ffd84d" strokeWidth="1.5" strokeDasharray="2,2" />
+            {/* Left & Right Vertical Brick Walls */}
+            <rect x="2" y="2" width="5" height="26" fill="#1e293b" stroke="#334155" strokeWidth="1" />
+            <line x1="2" y1="10" x2="7" y2="10" stroke="#475569" strokeWidth="0.8" />
+            <line x1="2" y1="18" x2="7" y2="18" stroke="#475569" strokeWidth="0.8" />
+            <rect x="23" y="2" width="5" height="26" fill="#1e293b" stroke="#334155" strokeWidth="1" />
+            <line x1="23" y1="14" x2="28" y2="14" stroke="#475569" strokeWidth="0.8" />
+            <line x1="23" y1="22" x2="28" y2="22" stroke="#475569" strokeWidth="0.8" />
+            {/* Zig-Zag Wall Jump Trajectory */}
+            <polyline points="7,22 23,15 7,8" fill="none" stroke="#facc15" strokeWidth="1.2" strokeDasharray="2,2" />
+            {/* Ninja Mid-Wall-Kick Pose */}
+            <circle cx="20" cy="14" r="2.8" fill="#ef4444" />
+            <rect x="18" y="15" width="4" height="5" fill="#0f172a" rx="0.5" transform="rotate(-30 20 17)" />
+            {/* Kinetic Kick Sparks */}
+            <polygon points="23,17 25,16 24,18" fill="#ffd84d" />
           </>
         );
+
       case "dash-runner":
       case "dashRunner":
         return (
@@ -703,26 +879,28 @@ export const GameIllustration: React.FC<GameIllustrationProps> = ({ game, size =
             <line x1="4" y1="20" x2="12" y2="20" stroke="#ffd84d" strokeWidth="2" />
           </>
         );
+
       case "cave-escape":
       case "caveEscape":
         return (
           <>
-            <path d="M 4,4 Q 15,10 26,4 L 26,26 Q 15,20 4,26 Z" fill="#1e293b" />
-            <circle cx="15" cy="15" r="3" fill="#4de8e8" />
+            {/* Jagged Cavern Ceiling Stalactites */}
+            <polygon points="2,2 6,9 11,3 16,8 21,2 25,7 28,2" fill="#1c1917" stroke="#44403c" strokeWidth="0.8" />
+            {/* Jagged Floor Stalagmites */}
+            <polygon points="2,28 7,22 12,28 17,21 21,28 28,28" fill="#1c1917" stroke="#44403c" strokeWidth="0.8" />
+            {/* Sci-Fi Lunar Cavern Lander Pod */}
+            <rect x="11" y="12" width="8" height="6" fill="#0284c7" stroke="#38bdf8" strokeWidth="0.8" rx="1" />
+            <ellipse cx="15" cy="12" rx="3" ry="2" fill="#e0f2fe" />
+            {/* Dual Rocket Thruster Exhaust Plumes */}
+            <polygon points="12,18 10,24 14,24" fill="#f97316" />
+            <polygon points="12,18 11,22 13,22" fill="#fde047" />
+            <polygon points="18,18 16,24 20,24" fill="#f97316" />
+            <polygon points="18,18 17,22 19,22" fill="#fde047" />
+            {/* Green Landing Beacon Platform */}
+            <rect x="22" y="24" width="5" height="2" fill="#22c55e" />
           </>
         );
-      case "ladder-climb":
-      case "ladderClimb":
-        return (
-          <>
-            <line x1="11" y1="4" x2="11" y2="26" stroke="#ffd84d" strokeWidth="2" />
-            <line x1="19" y1="4" x2="19" y2="26" stroke="#ffd84d" strokeWidth="2" />
-            <line x1="11" y1="8" x2="19" y2="8" stroke="#ffd84d" strokeWidth="2" />
-            <line x1="11" y1="14" x2="19" y2="14" stroke="#ffd84d" strokeWidth="2" />
-            <line x1="11" y1="20" x2="19" y2="20" stroke="#ffd84d" strokeWidth="2" />
-            <rect x="13" y="11" width="4" height="6" fill="#ff5c8a" />
-          </>
-        );
+
       case "one-button-jump":
       case "oneButtonJump":
         return (
@@ -731,12 +909,23 @@ export const GameIllustration: React.FC<GameIllustrationProps> = ({ game, size =
             <polygon points="12,10 20,15 12,20" fill="#ffffff" />
           </>
         );
+
       case "shadow-runner":
       case "shadowRunner":
         return (
           <>
-            <rect x="8" y="8" width="8" height="12" fill="#a879ff" />
-            <rect x="14" y="10" width="8" height="12" fill="rgba(168, 121, 255, 0.4)" />
+            {/* Dark Stone Floor & Wall Background */}
+            <rect x="2" y="2" width="26" height="26" fill="#090d18" stroke="#1e293b" strokeWidth="1" rx="2" />
+            {/* Sweeping Brilliant Yellow Searchlight Cone */}
+            <polygon points="26,4 4,20 18,26" fill="#facc15" opacity="0.35" />
+            {/* Stone Pillar Casting Pitch-Black Shadow */}
+            <rect x="9" y="8" width="5" height="12" fill="#334155" stroke="#475569" strokeWidth="0.8" />
+            <polygon points="14,8 26,18 14,20" fill="#000000" opacity="0.9" />
+            {/* Stealth Ninja Hiding in the Shadow */}
+            <circle cx="17" cy="14" r="2.8" fill="#7c3aed" />
+            <circle cx="16" cy="13.5" r="0.6" fill="#38bdf8" />
+            <circle cx="18" cy="13.5" r="0.6" fill="#38bdf8" />
+            <rect x="15" y="16" width="4" height="5" fill="#4c1d95" rx="0.5" />
           </>
         );
       case "gravity-maze":
@@ -754,13 +943,20 @@ export const GameIllustration: React.FC<GameIllustrationProps> = ({ game, size =
       case "connectFour":
         return (
           <>
-            <rect x="4" y="5" width="22" height="20" fill="#1e3a8a" rx="2" />
-            <circle cx="9" cy="10" r="2.5" fill="#ffd84d" />
-            <circle cx="15" cy="10" r="2.5" fill="#ff5c8a" />
-            <circle cx="21" cy="10" r="2.5" fill="#ffd84d" />
-            <circle cx="9" cy="16" r="2.5" fill="#ff5c8a" />
-            <circle cx="15" cy="16" r="2.5" fill="#ffd84d" />
-            <circle cx="21" cy="16" r="2.5" fill="#ff5c8a" />
+            {/* 3D Modern Royal Blue Grid */}
+            <rect x="3" y="4" width="24" height="22" fill="#1e3a8a" rx="3" stroke="#2563eb" strokeWidth="1" />
+            {/* Radial Discs */}
+            <circle cx="8" cy="9" r="2.8" fill="#eab308" stroke="#facc15" strokeWidth="0.8" />
+            <circle cx="15" cy="9" r="2.8" fill="#dc2626" stroke="#ef4444" strokeWidth="0.8" />
+            <circle cx="22" cy="9" r="2.8" fill="#eab308" stroke="#facc15" strokeWidth="0.8" />
+            <circle cx="8" cy="15" r="2.8" fill="#dc2626" stroke="#ef4444" strokeWidth="0.8" />
+            <circle cx="15" cy="15" r="2.8" fill="#eab308" stroke="#facc15" strokeWidth="0.8" />
+            <circle cx="22" cy="15" r="2.8" fill="#dc2626" stroke="#ef4444" strokeWidth="0.8" />
+            <circle cx="8" cy="21" r="2.8" fill="#eab308" stroke="#facc15" strokeWidth="0.8" />
+            <circle cx="15" cy="21" r="2.8" fill="#eab308" stroke="#facc15" strokeWidth="0.8" />
+            <circle cx="22" cy="21" r="2.8" fill="#eab308" stroke="#facc15" strokeWidth="0.8" />
+            {/* Winning Laser Beam Across Bottom */}
+            <line x1="6" y1="21" x2="24" y2="21" stroke="#fde047" strokeWidth="1.5" strokeLinecap="round" />
           </>
         );
       case "tic-tac-toe-plus":
@@ -853,11 +1049,19 @@ export const GameIllustration: React.FC<GameIllustrationProps> = ({ game, size =
       case "cellColony":
         return (
           <>
-            <rect x="8" y="8" width="4" height="4" fill="#63e66d" />
-            <rect x="14" y="8" width="4" height="4" fill="#63e66d" />
-            <rect x="8" y="14" width="4" height="4" fill="#63e66d" />
-            <rect x="20" y="14" width="4" height="4" fill="#4de8e8" />
-            <rect x="14" y="20" width="4" height="4" fill="#ffd84d" />
+            {/* Living Blue Node */}
+            <circle cx="9" cy="12" r="5.5" fill="#0284c7" stroke="#38bdf8" strokeWidth="1.5" />
+            <circle cx="9" cy="12" r="2.5" fill="#ffffff" />
+            {/* Living Red Enemy Node */}
+            <circle cx="21" cy="18" r="5" fill="#991b1b" stroke="#ef4444" strokeWidth="1.5" />
+            <circle cx="21" cy="18" r="2" fill="#fca5a5" />
+            {/* Neutral Node */}
+            <circle cx="21" cy="8" r="3.5" fill="#334155" stroke="#94a3b8" strokeWidth="1" />
+            {/* Spore Swarm Stream */}
+            <circle cx="13" cy="14" r="1.2" fill="#38bdf8" />
+            <circle cx="15" cy="15" r="1.5" fill="#38bdf8" />
+            <circle cx="17" cy="16" r="1.2" fill="#38bdf8" />
+            <circle cx="19" cy="17" r="1.8" fill="#38bdf8" />
           </>
         );
       case "gravity-well":
@@ -945,11 +1149,21 @@ export const GameIllustration: React.FC<GameIllustrationProps> = ({ game, size =
       case "sokoban":
         return (
           <>
-            <rect x="6" y="10" width="10" height="10" fill="#ff9f43" rx="1" />
-            <line x1="6" y1="10" x2="16" y2="20" stroke="#b86a1a" strokeWidth="1" />
-            <line x1="16" y1="10" x2="6" y2="20" stroke="#b86a1a" strokeWidth="1" />
-            <rect x="19" y="12" width="6" height="6" fill="#ffd84d" rx="1" />
-            <circle cx="22" cy="15" r="1.5" fill="#060e1c" />
+            {/* Warehouse Floor */}
+            <rect x="3" y="3" width="24" height="24" fill="#1c1917" stroke="#44403c" strokeWidth="1" rx="2" />
+            {/* Target Goal Pad */}
+            <circle cx="21" cy="9" r="4" fill="#065f46" stroke="#10b981" strokeWidth="1" />
+            <circle cx="21" cy="9" r="1.5" fill="#34d399" />
+            {/* Tactile Wooden Crate with Brass Corner Rivets */}
+            <rect x="11" y="11" width="9" height="9" fill="#d97706" stroke="#78350f" strokeWidth="1" rx="1" />
+            <line x1="11" y1="11" x2="20" y2="20" stroke="#92400e" strokeWidth="0.8" />
+            <line x1="20" y1="11" x2="11" y2="20" stroke="#92400e" strokeWidth="0.8" />
+            <circle cx="12" cy="12" r="0.6" fill="#fde047" />
+            <circle cx="19" cy="19" r="0.6" fill="#fde047" />
+            {/* Warehouse Keeper Hero */}
+            <circle cx="7" cy="15" r="3" fill="#38bdf8" />
+            <circle cx="7" cy="15" r="1.2" fill="#ffffff" />
+            <rect x="8.5" y="13" width="2.5" height="4" fill="#0284c7" rx="0.5" />
           </>
         );
       case "algorithm-dungeon":
@@ -976,10 +1190,22 @@ export const GameIllustration: React.FC<GameIllustrationProps> = ({ game, size =
       case "logicGates":
         return (
           <>
-            <line x1="4" y1="10" x2="10" y2="10" stroke="#4de8e8" strokeWidth="2" />
-            <line x1="4" y1="20" x2="10" y2="20" stroke="#4de8e8" strokeWidth="2" />
-            <path d="M 10,7 L 16,7 A 8,8 0 0,1 16,23 L 10,23 Z" fill="#ffd84d" />
-            <line x1="22" y1="15" x2="27" y2="15" stroke="#ff5c8a" strokeWidth="2" />
+            {/* PCB Green Board with Copper Circuit Traces */}
+            <rect x="3" y="3" width="24" height="24" fill="#064e3b" stroke="#047857" strokeWidth="1" rx="2" />
+            {/* Input Switches */}
+            <rect x="5" y="7" width="5" height="4" fill="#0284c7" rx="1" />
+            <circle cx="9" cy="9" r="1.5" fill="#38bdf8" />
+            <rect x="5" y="19" width="5" height="4" fill="#334155" rx="1" />
+            <circle cx="6.5" cy="21" r="1.5" fill="#94a3b8" />
+            {/* Copper PCB Traces */}
+            <line x1="10" y1="9" x2="13" y2="9" stroke="#f59e0b" strokeWidth="1.2" />
+            <line x1="10" y1="21" x2="13" y2="21" stroke="#64748b" strokeWidth="1.2" />
+            {/* Logic Gate IC Body */}
+            <path d="M 13,6 L 18,6 A 9,9 0 0,1 18,24 L 13,24 Z" fill="#0f172a" stroke="#f59e0b" strokeWidth="1" />
+            {/* Output Trace & Glowing Status Bulb */}
+            <line x1="22" y1="15" x2="24" y2="15" stroke="#f59e0b" strokeWidth="1.5" />
+            <circle cx="25" cy="15" r="2" fill="#22c55e" />
+            <circle cx="25" cy="15" r="1" fill="#ffffff" />
           </>
         );
       case "cave-generator":
@@ -1038,29 +1264,79 @@ export const GameIllustration: React.FC<GameIllustrationProps> = ({ game, size =
       case "poolSimulator":
         return (
           <>
-            <rect x="4" y="6" width="22" height="18" fill="#14532d" rx="2" />
-            <circle cx="11" cy="15" r="3" fill="#ffffff" />
-            <circle cx="19" cy="15" r="3" fill="#0f172a" />
-            <circle cx="19" cy="15" r="1" fill="#ffffff" />
+            {/* 3D Phenolic Resin Billiard Table */}
+            <rect x="3" y="5" width="24" height="20" fill="#78350f" rx="3" stroke="#b45309" strokeWidth="1" />
+            <rect x="5" y="7" width="20" height="16" fill="#047857" rx="1" />
+            {/* Diamond Sights */}
+            <circle cx="15" cy="6" r="0.75" fill="#f8fafc" />
+            <circle cx="15" cy="24" r="0.75" fill="#f8fafc" />
+            {/* 3D Billiard Balls */}
+            <circle cx="10" cy="14" r="2.5" fill="#ffffff" />
+            <circle cx="17" cy="12" r="2.5" fill="#eab308" />
+            <circle cx="17" cy="17" r="2.5" fill="#0f172a" />
+            <circle cx="17" cy="17" r="1" fill="#ffffff" />
+            {/* Cue Stick */}
+            <line x1="5" y1="21" x2="8" y2="17" stroke="#fbbf24" strokeWidth="1.5" strokeLinecap="round" />
+            <line x1="7.5" y1="17.5" x2="8.5" y2="16.5" stroke="#38bdf8" strokeWidth="1.5" />
           </>
         );
       case "infinite-forest":
       case "infiniteForest":
         return (
           <>
-            <path d="M 4,22 Q 12,14 20,18 T 26,16 L 26,26 L 4,26 Z" fill="#166534" />
-            <polygon points="9,10 12,16 6,16" fill="#22c55e" />
-            <polygon points="18,8 22,16 14,16" fill="#22c55e" />
+            {/* Snowy Mountain & Christmas Tree */}
+            <path d="M 2,24 Q 14,18 28,22 L 28,28 L 2,28 Z" fill="#f8fafc" />
+            <polygon points="23,10 26,16 20,16" fill="#15803d" />
+            <polygon points="23,14 27,21 19,21" fill="#16a34a" />
+            <circle cx="23" cy="9" r="1.5" fill="#fbbf24" />
+            <circle cx="21" cy="18" r="1" fill="#ef4444" />
+            {/* Green & Yellow Tractor Body */}
+            <rect x="5" y="14" width="10" height="7" fill="#15803d" rx="1" />
+            <rect x="5" y="10" width="6" height="5" fill="#166534" />
+            <rect x="6" y="11" width="4" height="3" fill="#a78bfa" />
+            <rect x="8" y="8" width="1.5" height="3" fill="#64748b" />
+            <rect x="9" y="16" width="6" height="1.5" fill="#facc15" />
+            {/* Big Rear Tire & Yellow Rim */}
+            <circle cx="7" cy="21" r="4.5" fill="#1e293b" />
+            <circle cx="7" cy="21" r="2.5" fill="#eab308" />
+            <circle cx="7" cy="21" r="1" fill="#facc15" />
+            {/* Front Wheel */}
+            <circle cx="15" cy="22" r="3" fill="#1e293b" />
+            <circle cx="15" cy="22" r="1.5" fill="#eab308" />
+            {/* High Speed Spinning Carbide Grinder Drum */}
+            <circle cx="19" cy="18" r="3.5" fill="#64748b" />
+            <circle cx="19" cy="18" r="1.2" fill="#facc15" />
+            <polygon points="21,17 23,18 21,19" fill="#f8fafc" />
+            <polygon points="17,19 19,21 18,19" fill="#f8fafc" />
+            {/* Wood Splinters */}
+            <circle cx="21" cy="14" r="0.8" fill="#fde047" />
+            <circle cx="22" cy="12" r="0.8" fill="#854d0e" />
           </>
         );
       case "time-loop":
       case "timeLoop":
         return (
           <>
-            <circle cx="15" cy="15" r="10" fill="none" stroke="#a879ff" strokeWidth="2" />
-            <line x1="15" y1="15" x2="15" y2="8" stroke="#ffd84d" strokeWidth="2" />
-            <line x1="15" y1="15" x2="20" y2="15" stroke="#ffd84d" strokeWidth="2" />
-            <circle cx="15" cy="15" r="2" fill="#ff5c8a" />
+            {/* Breadboard Base */}
+            <rect x="3" y="4" width="24" height="22" fill="#0f172a" rx="2" stroke="#334155" strokeWidth="1" />
+            {/* 9V Battery */}
+            <rect x="5" y="7" width="5" height="9" fill="#334155" rx="1" />
+            <rect x="6" y="6" width="3" height="1" fill="#ef4444" />
+            {/* Resistor */}
+            <rect x="13" y="7" width="6" height="3" fill="#d97706" rx="0.5" />
+            <line x1="14.5" y1="7" x2="14.5" y2="10" stroke="#ef4444" strokeWidth="0.6" />
+            <line x1="16" y1="7" x2="16" y2="10" stroke="#000000" strokeWidth="0.6" />
+            <line x1="17.5" y1="7" x2="17.5" y2="10" stroke="#fbbf24" strokeWidth="0.6" />
+            {/* Glowing Red LED */}
+            <circle cx="22" cy="11" r="3" fill="#ef4444" />
+            <circle cx="22" cy="11" r="1.5" fill="#ffffff" />
+            {/* NE555 Timer IC */}
+            <rect x="11" y="15" width="8" height="8" fill="#1e293b" rx="1" stroke="#475569" strokeWidth="0.8" />
+            <circle cx="15" cy="19" r="1.5" fill="#38bdf8" />
+            {/* Insulated Wires */}
+            <path d="M 8,7 Q 11,5 13,8" fill="none" stroke="#ef4444" strokeWidth="1.2" />
+            <path d="M 19,8 Q 21,7 22,9" fill="none" stroke="#38bdf8" strokeWidth="1.2" />
+            <path d="M 22,14 Q 16,25 7,15" fill="none" stroke="#22c55e" strokeWidth="1.2" />
           </>
         );
       case "hex-territory":
@@ -1099,18 +1375,42 @@ export const GameIllustration: React.FC<GameIllustrationProps> = ({ game, size =
       case "fireSpread":
         return (
           <>
-            <polygon points="8,10 12,18 4,18" fill="#22c55e" />
-            <polygon points="20,6 25,18 15,18" fill="#ff5c8a" />
-            <polygon points="20,10 23,17 17,17" fill="#ffd84d" />
+            {/* Forest Mountain Valley */}
+            <polygon points="6,16 10,24 2,24" fill="#15803d" />
+            <polygon points="14,14 18,24 10,24" fill="#ef4444" />
+            <polygon points="14,17 17,23 11,23" fill="#fde047" />
+            <polygon points="22,15 26,24 18,24" fill="#991b1b" />
+            {/* Air Tanker Firebomber */}
+            <rect x="7" y="7" width="16" height="4" fill="#f8fafc" rx="2" />
+            <rect x="11" y="7" width="6" height="4" fill="#ea580c" />
+            <rect x="13" y="3" width="3" height="12" fill="#e2e8f0" rx="1" />
+            <rect x="7" y="5" width="2" height="6" fill="#dc2626" />
+            {/* Water / Chemical Retardant Salvo Cloud */}
+            <circle cx="14" cy="18" r="4.5" fill="#38bdf8" opacity="0.8" />
+            <circle cx="19" cy="19" r="4.5" fill="#ef4444" opacity="0.85" />
+            <circle cx="16" cy="19" r="2.5" fill="#ffffff" opacity="0.9" />
           </>
         );
       case "liquid-cells":
       case "liquidCells":
         return (
           <>
-            <rect x="4" y="18" width="22" height="8" fill="#1e3a8a" />
-            <rect x="8" y="12" width="14" height="6" fill="#3b82f6" />
-            <rect x="12" y="6" width="6" height="6" fill="#60a5fa" />
+            {/* Laboratory Beaker Vessel */}
+            <rect x="4" y="5" width="22" height="22" fill="#0f172a" stroke="#38bdf8" strokeWidth="1" rx="2" />
+            {/* Dense Blue Liquid Base with Undulating Meniscus */}
+            <path d="M 5,16 Q 10,13 15,16 T 25,16 L 25,26 L 5,26 Z" fill="#1e40af" />
+            <path d="M 5,18 Q 10,15 15,18 T 25,18 L 25,26 L 5,26 Z" fill="#2563eb" />
+            {/* Buoyant Cyan Cellular Droplets */}
+            <circle cx="9" cy="20" r="2.5" fill="#38bdf8" stroke="#ffffff" strokeWidth="0.6" />
+            <circle cx="16" cy="22" r="2" fill="#67e8f9" />
+            <circle cx="21" cy="19" r="1.8" fill="#38bdf8" />
+            {/* Suspended Upper Fluid Droplets */}
+            <circle cx="12" cy="11" r="2.8" fill="#ec4899" stroke="#fbcfe8" strokeWidth="0.6" />
+            <circle cx="19" cy="10" r="2" fill="#f43f5e" />
+            {/* Effervescent Rising Micro-Bubbles */}
+            <circle cx="8" cy="10" r="0.8" fill="#ffffff" />
+            <circle cx="15" cy="7" r="1" fill="#ffffff" />
+            <circle cx="21" cy="6" r="0.8" fill="#ffffff" />
           </>
         );
       case "circle-packing-lab":
@@ -1127,10 +1427,18 @@ export const GameIllustration: React.FC<GameIllustrationProps> = ({ game, size =
       case "omegaRun":
         return (
           <>
-            <line x1="8" y1="4" x2="3" y2="26" stroke="#4de8e8" strokeWidth="1.5" />
-            <line x1="15" y1="4" x2="15" y2="26" stroke="#4de8e8" strokeWidth="1" strokeDasharray="2,2" />
-            <line x1="22" y1="4" x2="27" y2="26" stroke="#4de8e8" strokeWidth="1.5" />
-            <rect x="13" y="14" width="4" height="6" fill="#ffd84d" rx="1" />
+            {/* Cyber Highway 3D Perspective Road */}
+            <polygon points="12,4 18,4 28,26 2,26" fill="#0f172a" stroke="#38bdf8" strokeWidth="1" />
+            <line x1="15" y1="4" x2="15" y2="26" stroke="#facc15" strokeWidth="1.5" strokeDasharray="3,3" />
+            {/* Neon Speed Hurdle Spikes */}
+            <polygon points="10,16 12,12 14,16" fill="#ef4444" stroke="#f43f5e" strokeWidth="0.8" />
+            <polygon points="16,16 18,12 20,16" fill="#ef4444" stroke="#f43f5e" strokeWidth="0.8" />
+            {/* Cyber Runner Sprinting Forward */}
+            <circle cx="15" cy="20" r="3" fill="#38bdf8" />
+            <rect x="13.5" y="21" width="3" height="4" fill="#a855f7" rx="0.5" />
+            {/* Speed Streaks */}
+            <line x1="6" y1="22" x2="11" y2="22" stroke="#00f0ff" strokeWidth="1.5" />
+            <line x1="19" y1="22" x2="24" y2="22" stroke="#00f0ff" strokeWidth="1.5" />
           </>
         );
 
@@ -1166,11 +1474,23 @@ export const GameIllustration: React.FC<GameIllustrationProps> = ({ game, size =
       case "starFormation":
         return (
           <>
-            <polygon points="15,4 8,24 22,24" fill="#ff5c8a" />
-            <polygon points="15,8 11,22 19,22" fill="#4de8e8" />
-            <rect x="14" y="2" width="2" height="6" fill="#ffd84d" />
-            <rect x="6" y="22" width="4" height="4" fill="#ff5c8a" />
-            <rect x="20" y="22" width="4" height="4" fill="#ff5c8a" />
+            {/* Curved Flight Path Trail */}
+            <path d="M 4,26 Q 15,18 15,6" fill="none" stroke="#38bdf8" strokeWidth="1" strokeDasharray="2,2" opacity="0.6" />
+            {/* Lead Flagship Starfighter */}
+            <polygon points="15,3 11,13 19,13" fill="#ef4444" />
+            <polygon points="15,6 13,12 17,12" fill="#ffffff" />
+            <rect x="14" y="13" width="2" height="3" fill="#38bdf8" />
+            {/* Wingman Left */}
+            <polygon points="7,14 4,22 10,22" fill="#3b82f6" />
+            <polygon points="7,16 5,21 9,21" fill="#93c5fd" />
+            <rect x="6" y="22" width="2" height="2" fill="#ffd84d" />
+            {/* Wingman Right */}
+            <polygon points="23,14 20,22 26,22" fill="#3b82f6" />
+            <polygon points="23,16 21,21 25,21" fill="#93c5fd" />
+            <rect x="22" y="22" width="2" height="2" fill="#ffd84d" />
+            {/* Twin Laser Blasts */}
+            <line x1="13" y1="2" x2="13" y2="0" stroke="#fde047" strokeWidth="1.5" />
+            <line x1="17" y1="2" x2="17" y2="0" stroke="#fde047" strokeWidth="1.5" />
           </>
         );
 
@@ -1178,10 +1498,19 @@ export const GameIllustration: React.FC<GameIllustrationProps> = ({ game, size =
       case "bombGrid":
         return (
           <>
-            <circle cx="15" cy="17" r="8" fill="#1e293b" stroke="#ff9f43" strokeWidth="1.5" />
-            <rect x="13" y="6" width="4" height="4" fill="#64748b" />
-            <path d="M 15 6 Q 18 2 22 4" stroke="#ffd84d" strokeWidth="2" fill="none" />
-            <circle cx="22" cy="4" r="2" fill="#ff5c8a" />
+            {/* 4-Way Cross Explosion Blast Waves */}
+            <rect x="13" y="1" width="4" height="28" fill="#ef4444" opacity="0.75" />
+            <rect x="1" y="13" width="28" height="4" fill="#ef4444" opacity="0.75" />
+            <rect x="14" y="3" width="2" height="24" fill="#fde047" />
+            <rect x="3" y="14" width="24" height="2" fill="#fde047" />
+            {/* Round Black Bomb Body with Highlight */}
+            <circle cx="15" cy="16" r="7.5" fill="#0f172a" stroke="#334155" strokeWidth="1" />
+            <circle cx="12.5" cy="13.5" r="2" fill="#64748b" opacity="0.8" />
+            <rect x="13" y="7" width="4" height="3" fill="#475569" rx="0.5" />
+            {/* Burning Fuse with Spark Flare */}
+            <path d="M 15,7 Q 18,3 21,5" fill="none" stroke="#d97706" strokeWidth="1.5" />
+            <circle cx="21" cy="5" r="2.5" fill="#f97316" />
+            <circle cx="21" cy="5" r="1.2" fill="#ffffff" />
           </>
         );
 
@@ -1189,12 +1518,16 @@ export const GameIllustration: React.FC<GameIllustrationProps> = ({ game, size =
       case "pegBlast":
         return (
           <>
-            <circle cx="8" cy="10" r="3" fill="#ff9f43" />
-            <circle cx="22" cy="10" r="3" fill="#4de8e8" />
-            <circle cx="15" cy="18" r="3" fill="#ff5c8a" />
-            <circle cx="8" cy="24" r="3" fill="#a879ff" />
-            <circle cx="22" cy="24" r="3" fill="#ffd84d" />
-            <circle cx="15" cy="6" r="2.5" fill="#ffffff" />
+            {/* Ballistics Trajectory Arc */}
+            <path d="M 5,6 Q 15,10 23,24" fill="none" stroke="#94a3b8" strokeWidth="1" strokeDasharray="2,2" />
+            {/* Glowing Peg Array */}
+            <circle cx="8" cy="11" r="3.5" fill="#f59e0b" stroke="#ffffff" strokeWidth="0.8" />
+            <circle cx="22" cy="10" r="3.5" fill="#3b82f6" stroke="#ffffff" strokeWidth="0.8" />
+            <circle cx="15" cy="18" r="4" fill="#ef4444" stroke="#fde047" strokeWidth="1.2" />
+            <circle cx="8" cy="24" r="3" fill="#a855f7" />
+            <circle cx="22" cy="24" r="3" fill="#10b981" />
+            {/* Metallic Cannonball */}
+            <circle cx="10" cy="8" r="2.5" fill="#f8fafc" stroke="#334155" strokeWidth="0.8" />
           </>
         );
 
@@ -1202,10 +1535,19 @@ export const GameIllustration: React.FC<GameIllustrationProps> = ({ game, size =
       case "caveHunter":
         return (
           <>
-            <rect x="4" y="4" width="22" height="6" fill="#78350f" />
-            <rect x="4" y="10" width="22" height="16" fill="#451a03" />
-            <rect x="8" y="14" width="6" height="8" fill="#ff9f43" rx="1" />
-            <circle cx="20" cy="18" r="4" fill="#ff5c8a" />
+            {/* Cavern Rock Formations */}
+            <polygon points="2,2 8,10 14,2 20,9 28,2 28,28 2,28" fill="#1c1917" stroke="#44403c" strokeWidth="1" />
+            {/* Rope Pendulum */}
+            <line x1="14" y1="2" x2="9" y2="16" stroke="#d97706" strokeWidth="1.5" />
+            {/* Spelunker Explorer */}
+            <circle cx="9" cy="16" r="3" fill="#f59e0b" />
+            <rect x="7" y="18" width="4" height="6" fill="#3b82f6" rx="1" />
+            {/* Blazing Torch with Flame Embers */}
+            <line x1="11" y1="17" x2="16" y2="13" stroke="#78350f" strokeWidth="1.5" />
+            <circle cx="16" cy="13" r="2.5" fill="#ef4444" />
+            <circle cx="16" cy="13" r="1.2" fill="#fde047" />
+            {/* Golden Treasure Idol */}
+            <polygon points="23,24 21,20 25,20" fill="#facc15" stroke="#ca8a04" strokeWidth="0.8" />
           </>
         );
 
@@ -1213,10 +1555,21 @@ export const GameIllustration: React.FC<GameIllustrationProps> = ({ game, size =
       case "donkeyClimb":
         return (
           <>
-            <line x1="3" y1="22" x2="27" y2="18" stroke="#ff5c8a" strokeWidth="3" />
-            <line x1="3" y1="12" x2="27" y2="8" stroke="#ff5c8a" strokeWidth="3" />
-            <circle cx="18" cy="12" r="4" fill="#ff9f43" stroke="#78350f" strokeWidth="1.5" />
-            <rect x="7" y="16" width="4" height="6" fill="#ffd84d" />
+            {/* Industrial Red Steel Girders */}
+            <line x1="2" y1="24" x2="28" y2="21" stroke="#dc2626" strokeWidth="3" />
+            <line x1="2" y1="13" x2="28" y2="10" stroke="#dc2626" strokeWidth="3" />
+            {/* Climbing Ladder */}
+            <line x1="8" y1="11" x2="8" y2="23" stroke="#38bdf8" strokeWidth="1.5" />
+            <line x1="12" y1="11" x2="12" y2="23" stroke="#38bdf8" strokeWidth="1.5" />
+            <line x1="8" y1="14" x2="12" y2="14" stroke="#38bdf8" strokeWidth="1" />
+            <line x1="8" y1="17" x2="12" y2="17" stroke="#38bdf8" strokeWidth="1" />
+            <line x1="8" y1="20" x2="12" y2="20" stroke="#38bdf8" strokeWidth="1" />
+            {/* Rolling Wooden Barrel */}
+            <circle cx="21" cy="8" r="4.5" fill="#92400e" stroke="#451a03" strokeWidth="1" />
+            <circle cx="21" cy="8" r="2.5" fill="#d97706" />
+            {/* Jumpman Hero Leaping */}
+            <circle cx="15" cy="16" r="2.5" fill="#ef4444" />
+            <rect x="13.5" y="18.5" width="3" height="4" fill="#2563eb" />
           </>
         );
 
@@ -1224,11 +1577,16 @@ export const GameIllustration: React.FC<GameIllustrationProps> = ({ game, size =
       case "marbleRush":
         return (
           <>
-            <path d="M 4 24 Q 15 4 26 24" fill="none" stroke="#334155" strokeWidth="3" />
-            <circle cx="8" cy="18" r="3" fill="#4de8e8" />
-            <circle cx="15" cy="10" r="3" fill="#a879ff" />
-            <circle cx="22" cy="18" r="3" fill="#ffd84d" />
-            <circle cx="15" cy="22" r="3" fill="#ff5c8a" />
+            {/* Spiraling Rail Track */}
+            <path d="M 3,24 Q 15,2 27,24" fill="none" stroke="#475569" strokeWidth="3" />
+            {/* Colored Marble Chain */}
+            <circle cx="7" cy="18" r="3.2" fill="#38bdf8" stroke="#0284c7" strokeWidth="0.8" />
+            <circle cx="12" cy="12" r="3.2" fill="#a855f7" stroke="#7e22ce" strokeWidth="0.8" />
+            <circle cx="18" cy="12" r="3.2" fill="#facc15" stroke="#ca8a04" strokeWidth="0.8" />
+            <circle cx="23" cy="18" r="3.2" fill="#ef4444" stroke="#b91c1c" strokeWidth="0.8" />
+            {/* Center Golden Frog/Idol Launcher */}
+            <circle cx="15" cy="22" r="4" fill="#22c55e" stroke="#15803d" strokeWidth="1" />
+            <circle cx="15" cy="20" r="1.5" fill="#ffd84d" />
           </>
         );
 
@@ -1236,9 +1594,19 @@ export const GameIllustration: React.FC<GameIllustrationProps> = ({ game, size =
       case "velocityRush":
         return (
           <>
-            <path d="M 4 22 C 12 22 12 6 20 6 C 26 6 26 22 15 22" fill="none" stroke="#4da3ff" strokeWidth="3" />
-            <circle cx="20" cy="10" r="3" fill="#ff5c8a" />
-            <circle cx="12" cy="18" r="2" fill="#ffd84d" />
+            {/* Speed Dash Motion Blur Streaks */}
+            <line x1="2" y1="16" x2="10" y2="16" stroke="#38bdf8" strokeWidth="1.5" opacity="0.6" />
+            <line x1="4" y1="12" x2="12" y2="12" stroke="#38bdf8" strokeWidth="1.5" opacity="0.8" />
+            <line x1="2" y1="20" x2="10" y2="20" stroke="#38bdf8" strokeWidth="1.5" opacity="0.6" />
+            {/* Leaping Speedrunner Pose */}
+            <circle cx="19" cy="10" r="3.5" fill="#3b82f6" />
+            <rect x="15" y="13" width="7" height="6" fill="#ef4444" rx="1" />
+            {/* Trailing Boost Foot */}
+            <polygon points="12,18 16,16 14,21" fill="#facc15" />
+            {/* Forward Kick Foot */}
+            <polygon points="22,17 26,19 24,22" fill="#facc15" />
+            {/* Golden Sonic Speed Ring */}
+            <ellipse cx="10" cy="10" r="2.5" fill="none" stroke="#fde047" strokeWidth="1" />
           </>
         );
 
@@ -1278,9 +1646,18 @@ export const GameIllustration: React.FC<GameIllustrationProps> = ({ game, size =
       case "pixelQuest":
         return (
           <>
-            <rect x="8" y="10" width="14" height="14" fill="#ff9f43" rx="2" stroke="#ffd84d" strokeWidth="1.5" />
-            <text x="12" y="22" fontFamily="monospace" fontSize="12" fontWeight="900" fill="#ffffff">?</text>
-            <circle cx="22" cy="7" r="3" fill="#ff5c8a" />
+            {/* Castle Brick Platform */}
+            <rect x="2" y="20" width="26" height="8" fill="#475569" stroke="#334155" strokeWidth="1" rx="1" />
+            <line x1="15" y1="20" x2="15" y2="28" stroke="#1e293b" strokeWidth="1" />
+            {/* Knight Hero with Silver Helm */}
+            <circle cx="11" cy="12" r="3.5" fill="#94a3b8" />
+            <rect x="10" y="11" width="3" height="1.5" fill="#0f172a" />
+            <rect x="9" y="15" width="5" height="6" fill="#3b82f6" rx="1" />
+            {/* Golden Broadsword Raised High */}
+            <line x1="15" y1="16" x2="20" y2="9" stroke="#facc15" strokeWidth="2" />
+            <circle cx="15" cy="16" r="1.2" fill="#ca8a04" />
+            {/* Glowing Blue Treasure Diamond */}
+            <polygon points="22,6 25,10 22,14 19,10" fill="#38bdf8" stroke="#ffffff" strokeWidth="0.8" />
           </>
         );
 
@@ -1288,9 +1665,20 @@ export const GameIllustration: React.FC<GameIllustrationProps> = ({ game, size =
       case "raySector":
         return (
           <>
-            <polygon points="4,4 12,9 12,21 4,26" fill="#1e293b" stroke="#4de8e8" strokeWidth="1" />
-            <polygon points="26,4 18,9 18,21 26,26" fill="#1e293b" stroke="#4de8e8" strokeWidth="1" />
-            <rect x="12" y="9" width="6" height="12" fill="#0f172a" stroke="#ff9f43" strokeWidth="1" />
+            {/* 2.5D Raycaster Corridor Walls with Cyan Conduits */}
+            <polygon points="2,2 10,7 10,23 2,28" fill="#1e293b" stroke="#38bdf8" strokeWidth="1" />
+            <polygon points="28,2 20,7 20,23 28,28" fill="#1e293b" stroke="#38bdf8" strokeWidth="1" />
+            <rect x="10" y="7" width="10" height="16" fill="#090d18" />
+            {/* Distant Opponent Silhouette */}
+            <rect x="13.5" y="12" width="3" height="6" fill="#ef4444" rx="0.5" />
+            <circle cx="15" cy="10.5" r="1.5" fill="#fde047" />
+            {/* Cyan HUD Reticle */}
+            <circle cx="15" cy="13" r="2.5" fill="none" stroke="#00f0ff" strokeWidth="0.8" />
+            {/* First-Person Hand & Firearm with Starburst Muzzle Flash */}
+            <rect x="18" y="21" width="5" height="4" fill="#334155" />
+            <polygon points="20,18 25,23 23,27 18,22" fill="#f59e0b" />
+            <polygon points="17,16 21,18 19,20" fill="#fde047" />
+            <circle cx="18" cy="17" r="1.8" fill="#ef4444" />
           </>
         );
 
@@ -1298,9 +1686,19 @@ export const GameIllustration: React.FC<GameIllustrationProps> = ({ game, size =
       case "pixelBrawl":
         return (
           <>
-            <rect x="6" y="10" width="7" height="12" fill="#ff5c8a" rx="1" />
-            <rect x="17" y="10" width="7" height="12" fill="#4da3ff" rx="1" />
-            <circle cx="15" cy="15" r="3" fill="#ffd84d" />
+            {/* Arena Mat / Dojo Canvas Floor */}
+            <rect x="2" y="24" width="26" height="4" fill="#991b1b" rx="1" />
+            {/* Fighter 1 (Red Headband Karateka) */}
+            <circle cx="8" cy="11" r="3" fill="#ef4444" />
+            <rect x="7" y="10" width="3" height="1" fill="#ffffff" />
+            <rect x="6" y="14" width="5" height="7" fill="#f8fafc" rx="1" />
+            <line x1="11" y1="15" x2="16" y2="13" stroke="#f8fafc" strokeWidth="2" />
+            {/* Fighter 2 (Blue Boxer / Ninja) */}
+            <circle cx="22" cy="11" r="3" fill="#3b82f6" />
+            <rect x="19" y="14" width="5" height="7" fill="#1e293b" rx="1" />
+            <line x1="19" y1="15" x2="16" y2="15" stroke="#3b82f6" strokeWidth="2" />
+            {/* Dynamic Yellow Impact Starburst Hit-Spark */}
+            <polygon points="15,11 17,14 15,17 13,14" fill="#fde047" stroke="#ffffff" strokeWidth="0.6" />
           </>
         );
 
@@ -1319,9 +1717,21 @@ export const GameIllustration: React.FC<GameIllustrationProps> = ({ game, size =
       case "pixelCircuit":
         return (
           <>
-            <path d="M 6 6 L 24 6 L 24 24 L 6 24 Z" fill="none" stroke="#475569" strokeWidth="5" />
-            <rect x="18" y="4" width="5" height="8" fill="#ff5c8a" rx="1" />
-            <circle cx="20" cy="8" r="1.5" fill="#ffd84d" />
+            {/* Asphalt Track with Checkered Finish Line */}
+            <path d="M 4,24 Q 15,4 26,24" fill="none" stroke="#334155" strokeWidth="4" />
+            <line x1="12" y1="8" x2="18" y2="8" stroke="#ffffff" strokeWidth="1.5" strokeDasharray="1.5,1.5" />
+            {/* Red & Yellow Go-Kart Racer */}
+            <rect x="12" y="13" width="6" height="9" fill="#ef4444" rx="1" />
+            <rect x="13.5" y="11" width="3" height="4" fill="#facc15" rx="1" />
+            <circle cx="15" cy="12.5" r="1.5" fill="#f8fafc" />
+            {/* 4 Rubber Tires */}
+            <rect x="10" y="14" width="2" height="3" fill="#0f172a" rx="0.5" />
+            <rect x="18" y="14" width="2" height="3" fill="#0f172a" rx="0.5" />
+            <rect x="10" y="18" width="2" height="3" fill="#0f172a" rx="0.5" />
+            <rect x="18" y="18" width="2" height="3" fill="#0f172a" rx="0.5" />
+            {/* Drifting Tire Smoke & Sparks */}
+            <circle cx="9" cy="22" r="1.5" fill="#94a3b8" opacity="0.8" />
+            <circle cx="21" cy="22" r="1.5" fill="#fde047" opacity="0.9" />
           </>
         );
 

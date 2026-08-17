@@ -276,7 +276,7 @@ export class PegBlastGame implements GameInstance {
     if (!this.ballActive) {
       let simX = 300;
       let simY = 50;
-      let simVx = Math.cos(this.aimAngle) * 600;
+      const simVx = Math.cos(this.aimAngle) * 600;
       let simVy = Math.sin(this.aimAngle) * 600;
       const stepDt = 0.03;
       

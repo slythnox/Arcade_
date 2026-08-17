@@ -1,21 +1,22 @@
 import type { GameDefinition } from "../types";
+
 export const cellColonyDefinition: GameDefinition = {
   id: "cell-colony",
   slug: "cell-colony",
   name: "Cell Colony",
   platform: "arcade",
-  genre: "experimental",
-  era: "1970s",
-  year: 1970,
-  tags: ["Game of Life", "Cellular Automata", "Conway", "Simulation", "Experimental"],
-  tagline: "Manipulate evolving biological micro-colonies running Conway's Game of Life rules.",
+  genre: "strategy",
+  era: "2000s",
+  year: 2005,
+  tags: ["Cell Colony", "Strategy", "Microbial Conquest", "RTS", "Biology"],
+  tagline: "Command your cyan bio-colony and eradicate hostile parasitic viruses across the Petri dish.",
   description:
-    "Design and simulate living cellular populations using John Conway's mathematical B3/S23 cellular automata rules.",
-  difficulty: "easy",
+    "Tactical microbial real-time strategy game. Dispatch living spore swarms to conquer neutral nutrient nodes and defeat enemy virus colonies.",
+  difficulty: "medium",
   players: "single",
   category: "arcade",
-  subcategory: "experimental",
-  estimatedPlayTime: "5-20 min",
+  subcategory: "strategy",
+  estimatedPlayTime: "5-15 min",
   thumbnail: {
     src: "/assets/thumbnails/cell-colony.png",
     alt: "Cell Colony Arcade",
@@ -24,24 +25,23 @@ export const cellColonyDefinition: GameDefinition = {
   },
   controls: {
     keyboard: [
-      { key: "Arrow Keys / WASD", description: "Navigate Cellular Matrix" },
-      { key: "SPACE", description: "Toggle Cell State (Birth / Death)" },
-      { key: "ENTER / Z", description: "Play / Pause Automata Evolution" },
-      { key: "P", description: "Pause / Resume" },
-      { key: "R", description: "Generate Random Population" },
+      { key: "Direct Mouse / Touch Click", description: "Select Your Blue Node $\\to$ Click Target to Send Spores" },
+      { key: "SPACE", description: "Next Stage" },
+      { key: "R", description: "Restart Level" },
     ],
-    touch: "Tap any cell to seed or extinguish life.",
+    touch: "Tap your blue colony node, then tap any destination node to send spore swarms.",
   },
   seo: {
-    title: "Cell Colony — Conway's Game of Life Cellular Automata",
-    description: "Conway's Game of Life cellular automata simulator with glider and oscillator patterns.",
-    keywords: ["conways game of life", "cellular automata", "life simulator", "boids", "simulation"],
+    title: "Cell Colony — Microbial Biosphere Conquest RTS",
+    description: "Command living cellular colonies and eradicate hostile viruses in this tactical microbiology strategy game.",
+    keywords: ["cell colony", "microbial rts", "petri dish battle", "biology strategy", "spore conquest"],
   },
   math: {
-    title: "Conway's B3/S23 Automata Transition Function",
-    summary: "S_{t+1}(r,c) = \\begin{cases} 1 & \\text{if } N=3 \\lor (S_t=1 \\land N=2) \\\\ 0 & \\text{otherwise} \\end{cases}, \\quad N = \\sum_{d \\in M_8} S_t(r+d_r, c+d_c).",
+    title: "Population Dynamics & Vector Swarm Colonization",
+    summary: "\\frac{dN}{dt} = r N \\left(1 - \\frac{N}{K}\\right) - \\Phi_{\\text{spores}}.",
     concepts: [
-      { name: "Turing Completeness", description: "\\text{Universal computation emergent from 2-state Moore neighborhood rules}." },
+      { name: "Logistic Growth", description: "\\text{Colony populations regenerate towards maximum carrying capacity } K." },
+      { name: "Vector Swarm Dispatch", description: "\\text{Spore trajectories calculated using normalized 2D velocity vectors}." },
     ],
   },
   createGame: async () => {

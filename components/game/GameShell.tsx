@@ -315,11 +315,13 @@ export const GameShell: React.FC<GameShellProps> = ({ gameSlug, mode = "arcade" 
   const [lines, setLines] = useState<number | undefined>(undefined);
   const [lives, setLives] = useState<number | undefined>(undefined);
   const [isMuted, setIsMuted] = useState(false);
-  const [crtEnabled, setCrtEnabled] = useState(true);
+  const [crtEnabled, setCrtEnabled] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [highScore, setHighScore] = useState(0);
   const [showSteamLaunch, setShowSteamLaunch] = useState(false);
   const [clockTime, setClockTime] = useState("");
+  const [hasCartridgeError, setHasCartridgeError] = useState(false);
+  const [retryKey, setRetryKey] = useState(0);
 
   // Accordion state for sidebar game guide dropdown (closed by default)
   const [isGuideOpen, setIsGuideOpen] = useState(false);
@@ -378,45 +380,56 @@ export const GameShell: React.FC<GameShellProps> = ({ gameSlug, mode = "arcade" 
   useEffect(() => {
     if (!game || !canvasRef.current) return;
     let cancelled = false;
+    setHasCartridgeError(false);
 
     if (engineRef.current) {
       engineRef.current.destroy();
       engineRef.current = null;
     }
 
-    const engine = new GameEngine({
-      canvas: canvasRef.current,
-      gameId: game.id,
-      pixelSize: 2,
-    });
-    engineRef.current = engine;
+    try {
+      const engine = new GameEngine({
+        canvas: canvasRef.current,
+        gameId: game.id,
+        pixelSize: 2,
+      });
+      engineRef.current = engine;
 
-    const session = engine.getSession();
-    session.subscribe((s) => {
-      if (cancelled) return;
-      setStatus(s.status);
-      setScore(s.score);
-      setLevel(s.level);
-      setLines(s.lines > 0 || game.id === "tetris" ? s.lines : undefined);
-      setLives(game.id === "breakout" ? s.lives : undefined);
+      const session = engine.getSession();
+      session.subscribe((s) => {
+        if (cancelled) return;
+        setStatus(s.status);
+        setScore(s.score);
+        setLevel(s.level);
+        setLines(s.lines > 0 || game.id === "tetris" ? s.lines : undefined);
+        setLives(game.id === "breakout" ? s.lives : undefined);
 
-      if (s.status === "game-over") {
-        const { isNewHighScore } = recordGameSessionEnd(game.id, s.score, s.elapsedTime);
-        if (isNewHighScore) {
-          setHighScore(s.score);
+        if (s.status === "game-over") {
+          const { isNewHighScore } = recordGameSessionEnd(game.id, s.score, s.elapsedTime);
+          if (isNewHighScore) {
+            setHighScore(s.score);
+          }
+          track("game_complete", { gameId: game.id, score: s.score, duration: s.elapsedTime });
         }
-        track("game_complete", { gameId: game.id, score: s.score, duration: s.elapsedTime });
-      }
-    });
+      });
 
-    createGameInstance(game.id).then((gameInstance) => {
-      if (cancelled || !engineRef.current) return;
-      if (gameInstance) {
-        engine.loadGame(gameInstance);
-        engine.start();
-        track("game_start", { gameId: game.id });
-      }
-    });
+      createGameInstance(game.id)
+        .then((gameInstance) => {
+          if (cancelled || !engineRef.current) return;
+          if (gameInstance) {
+            engine.loadGame(gameInstance);
+            engine.start();
+            track("game_start", { gameId: game.id });
+          } else {
+            setHasCartridgeError(true);
+          }
+        })
+        .catch(() => {
+          if (!cancelled) setHasCartridgeError(true);
+        });
+    } catch {
+      setHasCartridgeError(true);
+    }
 
     const unsubscribeAudio = getAudioManager().subscribeMuteChange((muted) => {
       setIsMuted(muted);
@@ -440,7 +453,7 @@ export const GameShell: React.FC<GameShellProps> = ({ gameSlug, mode = "arcade" 
         engineRef.current = null;
       }
     };
-  }, [game]);
+  }, [game, retryKey]);
 
   const handleToggleFullscreen = useCallback(() => {
     if (!containerRef.current) return;
@@ -483,7 +496,6 @@ export const GameShell: React.FC<GameShellProps> = ({ gameSlug, mode = "arcade" 
       return;
     }
 
-    const input = engineRef.current.getInput();
     // Dispatch to input listeners & active session
     engineRef.current.getSession().recordInput(action, isPressed);
     // Directly dispatch to active game instance
@@ -1078,33 +1090,114 @@ export const GameShell: React.FC<GameShellProps> = ({ gameSlug, mode = "arcade" 
             overflow: "hidden",
           }}
         >
-          <CRTOverlay
-            enabled={crtEnabled}
-            scanlines={crtEnabled}
-            style={{
-              width: "100%",
-              height: "100%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <canvas
-              ref={canvasRef}
-              width={600}
-              height={700}
+          {hasCartridgeError ? (
+            <div
               style={{
-                display: "block",
                 width: "100%",
                 height: "100%",
-                maxWidth: "100%",
-                maxHeight: "100%",
-                objectFit: "fill",
-                backgroundColor: "#050914",
+                backgroundColor: "#080c16",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "24px",
+                textAlign: "center",
                 borderRadius: "4px",
+                border: "2px solid #ef4444",
+                boxSizing: "border-box",
               }}
-            />
-          </CRTOverlay>
+            >
+              <div
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "18px",
+                  fontWeight: "900",
+                  color: "#ef4444",
+                  letterSpacing: "0.1em",
+                  marginBottom: "12px",
+                }}
+              >
+                CARTRIDGE ERROR
+              </div>
+              <p
+                style={{
+                  fontFamily: "var(--font-sans)",
+                  fontSize: "14px",
+                  color: "#94a3b8",
+                  maxWidth: "320px",
+                  marginBottom: "20px",
+                  lineHeight: "1.5",
+                }}
+              >
+                This cartridge could not be initialized. Please retry or return to the arcade floor.
+              </p>
+              <div style={{ display: "flex", gap: "12px" }}>
+                <button
+                  type="button"
+                  onClick={() => setRetryKey((k) => k + 1)}
+                  style={{
+                    padding: "8px 16px",
+                    backgroundColor: "#ffd84d",
+                    color: "#050914",
+                    fontWeight: "800",
+                    fontSize: "12px",
+                    fontFamily: "var(--font-mono)",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                  }}
+                >
+                  RETRY
+                </button>
+                <Link
+                  href="/games"
+                  style={{
+                    padding: "8px 16px",
+                    backgroundColor: "#1e293b",
+                    color: "#f8fafc",
+                    fontWeight: "800",
+                    fontSize: "12px",
+                    fontFamily: "var(--font-mono)",
+                    border: "1px solid #334155",
+                    borderRadius: "4px",
+                    textDecoration: "none",
+                    display: "inline-flex",
+                    alignItems: "center",
+                  }}
+                >
+                  BACK TO ARCADE
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <CRTOverlay
+              enabled={true}
+              scanlines={crtEnabled}
+              style={{
+                width: "100%",
+                height: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <canvas
+                ref={canvasRef}
+                width={600}
+                height={700}
+                style={{
+                  display: "block",
+                  width: "100%",
+                  height: "100%",
+                  maxWidth: "100%",
+                  maxHeight: "100%",
+                  objectFit: "fill",
+                  backgroundColor: "#050914",
+                  borderRadius: "4px",
+                }}
+              />
+            </CRTOverlay>
+          )}
         </div>
 
         {/* MOBILE CONTROLLER BAR (Exact 75-25 screen ratio on mobile screens) */}

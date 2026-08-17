@@ -4,7 +4,7 @@ import type { Renderer } from "../../engine/rendering/Renderer";
 import type { PixelRenderer } from "../../engine/rendering/PixelRenderer";
 import type { GameAction } from "../../core/types/game";
 import { globalParticles } from "../../engine/particles/ParticleSystem";
-import type { DiamondRunGameState, PlayerState, LevelData, EntityState } from "./types";
+import type { DiamondRunGameState, PlayerState, LevelData } from "./types";
 import { TileType } from "./types";
 import {
   TILE_SIZE,
@@ -27,6 +27,16 @@ import {
   WORLD_PALETTES,
 } from "./constants";
 import { LEVELS } from "./LevelData";
+import {
+  drawTempleWallTile,
+  drawJungleVineBackdrop,
+  drawJungleBush,
+  drawPurpleAmethystDiamond,
+  drawCarvedFaceBoulder,
+  drawTreasureChest,
+  drawBuddhaAltar,
+  drawDiamondRushExplorer,
+} from "./diamondRushTiles";
 
 export class DiamondRunGame implements GameInstance {
   private ctx!: GameContext;
@@ -701,19 +711,39 @@ export class DiamondRunGame implements GameInstance {
     const offsetX = Math.floor(-this.cameraX);
     const offsetY = Math.floor(-this.cameraY);
 
-    // Draw Tile Map
+    // 1. Draw Ancient Meditating Buddha Statue Altar on top temple ledge
+    drawBuddhaAltar(pr, w / 2 - 24, offsetY - 26, 48, 28);
+
+    // 2. Draw Tile Map (Layered Vines, Stone Masonry, Purple Amethyst Diamonds, Carved Face Boulders)
     for (let r = 0; r < this.rows; r++) {
       for (let c = 0; c < this.cols; c++) {
-        const tile = this.grid[r][c];
-        if (tile === TileType.EMPTY) continue;
-
         const tx = c * TILE_SIZE + offsetX;
         const ty = r * TILE_SIZE + offsetY;
 
         if (tx < -TILE_SIZE || tx > w || ty < -TILE_SIZE || ty > h) continue;
 
+        const tile = this.grid[r][c];
+
+        // Draw lush jungle vine backdrop for open space / air
+        if (tile !== TileType.SOLID) {
+          drawJungleVineBackdrop(pr, tx, ty, TILE_SIZE);
+        }
+
         if (tile === TileType.SOLID) {
-          pr.drawPixelBlock(tx, ty, TILE_SIZE, palette.wall, "#FFFFFF", "rgba(0,0,0,0.5)");
+          drawTempleWallTile(pr, tx, ty, TILE_SIZE, this.currentWorld);
+        } else if (tile === TileType.DIAMOND) {
+          drawPurpleAmethystDiamond(pr, tx, ty, TILE_SIZE, (Date.now() + c * 100) / 200);
+        } else if (tile === TileType.GEM_RARE || tile === TileType.GEM_SECRET) {
+          drawPurpleAmethystDiamond(pr, tx, ty, TILE_SIZE, (Date.now() + c * 150) / 160);
+        } else if (tile === TileType.PUSHABLE || tile === TileType.BOULDER) {
+          // Carved Inca/Mayan Stone Face Boulder (Rock Head)
+          drawCarvedFaceBoulder(pr, tx, ty, TILE_SIZE, 0);
+        } else if (tile === TileType.BREAKABLE) {
+          // Lush Jungle Bush Clump
+          drawJungleBush(pr, tx, ty, TILE_SIZE);
+        } else if (tile === TileType.EXIT || tile === TileType.KEY_GOLD_GATE) {
+          // Golden & Red Lacquered Treasure Chest
+          drawTreasureChest(pr, tx, ty, TILE_SIZE);
         } else if (tile === TileType.ICE) {
           pr.drawPixelBlock(tx, ty, TILE_SIZE, "#48CAE4", "#E0F2FE", "#0077B6");
         } else if (tile === TileType.LAVA) {
@@ -722,60 +752,35 @@ export class DiamondRunGame implements GameInstance {
         } else if (tile === TileType.WATER) {
           pr.drawRect(tx, ty, TILE_SIZE, TILE_SIZE, "rgba(0, 240, 255, 0.4)", true);
           pr.drawRect(tx, ty + (Math.floor(Date.now() / 200 + c) % 4), TILE_SIZE, 2, "rgba(255,255,255,0.6)", true);
-        } else if (tile === TileType.MUD) {
-          pr.drawRect(tx, ty, TILE_SIZE, TILE_SIZE, "#3A1c0c", true);
         } else if (tile === TileType.SPIKE) {
           pr.drawPixelBlock(tx, ty + 8, TILE_SIZE, "#94A3B8", "#FFFFFF", "#334155");
-        } else if (tile === TileType.DIAMOND) {
-          const pulse = 4.5 + Math.sin((Date.now() + c * 100) / 180) * 1.2;
-          pr.drawCircle(tx + 8, ty + 8, Math.round(pulse + 2), "rgba(77, 232, 232, 0.3)", true);
-          pr.drawCircle(tx + 8, ty + 8, Math.round(pulse), "#4DE8E8", true);
-          pr.drawCircle(tx + 8, ty + 8, 2, "#FFFFFF", true);
-        } else if (tile === TileType.GEM_RARE) {
-          const pulse = 5.5 + Math.sin((Date.now() + c * 120) / 150) * 1.5;
-          pr.drawCircle(tx + 8, ty + 8, Math.round(pulse), "#FFD84D", true);
-          pr.drawCircle(tx + 8, ty + 8, 2, "#FFFFFF", true);
-        } else if (tile === TileType.GEM_SECRET) {
-          const pulse = 6.5 + Math.sin((Date.now() + c * 150) / 120) * 1.8;
-          pr.drawCircle(tx + 8, ty + 8, Math.round(pulse), "#A879FF", true);
-          pr.drawCircle(tx + 8, ty + 8, 3, "#FFFFFF", true);
         } else if (tile === TileType.KEY_BRONZE) {
           pr.drawRect(tx + 4, ty + 4, 8, 8, "#FFD84D", true);
         } else if (tile === TileType.KEY_BRONZE_GATE) {
           pr.drawPixelBlock(tx, ty, TILE_SIZE, "#B45309", "#FFD84D", "#78350F");
-        } else if (tile === TileType.EXIT) {
-          const pulseColor = Math.floor(Date.now() / 250) % 2 === 0 ? "#00FF66" : "#4DE8E8";
-          pr.drawRect(tx, ty, TILE_SIZE, TILE_SIZE, "rgba(0,255,102,0.15)", true);
-          pr.drawRect(tx + 2, ty + 2, 12, 14, pulseColor, false);
-          pr.drawRect(tx + 4, ty + 4, 8, 10, pulseColor, true);
-        } else if (tile === TileType.PUSHABLE) {
-          pr.drawPixelBlock(tx, ty, TILE_SIZE, "#A16207", "#CA8A04", "#713F12");
         } else if (tile === TileType.PRESSURE_PLATE) {
           pr.drawRect(tx + 2, ty + 12, 12, 4, "#64748B", true);
-        } else {
-          pr.drawRect(tx, ty, TILE_SIZE, TILE_SIZE, palette.wall, true);
         }
       }
     }
 
-    // Draw Detailed Explorer Sprite
+    // 3. Draw Detailed Diamond Rush Explorer Adventurer Sprite (Matching Screenshot)
     const px = Math.floor(this.player.x + offsetX);
     const py = Math.floor(this.player.y + offsetY);
 
     if (this.player.invulnerabilityTimer <= 0 || Math.floor(Date.now() / 100) % 2 === 0) {
-      // Body & Explorer Shirt
-      pr.drawPixelBlock(px, py, PLAYER_WIDTH, "#FFD84D", "#FFFFFF", "#B45309");
-      // Explorer Fedora Hat
-      pr.drawRect(px - 1, py - 3, PLAYER_WIDTH + 2, 3, "#8B5E34", true);
-      pr.drawRect(px + 2, py - 6, PLAYER_WIDTH - 4, 3, "#A67C52", true);
-
-      // Backpack
-      const packX = px + (this.player.facing === "right" ? -3 : PLAYER_WIDTH);
-      pr.drawRect(packX, py + 4, 3, 7, "#5C3D2E", true);
-
-      // Directional eyes
-      const eyeX = px + (this.player.facing === "right" ? 8 : 2);
-      pr.drawRect(eyeX, py + 3, 2, 3, "#000000", true);
+      drawDiamondRushExplorer(
+        pr,
+        px,
+        py - 3,
+        PLAYER_WIDTH,
+        PLAYER_HEIGHT + 3,
+        this.player.facing,
+        Date.now() / 100,
+        Math.abs(this.player.vx) > 8,
+        this.player.isClimbing,
+        false
+      );
     }
 
     // Render Global Particle FX & Popups

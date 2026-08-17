@@ -235,3 +235,42 @@ When $|v_{\text{lat}}| > v_{\text{slip}}$, oversteer power-slides and tire smoke
 Centerline progress $t \in [0, 1]$ is evaluated by minimizing the squared Euclidean distance to the closed $C^1$-continuous spline:
 $$t = \operatorname{argmin}_{u \in [0, 1]} \|\mathbf{P} - \mathbf{C}(u)\|^2$$
 
+---
+
+## 9. Electronics & RC Circuit Equations (`games/timeLoop/`)
+
+### Ohm's Law & Current Limiting
+For circuit nodes with voltage source $V_s$ and LED forward drop $V_f$, the operating current through series resistor $R$ is:
+$$I = \frac{V_s - V_f}{R}$$
+
+### RC Time Constant
+The charge voltage $V_C(t)$ across capacitor $C$ in series with resistor $R$ over time $t$ follows:
+$$V_C(t) = V_s \left(1 - e^{-t / \tau}\right), \quad \tau = RC$$
+
+### NE555 Astable Multivibrator Frequency
+The oscillation frequency $f$ and duty cycle $D$ for the 555 timer IC configured with timing resistors $R_1, R_2$ and capacitor $C$:
+$$f = \frac{1.44}{(R_1 + 2R_2)C}, \quad D = \frac{R_1 + R_2}{R_1 + 2R_2}$$
+
+---
+
+## 10. Multi-Octave Noise Heightmaps (`games/infiniteForest/`)
+
+### Fractional Brownian Motion (fBm)
+Continuous procedural terrain height $y(x)$ is synthesized via summed octave harmonics:
+$$y(x) = h_0 + \sum_{i=0}^{k-1} A \cdot \gamma^i \cdot \text{Noise}\left(f_0 \cdot 2^i \cdot x\right)$$
+where $\gamma = 0.5$ is the octave gain, $f_0$ is the base spatial frequency, and $A$ is the maximum ridge amplitude.
+
+### Splinter Debris Ballistics
+Ejected wood splinters follow parabolic gravity with continuous drag:
+$$\mathbf{p}(t) = \mathbf{p}_0 + \mathbf{v}_0 t + \frac{1}{2} \mathbf{g} t^2, \quad \theta(t) = \theta_0 + \omega t$$
+
+---
+
+## 11. Aerial Retardant Dispersal Kinematics (`games/fireSpread/`)
+
+### Drop Plume Expansion
+The chemical retardant spray swath radius $r(t)$ and ground deposition density $\rho(x)$ expand according to aircraft forward groundspeed $v_{\text{plane}}$ and release altitude $h$:
+$$r(t) = r_0 + k_{\text{disp}} \cdot t, \quad \rho(x) = \rho_0 \cdot \exp\left(-\frac{(x - x_{\text{drop}})^2}{2\sigma^2}\right)$$
+Protected cells gain an ignition resistance barrier that drops fire propagation probability to zero until scorched.
+
+

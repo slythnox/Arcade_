@@ -24,12 +24,13 @@ export const missileCommandDefinition: GameDefinition = {
   },
   controls: {
     keyboard: [
-      { key: "Arrow Keys / WASD", description: "Position Flak Reticle" },
-      { key: "SPACE", description: "Launch Anti-Air Flak Explosion" },
+      { key: "Mouse Pointer / Click", description: "Point & Launch Interceptor" },
+      { key: "Arrow Keys / WASD", description: "Position Reticle" },
+      { key: "SPACE", description: "Launch Interceptor at Reticle" },
       { key: "P", description: "Pause / Resume" },
       { key: "R", description: "Restart" },
     ],
-    touch: "Tap anywhere in the sky to launch flak cloud.",
+    touch: "Tap anywhere in the sky to launch interceptor missile.",
   },
   seo: {
     title: "Missile Command — Classic Anti-Air Ballistic Missile Interceptor",

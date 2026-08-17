@@ -6,16 +6,16 @@ export const shadowRunnerDefinition: GameDefinition = {
   platform: "arcade",
   genre: "action",
   era: "1990s",
-  year: 1994,
-  tags: ["Ghost Replay", "Time Trial", "Time Attack", "Action"],
-  tagline: "Race against your own recorded deterministic ghost replay in high-speed time trials.",
+  year: 1998,
+  tags: ["Stealth", "Tactical Infiltration", "Metal Gear", "Action"],
+  tagline: "Sneak through enemy military compounds using crate cover, distractions, and CQC takedowns.",
   description:
-    "Record and replay your own best time trial runs as a transparent ghost racer to shave milliseconds off your lap records.",
+    "Tactical top-down stealth infiltration operative. Take cover behind cargo crates, sneak past guard vision cones, perform silent takedowns, and breach secure bunker terminals.",
   difficulty: "hard",
   players: "single",
   category: "arcade",
   subcategory: "platformer",
-  estimatedPlayTime: "3-8 min",
+  estimatedPlayTime: "4-10 min",
   thumbnail: {
     src: "/assets/thumbnails/shadow-runner.png",
     alt: "Shadow Runner Arcade",
@@ -24,11 +24,13 @@ export const shadowRunnerDefinition: GameDefinition = {
   },
   controls: {
     keyboard: [
-      { key: "Arrow Keys / WASD", description: "Steer Racer Across Circuit" },
+      { key: "WASD / Arrow Keys", description: "Stealth Operative Movement (Sneak Forward)" },
+      { key: "SPACE / Left-Click", description: "CQC Silent Takedown / Wall Knock Distraction" },
+      { key: "SHIFT", description: "Hold to Crouch / Silent Sneak" },
       { key: "P", description: "Pause / Resume" },
-      { key: "R", description: "Restart" },
+      { key: "R", description: "Restart Mission" },
     ],
-    touch: "Touch to steer racer across track checkpoints.",
+    touch: "Touch to sneak, tap near guard from behind for CQC takedown.",
   },
   seo: {
     title: "Shadow Runner — Deterministic Ghost Replay Time Attack",

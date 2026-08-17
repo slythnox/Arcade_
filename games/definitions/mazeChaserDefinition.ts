@@ -26,6 +26,8 @@ export const mazeChaserDefinition: GameDefinition = {
       { key: "P", description: "Pause / Resume" },
       { key: "R", description: "Restart" },
     ],
+    touch: "Swipe or use the left directional dial to steer through maze corridors.",
+    gamepad: "D-pad or left analog stick to steer."
   },
   seo: {
     title: "Play Maze Chaser Online - Retro Arcade Classic",

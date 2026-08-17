@@ -3,39 +3,35 @@ import type { GameContext } from "../../engine/GameContext";
 import type { Renderer } from "../../engine/rendering/Renderer";
 import type { PixelRenderer } from "../../engine/rendering/PixelRenderer";
 import type { GameAction } from "../../core/types/game";
+import { globalParticles } from "../../engine/particles/ParticleSystem";
+import { drawRunnerBehindSprite } from "./runnerSprite";
+
+type ObstacleType = "barrier" | "jump_bar" | "barrel" | "crystal";
 
 interface Obstacle {
   lane: number;
   z: number;
-  type: "barrier" | "jump_bar" | "crystal";
-}
-
-interface Particle {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  life: number;
-  color: string;
+  type: ObstacleType;
+  passed?: boolean;
 }
 
 export class OmegaRunGame implements GameInstance {
   private ctx!: GameContext;
-  private lane = 1;
+  private lane = 1; // 0: Left, 1: Center, 2: Right
   private targetLane = 1;
   private playerX = 300;
   private playerY = 0;
   private playerVy = 0;
   private isSliding = false;
   private slideTimer = 0;
-  private speed = 400;
+  private speed = 420;
   private score = 0;
   private level = 1;
   private distance = 0;
+  private coins = 0;
   private gameOver = false;
   private isPaused = false;
   private obstacles: Obstacle[] = [];
-  private particles: Particle[] = [];
   private spawnTimer = 0;
   private animTime = 0;
 
@@ -52,54 +48,43 @@ export class OmegaRunGame implements GameInstance {
     this.playerY = 0;
     this.playerVy = 0;
     this.isSliding = false;
-    this.speed = 380;
+    this.slideTimer = 0;
+    this.speed = 420;
     this.score = 0;
     this.level = 1;
     this.distance = 0;
+    this.coins = 0;
     this.gameOver = false;
     this.isPaused = false;
     this.obstacles = [];
-    this.particles = [];
     this.spawnTimer = 0;
-  }
-
-  private addParticles(x: number, y: number, color: string, count = 8): void {
-    for (let i = 0; i < count; i++) {
-      const ang = this.ctx.random.next() * Math.PI * 2;
-      const spd = 40 + this.ctx.random.next() * 100;
-      this.particles.push({
-        x,
-        y,
-        vx: Math.cos(ang) * spd,
-        vy: Math.sin(ang) * spd,
-        life: 0.4,
-        color,
-      });
-    }
+    this.animTime = 0;
   }
 
   public update(dt: number): void {
+    globalParticles.update(dt);
     if (this.gameOver || this.isPaused) return;
     this.animTime += dt;
 
     this.distance += this.speed * dt;
-    this.score += Math.floor(this.speed * dt * 0.1);
-    this.speed = 380 + (this.level - 1) * 35;
-    this.level = Math.min(20, Math.floor(this.distance / 1200) + 1);
+    this.score += Math.floor(this.speed * dt * 0.12);
+    this.speed = 420 + (this.level - 1) * 35;
+    this.level = Math.min(20, Math.floor(this.distance / 1000) + 1);
 
-    // Smooth horizontal lane transition
+    // Smooth horizontal lane transition (3 lanes)
     const laneTargets = [180, 300, 420];
     const targetX = laneTargets[this.targetLane];
-    this.playerX += (targetX - this.playerX) * 14 * dt;
+    this.playerX += (targetX - this.playerX) * 16 * dt;
     this.lane = this.targetLane;
 
     // Jump Physics
     if (this.playerY > 0 || this.playerVy !== 0) {
       this.playerY += this.playerVy * dt;
-      this.playerVy -= 1400 * dt;
+      this.playerVy -= 1600 * dt;
       if (this.playerY <= 0) {
         this.playerY = 0;
         this.playerVy = 0;
+        globalParticles.emitBurst(this.playerX, 600, 6, ["#F97316", "#FED7AA"], 30, 100);
       }
     }
 
@@ -113,93 +98,108 @@ export class OmegaRunGame implements GameInstance {
 
     // Spawn Obstacles
     this.spawnTimer += dt;
-    const interval = Math.max(0.65, 1.4 - this.level * 0.05);
+    const interval = Math.max(0.55, 1.3 - this.level * 0.05);
     if (this.spawnTimer >= interval) {
       this.spawnTimer = 0;
-      const types: ("barrier" | "jump_bar" | "crystal")[] = ["barrier", "jump_bar", "crystal"];
       const roll = this.ctx.random.next();
-      const type = roll < 0.4 ? "barrier" : roll < 0.7 ? "jump_bar" : "crystal";
+      let type: ObstacleType = "barrier";
+      if (roll < 0.35) type = "barrier";
+      else if (roll < 0.6) type = "jump_bar";
+      else if (roll < 0.8) type = "barrel";
+      else type = "crystal";
+
       const l = Math.floor(this.ctx.random.next() * 3);
-      this.obstacles.push({ lane: l, z: 900, type });
+      this.obstacles.push({ lane: l, z: 950, type });
     }
 
-    // Update Obstacles down perspective track
+    // Update Obstacles along perspective highway
     for (let i = this.obstacles.length - 1; i >= 0; i--) {
       const obs = this.obstacles[i];
       obs.z -= this.speed * dt;
 
-      // Check collision near player (z around 100)
-      if (obs.z < 130 && obs.z > 50) {
-        if (obs.lane === this.lane) {
+      // Collision Check when obstacle reaches player depth (z approx 80 to 20)
+      if (obs.z <= 90 && obs.z >= 10 && !obs.passed) {
+        if (obs.lane === this.targetLane) {
           if (obs.type === "crystal") {
-            this.score += 500;
+            // Collectible Crystal Gem
+            obs.passed = true;
+            this.coins++;
+            this.score += 250 * this.level;
+            this.ctx.audio?.playCoin?.();
+            globalParticles.emitBurst(this.playerX, 560 - this.playerY, 14, ["#FFD84D", "#FFFFFF", "#F59E0B"], 60, 200);
+            globalParticles.emitText("+250", this.playerX, 520, "#FFD84D", 14);
             this.obstacles.splice(i, 1);
-            this.addParticles(this.playerX, 580 - this.playerY, "#FFD84D", 12);
-            this.ctx.audio.playCoin();
             continue;
-          } else if (obs.type === "barrier") {
-            if (!this.isSliding) {
-              this.gameOver = true;
-              this.addParticles(this.playerX, 580, "#EF4444", 24);
-              this.ctx.audio.playExplosion();
-              this.ctx.session.setStatus("game-over");
-            }
           } else if (obs.type === "jump_bar") {
-            if (this.playerY < 24) {
-              this.gameOver = true;
-              this.addParticles(this.playerX, 580, "#EF4444", 24);
-              this.ctx.audio.playExplosion();
-              this.ctx.session.setStatus("game-over");
+            // High Laser Crossbar: Must SLIDE under or jump over high
+            if (!this.isSliding && this.playerY < 35) {
+              this.handleCrash();
+            }
+          } else if (obs.type === "barrier") {
+            // High Solid Roadblock: Must JUMP over or dodge lane
+            if (this.playerY < 55) {
+              this.handleCrash();
+            }
+          } else if (obs.type === "barrel") {
+            // Spiked Ground Barrel: Must JUMP over
+            if (this.playerY < 40) {
+              this.handleCrash();
             }
           }
         }
       }
 
-      if (obs.z < 0) {
+      if (obs.z < -50) {
         this.obstacles.splice(i, 1);
       }
     }
+  }
 
-    // Update Particles
-    for (let i = this.particles.length - 1; i >= 0; i--) {
-      const p = this.particles[i];
-      p.x += p.vx * dt;
-      p.y += p.vy * dt;
-      p.life -= dt;
-      if (p.life <= 0) this.particles.splice(i, 1);
-    }
+  private handleCrash(): void {
+    if (this.gameOver) return;
+    this.gameOver = true;
+    this.ctx.session.setStatus("game-over");
+    this.ctx.audio?.playExplosion?.();
+    globalParticles.emitBurst(this.playerX, 580 - this.playerY, 28, ["#EA580C", "#EF4444", "#FDBA74", "#FFFFFF"], 90, 300);
   }
 
   public handleInput(action: GameAction, isPressed: boolean): void {
-    if (!isPressed) return;
+    if (!isPressed || this.gameOver || this.isPaused) {
+      if (action === "RESTART" && isPressed) this.reset();
+      return;
+    }
 
     switch (action) {
       case "MOVE_LEFT":
         if (this.targetLane > 0) {
           this.targetLane--;
-          this.ctx.audio.playMove();
+          this.ctx.audio?.playMove?.();
         }
         break;
       case "MOVE_RIGHT":
         if (this.targetLane < 2) {
           this.targetLane++;
-          this.ctx.audio.playMove();
+          this.ctx.audio?.playMove?.();
         }
         break;
       case "MOVE_UP":
       case "ACTION_PRIMARY":
+        // Jump Hurdle
         if (this.playerY === 0 && !this.isSliding) {
           this.playerVy = 620;
-          this.ctx.audio.playRotate();
+          this.ctx.audio?.playJump?.();
+          globalParticles.emitBurst(this.playerX, 600, 8, ["#EA580C", "#FFFFFF"], 40, 140);
         }
         break;
       case "MOVE_DOWN":
       case "ACTION_SECONDARY":
+        // Slide / Duck
         if (!this.isSliding) {
           this.isSliding = true;
-          this.slideTimer = 0.45;
-          if (this.playerY > 0) this.playerVy = -800; // fast drop
-          this.ctx.audio.playHit();
+          this.slideTimer = 0.5;
+          if (this.playerY > 0) this.playerVy = -900; // fast slam down
+          this.ctx.audio?.playRotate?.();
+          globalParticles.emitBurst(this.playerX, 600, 6, ["#93C5FD", "#FFFFFF"], 30, 120);
         }
         break;
       case "RESTART":
@@ -216,23 +216,52 @@ export class OmegaRunGame implements GameInstance {
 
   public render(renderer: Renderer): void {
     const pr = renderer as PixelRenderer;
-    pr.clear("#040714");
+    pr.clear("#18092B"); // Deep Violet Twilight
 
     const w = renderer.getWidth();
     const h = renderer.getHeight();
 
-    // 1. Horizon & Cyber Wireframe Sun
-    pr.drawCircle(300, 200, 48, "#FF0055", true);
-    pr.drawCircle(300, 200, 48, "#FFB703", false);
+    // 1. Pixelated Synthwave Sunset Sky
+    const skyBands = [
+      { y: 0, h: 60, col: "#1E0B36" },
+      { y: 60, h: 50, col: "#3B0764" },
+      { y: 110, h: 45, col: "#701A75" },
+      { y: 155, h: 40, col: "#9D174D" },
+      { y: 195, h: 35, col: "#BE185D" },
+      { y: 230, h: 30, col: "#EA580C" },
+      { y: 260, h: 20, col: "#F97316" },
+    ];
+    for (const band of skyBands) {
+      pr.drawRect(0, band.y, w, band.h, band.col, true);
+    }
+
+    // Giant Pixel Sunset Sun on Horizon (with horizontal scanline slice bands)
+    const sunX = 300;
+    const sunY = 220;
+    const sunR = 56;
+    pr.drawCircle(sunX, sunY, sunR, "#FDE047", true);
+    pr.drawCircle(sunX, sunY, sunR, "#F59E0B", false);
+    // Sun Horizon Cut Slices
+    for (let sy = sunY - sunR + 14; sy < sunY + sunR; sy += 12) {
+      pr.drawRect(sunX - sunR - 4, sy, (sunR + 4) * 2, 4, "#701A75", true);
+    }
+
+    // Distant Mountain Ridges & City Horizon
+    pr.drawRect(40, 240, 120, 40, "#1E0B36", true);
+    pr.drawRect(180, 230, 80, 50, "#1E0B36", true);
+    pr.drawRect(340, 235, 110, 45, "#1E0B36", true);
+    pr.drawRect(470, 245, 100, 35, "#1E0B36", true);
 
     // 2. 3D Perspective Road Track
-    // Horizon line at y = 240, Base road at y = 640
-    const horizonY = 240;
-    const baseY = 640;
-    const roadTopW = 60;
-    const roadBotW = 440;
+    const horizonY = 270;
+    const baseY = 660;
+    const roadTopW = 70;
+    const roadBotW = 460;
 
-    // Draw Road Asphalt
+    // Road Ground Base (Dark Asphalt Highway)
+    pr.drawRect(0, horizonY, w, h - horizonY, "#090314", true);
+
+    // Highway Curbs (Neon Cyan & Magenta)
     pr.drawLine(300 - roadTopW / 2, horizonY, 300 - roadBotW / 2, baseY, "#00F0FF", 3);
     pr.drawLine(300 + roadTopW / 2, horizonY, 300 + roadBotW / 2, baseY, "#00F0FF", 3);
 
@@ -241,69 +270,107 @@ export class OmegaRunGame implements GameInstance {
     const leftBot = 300 - roadBotW / 6;
     const rightTop = 300 + roadTopW / 6;
     const rightBot = 300 + roadBotW / 6;
-    pr.drawLine(leftTop, horizonY, leftBot, baseY, "rgba(0, 240, 255, 0.3)", 1.5);
-    pr.drawLine(rightTop, horizonY, rightBot, baseY, "rgba(0, 240, 255, 0.3)", 1.5);
+    pr.drawLine(leftTop, horizonY, leftBot, baseY, "rgba(234, 88, 12, 0.4)", 2);
+    pr.drawLine(rightTop, horizonY, rightBot, baseY, "rgba(234, 88, 12, 0.4)", 2);
 
-    // Horizontal Perspective Strips
-    for (let i = 0; i < 8; i++) {
-      const p = (i * 0.125 + (this.distance * 0.003) % 0.125);
+    // Perspective Highway Speed Lines
+    for (let i = 0; i < 9; i++) {
+      const p = (i * 0.111 + (this.distance * 0.003) % 0.111);
       const y = horizonY + (baseY - horizonY) * (p * p);
       const rw = roadTopW + (roadBotW - roadTopW) * p;
-      pr.drawLine(300 - rw / 2, y, 300 + rw / 2, y, "rgba(255, 0, 85, 0.2)", 1);
+      pr.drawLine(300 - rw / 2, y, 300 + rw / 2, y, "rgba(253, 224, 71, 0.25)", 1.5);
     }
 
-    // 3. Draw 3D Perspective Obstacles
-    for (const obs of this.obstacles) {
-      const p = 1 - obs.z / 900;
+    // 3. Draw 3D Perspective Obstacles (Sorted from back to front)
+    const sortedObs = [...this.obstacles].sort((a, b) => b.z - a.z);
+
+    for (const obs of sortedObs) {
+      const p = 1 - obs.z / 950;
       if (p <= 0 || p >= 1) continue;
 
       const y = horizonY + (baseY - horizonY) * (p * p);
       const rw = roadTopW + (roadBotW - roadTopW) * p;
       const laneOffsets = [-rw / 3, 0, rw / 3];
       const ox = 300 + laneOffsets[obs.lane];
-      const sz = Math.max(8, 44 * p);
+      const sz = Math.max(10, 48 * p);
 
       if (obs.type === "crystal") {
-        pr.drawCircle(ox, y - sz / 2, sz / 2, "#FFD84D", true);
-        pr.drawCircle(ox, y - sz / 2, sz / 4, "#FFFFFF", true);
+        // Glowing Gold Diamond Gem
+        pr.drawCircle(ox, y - sz * 0.8, sz * 0.5, "#FFD84D", true);
+        pr.drawCircle(ox, y - sz * 0.8, sz * 0.25, "#FFFFFF", true);
+        pr.drawCircle(ox, y - sz * 0.8, sz * 0.6, "rgba(254, 240, 138, 0.4)", false);
       } else if (obs.type === "jump_bar") {
-        // Low laser fence
-        pr.drawRect(ox - sz / 2, y - 8, sz, 8, "#38BDF8", true);
-        pr.drawLine(ox - sz / 2, y - 10, ox + sz / 2, y - 10, "#FFFFFF", 2);
+        // High Neon Laser Crossbar (Slide Under!)
+        const barW = rw / 3.2;
+        pr.drawRect(ox - barW / 2, y - sz * 1.2, barW, 6 * p + 2, "#38BDF8", true);
+        pr.drawRect(ox - barW / 2, y - sz * 1.2 + 2, barW, 2, "#FFFFFF", true);
+        // Vertical support posts
+        pr.drawRect(ox - barW / 2, y - sz * 1.2, 4 * p, sz * 1.2, "#0284C7", true);
+        pr.drawRect(ox + barW / 2 - 4 * p, y - sz * 1.2, 4 * p, sz * 1.2, "#0284C7", true);
+      } else if (obs.type === "barrier") {
+        // Traffic Construction Roadblock (Red & White Stripes)
+        const bW = rw / 3.4;
+        const bH = sz * 0.9;
+        pr.drawPixelBlock(ox - bW / 2, y - bH, bW, "#DC2626", "#F87171", "#7F1D1D");
+        // White Warning Chevrons
+        pr.drawRect(ox - bW * 0.3, y - bH + 4, bW * 0.2, bH - 8, "#FFFFFF", true);
+        pr.drawRect(ox + bW * 0.1, y - bH + 4, bW * 0.2, bH - 8, "#FFFFFF", true);
+        // Flashing Hazard Light
+        pr.drawCircle(ox, y - bH - 4, 3 * p + 2, "#F59E0B", true);
       } else {
-        // High barrier
-        pr.drawPixelBlock(ox - sz / 2, y - sz, sz, "#EF4444", "#FCA5A5", "#991B1B");
+        // Spiked Ground Barrel / Rolling Tire Hazard
+        pr.drawCircle(ox, y - sz * 0.4, sz * 0.4, "#B45309", true);
+        pr.drawCircle(ox, y - sz * 0.4, sz * 0.25, "#F59E0B", true);
+        pr.drawCircle(ox, y - sz * 0.4, sz * 0.4, "#000000", false);
       }
     }
 
-    // 4. Particles
-    for (const pt of this.particles) {
-      pr.drawCircle(pt.x, pt.y, 2.5, pt.color, true);
-    }
+    // 4. Render Global Particle Bursts
+    globalParticles.render(pr);
 
-    // 5. Draw Cyber Runner Car
+    // 5. Draw Athletic Runner Character from Behind POV (Matching User Image)
     const px = this.playerX;
-    const py = 580 - this.playerY;
-    const carH = this.isSliding ? 14 : 26;
+    const py = 600 - this.playerY;
+    const isJumping = this.playerY > 0;
 
-    // Chassis
-    pr.drawPixelBlock(px - 22, py - carH, 44, "#00F0FF", "#E0F2FE", "#0284C7");
-    // Neon Red Tail Lights
-    pr.drawRect(px - 18, py - 6, 8, 4, "#EF4444", true);
-    pr.drawRect(px + 10, py - 6, 8, 4, "#EF4444", true);
+    drawRunnerBehindSprite(
+      pr,
+      px,
+      py,
+      1.15,
+      this.animTime,
+      isJumping,
+      this.isSliding
+    );
 
-    // 6. Top HUD
-    pr.drawRect(0, 0, w, 52, "#080e1c", true);
-    pr.drawLine(0, 52, w, 52, "#1e293b", 1);
-    pr.drawText(`DIST: ${Math.floor(this.distance / 10)}m`, 20, 32, { size: 13, color: "#ffd84d", font: "monospace" });
-    pr.drawText(`OMEGA RUN • LVL ${this.level}`, w / 2, 32, { size: 13, color: "#4de8e8", align: "center", font: "monospace" });
-    pr.drawText(`SCORE: ${this.score}`, w - 20, 32, { size: 13, color: "#22c55e", align: "right", font: "monospace" });
+    // 6. Top Retro Synthwave HUD
+    pr.drawRect(0, 0, w, 52, "#0F051D", true);
+    pr.drawLine(0, 52, w, 52, "#3B0764", 1.5);
 
+    pr.drawText(`DIST: ${Math.floor(this.distance / 10)}m`, 20, 30, { size: 12, color: "#FFD84D", font: "monospace" });
+    pr.drawText(`OMEGA RUN • LVL ${this.level}`, w / 2, 30, { size: 13, color: "#F97316", align: "center", font: "monospace" });
+    pr.drawText(`GEMS: ${this.coins}  •  SCORE: ${this.score}`, w - 20, 30, { size: 12, color: "#38BDF8", align: "right", font: "monospace" });
+
+    // Controls Legend Footer
+    pr.drawRect(16, h - 26, w - 32, 18, "rgba(15, 5, 29, 0.85)", true);
+    pr.drawText(
+      "[← → : SWITCH LANES  •  ↑/SPACE: JUMP  •  ↓: SLIDE UNDER BARS]",
+      w / 2,
+      h - 13,
+      {
+        size: 9,
+        color: "#CBD5E1",
+        align: "center",
+        font: "monospace",
+      }
+    );
+
+    // Crash Overlay
     if (this.gameOver) {
-      pr.drawRect(0, h / 2 - 45, w, 90, "rgba(8,14,28,0.95)", true);
-      pr.drawRect(0, h / 2 - 45, w, 90, "#FF3366", false);
-      pr.drawText("CRASH DETECTED — RUN TERMINATED", w / 2, h / 2 - 10, { size: 20, color: "#FF3366", align: "center", font: "monospace" });
-      pr.drawText("PRESS [R] TO RETRY", w / 2, h / 2 + 18, { size: 12, color: "#cbd5e1", align: "center", font: "monospace" });
+      pr.drawRect(0, h / 2 - 45, w, 90, "rgba(15, 5, 29, 0.95)", true);
+      pr.drawRect(0, h / 2 - 45, w, 90, "#DC2626", false);
+      pr.drawText("CRASH DETECTED — RUN OVER", w / 2, h / 2 - 10, { size: 22, color: "#DC2626", align: "center", font: "monospace" });
+      pr.drawText("PRESS [R] OR [SPACE] TO RETRY", w / 2, h / 2 + 18, { size: 12, color: "#CBD5E1", align: "center", font: "monospace" });
     }
   }
 }

@@ -176,6 +176,135 @@ const KICKS_0_TO_R: [number, number][] = [
       },
     ],
   },
+  {
+    slug: "electronic-circuit-simulation",
+    number: "05",
+    title: "Circuit Lab: Real-Time Ohm's Law, RC Charging & NE555 Multivibrators",
+    subtitle: "Simulating electrical circuits, component voltage drops, and discrete timing on a virtual breadboard.",
+    readTime: "9 min read",
+    summary:
+      "How we implemented real-time nodal electrical analysis, exponential RC capacitor charging curves, and astable multivibrator oscillation frequencies in Circuit Lab.",
+    topics: ["Circuit Simulation", "Ohm's Law", "RC Transients", "555 Timer", "Discrete Math"],
+    content: [
+      {
+        heading: "1. Nodal Analysis & Current Limiting",
+        body:
+          "When wiring active electronic components (LEDs, buzzers, and ICs) across breadboard tie-points, the engine evaluates the closed-circuit graph path from the 9V rail to ground. For forward-biased LEDs with fixed threshold drop V_f = 2.0V, current is calculated using Ohm's Law:",
+        codeSnippet: `// Current calculation through series resistor R
+const Vs = 9.0; // 9V rail
+const Vf = 2.0; // LED forward voltage
+const I = (Vs - Vf) / resistorOhms; // In Amperes
+
+if (I > 0.030) {
+  triggerComponentOvercurrentBlowout(); // Blasts if > 30mA
+} else if (I > 0.005) {
+  ledLuminance = Math.min(1.0, (I - 0.005) / 0.015);
+}`,
+      },
+      {
+        heading: "2. RC Time Constant Exponential Charging",
+        body:
+          "Capacitor charge and discharge follow exponential curves based on the RC time constant tau = R * C. During fixed timestep integration (dt = 1/60s), the instantaneous capacitor voltage is updated via exact closed-form decay:",
+        codeSnippet: `// Capacitor voltage integration
+const tau = resistorOhms * capacitorFarads;
+vc = targetVoltage + (vc - targetVoltage) * Math.exp(-dt / tau);`,
+      },
+      {
+        heading: "3. NE555 Astable Multivibrator Duty Cycles",
+        body:
+          "The classic NE555 timer IC switches internal flip-flops between 1/3 Vcc and 2/3 Vcc threshold comparator triggers. We model the charging path through (R1 + R2) and the discharge path through R2, producing an exact square wave frequency f = 1.44 / ((R1 + 2*R2) * C) connected directly to the Web Audio synthesizer tone frequency.",
+      },
+    ],
+  },
+  {
+    slug: "orthographic-tire-kinematics",
+    number: "06",
+    title: "Hotlap: Orthogonal Vector Tire Kinematics & Catmull-Rom Spline Tracks",
+    subtitle: "Decomposing vehicle velocity into longitudinal and lateral grip vectors with power-slide oversteer.",
+    readTime: "8 min read",
+    summary:
+      "The mathematical derivation of 2D tire friction tensors, aerodynamic slipstream drafting, and closed-loop Catmull-Rom spline distance evaluation.",
+    topics: ["Kinematics", "Vector Math", "Catmull-Rom Spline", "Friction Tensors"],
+    content: [
+      {
+        heading: "1. Orthogonal Velocity Decomposition",
+        body:
+          "Rather than treating top-down racing vehicles as single rigid points, the vehicle velocity vector v is projected onto the local heading unit vector h and the lateral normal vector n:",
+        codeSnippet: `// Decomposing velocity into forward grip and sideways slip
+const forwardSpeed = velocity.dot(heading);
+const lateralSlip = velocity.dot(lateralNormal);
+
+// Lateral friction dampening
+const gripCoeff = surfaceType === "asphalt" ? 0.92 : 0.65;
+const dampedSlip = lateralSlip * Math.max(0, 1 - gripCoeff * frictionDecay * dt);
+
+velocity = heading.scale(forwardSpeed).add(lateralNormal.scale(dampedSlip));`,
+      },
+      {
+        heading: "2. Catmull-Rom Spline Centerline Parametrization",
+        body:
+          "Circuit tracks are defined using closed cubic Catmull-Rom splines C(u) through control checkpoints. Lap distance and track bounds are calculated by projecting the car's 2D position P onto the closest spline segment using Newton-Raphson distance minimization.",
+      },
+    ],
+  },
+  {
+    slug: "aerial-fire-suppression-kinematics",
+    number: "07",
+    title: "Inferno Strike: Aerial Dispersal Kinematics & Cellular Fire Propagation",
+    subtitle: "Simulating chemical retardant drop plumes and stochastic ignition barriers across wildland terrain.",
+    readTime: "8 min read",
+    summary:
+      "How forward aircraft groundspeed, drop altitude, and wind vectors calculate ground retardant density swaths that halt non-linear cellular fire spread.",
+    topics: ["Fluid Plumes", "Cellular Automata", "Kinematics", "Gaussian Distribution"],
+    content: [
+      {
+        heading: "1. Gaussian Retardant Ground Swath Distribution",
+        body:
+          "When a firefighting tanker dumps 3,000 gallons of chemical retardant at velocity v_plane and altitude h, the drop plume expands into a 2D Gaussian deposition swath on the ground. Cells receiving density above threshold rho_min receive an impenetrable firebreak barrier.",
+        codeSnippet: `// Gaussian deposition density at ground cell (x, y)
+function calculateRetardantDeposition(x: number, y: number, dropX: number, dropY: number, sigmaX: number, sigmaY: number): number {
+  const dx = (x - dropX) / sigmaX;
+  const dy = (y - dropY) / sigmaY;
+  return Math.exp(-0.5 * (dx * dx + dy * dy));
+}`,
+      },
+      {
+        heading: "2. Stochastic Cellular Automaton Fire Propagation",
+        body:
+          "Burning forest cells radiate thermal energy to their 8 Moore neighbors. Ignition probability P_ignite is modulated by local fuel moisture, wind vector alignment, and retardant barrier level: P_ignite = P_base * (1 + wind.dot(dir)) * (1 - retardantLevel).",
+      },
+    ],
+  },
+  {
+    slug: "lattice-cellular-hydrodynamics",
+    number: "08",
+    title: "Liquid Cells: Discrete Cellular Lattice Hydrodynamics",
+    subtitle: "Simulating hydrostatic pressure equalization, sloshing waves, and liquid cascades on discrete grids.",
+    readTime: "8 min read",
+    summary:
+      "A complete discrete approximation of Navier-Stokes fluid mechanics running in real-time on a 2D cellular automaton lattice.",
+    topics: ["Fluid Dynamics", "Cellular Automata", "Discrete Math", "Hydrostatics"],
+    content: [
+      {
+        heading: "1. Downward Mass Transport & Lateral Equalization",
+        body:
+          "Each grid cell holds a continuous mass value m in [0, 1]. In each 60Hz tick, the simulation transfers mass downward into available cells. When blocked by barriers or underlying liquid, excess mass disperses laterally to equalize hydrostatic head pressure:",
+        codeSnippet: `// Discrete hydrostatic mass equalization
+const deltaMass = Math.min(
+  currentMass,
+  Math.max(0, (currentMass + neighborMass) / 2 - neighborMass)
+);
+
+currentCell.mass -= deltaMass;
+neighborCell.mass += deltaMass;`,
+      },
+      {
+        heading: "2. Emergent Sloshing Waves & Free Surface Rendering",
+        body:
+          "By strictly conserving fluid mass across all local cell flux exchanges, complex emergent behaviors—including sloshing waves, laminar waterfalls, and hydrostatic equilibrium in U-tubes—arise naturally with zero floating-point particle tracking.",
+      },
+    ],
+  },
 ];
 
 export function getAllCaseStudies(): CaseStudy[] {

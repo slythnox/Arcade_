@@ -1,5 +1,4 @@
 import type { GridCoord } from "../../core/types/geometry";
-import type { GameAction } from "../../core/types/game";
 
 export type DiamondRunGameState =
   | "BOOT"

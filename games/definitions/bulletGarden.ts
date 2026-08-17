@@ -8,10 +8,10 @@ export const bulletGardenDefinition: GameDefinition = {
   era: "1990s",
   year: 1997,
   tags: ["Danmaku", "Bullet Hell", "Touhou", "Polar Coordinates", "Shooter"],
-  tagline: "Survive intricate polar spiral floral bullet hell patterns with micro-hitbox precision.",
+  tagline: "Weave luminous silk loops around Danmaku bullet spirals to bloom cosmic flowers and purify the Spore Hydra.",
   description:
-    "Weave through logarithmic spiral projectile formations and geometric Danmaku blossoms with 4-pixel micro-hitbox precision.",
-  difficulty: "hard",
+    "A one-of-a-kind botanical action game: Enclose bullet hell seed spirals with your weaver silk trail to bloom living flowers that fire harmonic purification beams.",
+  difficulty: "medium",
   players: "single",
   category: "arcade",
   subcategory: "shooter",
@@ -24,11 +24,12 @@ export const bulletGardenDefinition: GameDefinition = {
   },
   controls: {
     keyboard: [
-      { key: "Arrow Keys / WASD", description: "Precision Micro-Steering" },
+      { key: "Arrow Keys / WASD", description: "Maneuver & Weave Silk Trail" },
+      { key: "SPACE / SHIFT", description: "Silk Dash Surge (High Speed)" },
       { key: "P", description: "Pause / Resume" },
-      { key: "R", description: "Restart" },
+      { key: "R", description: "Reweave Garden" },
     ],
-    touch: "Drag anywhere to guide micro-hitbox through bullet gaps.",
+    touch: "Guide the weaver drone in loops to enclose seeds and bloom flowers.",
   },
   seo: {
     title: "Bullet Garden — Danmaku Bullet Hell Polar Spiral Arcade",

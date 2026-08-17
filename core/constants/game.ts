@@ -4,8 +4,8 @@ export const DEFAULT_PLAYER_SETTINGS: PlayerSettings = {
   soundEnabled: true,
   musicEnabled: true,
   volume: 0.7,
-  crtEnabled: true,
-  scanlinesEnabled: true,
+  crtEnabled: false,
+  scanlinesEnabled: false,
   reducedMotion: false,
   theme: "arcade",
 };

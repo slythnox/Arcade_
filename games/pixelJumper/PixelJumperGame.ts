@@ -4,16 +4,20 @@ import type { Renderer } from "../../engine/rendering/Renderer";
 import type { PixelRenderer } from "../../engine/rendering/PixelRenderer";
 import type { GameAction } from "../../core/types/game";
 import { Vector2 } from "../../core/math/vector";
+import { globalParticles } from "../../engine/particles/ParticleSystem";
+import { drawGravityRunner } from "../gravityFlip/gravityRunnerSprite";
 
-type PlatformType = "normal" | "moving" | "fragile" | "spring";
+type PlatformType = "normal" | "moving" | "fragile" | "spring" | "booster";
 
 interface Platform {
+  id: number;
   x: number;
   y: number;
   width: number;
   type: PlatformType;
-  dir?: number;
-  broken?: boolean;
+  dir: number;
+  broken: boolean;
+  hasGem: boolean;
 }
 
 interface Particle {
@@ -22,22 +26,30 @@ interface Particle {
   vx: number;
   vy: number;
   life: number;
+  maxLife: number;
   color: string;
 }
 
 export class PixelJumperGame implements GameInstance {
   private ctx!: GameContext;
+
   private playerPos: Vector2 = new Vector2(300, 500);
-  private playerVel: Vector2 = new Vector2(0, -650);
+  private playerVel: Vector2 = new Vector2(0, -680);
+  private isGrounded: boolean = false;
+
   private platforms: Platform[] = [];
   private particles: Particle[] = [];
+
   private score: number = 0;
   private maxHeight: number = 0;
+  private comboJumps: number = 0;
+
   private moveLeft: boolean = false;
   private moveRight: boolean = false;
   private gameOver: boolean = false;
   private isPaused: boolean = false;
   private animTime: number = 0;
+  private screenShake: number = 0;
 
   public init(ctx: GameContext): void {
     this.ctx = ctx;
@@ -47,131 +59,183 @@ export class PixelJumperGame implements GameInstance {
   public reset(seed?: number): void {
     if (seed !== undefined) this.ctx.random.reset(seed);
     this.playerPos = new Vector2(300, 500);
-    this.playerVel = new Vector2(0, -650);
+    this.playerVel = new Vector2(0, -680);
     this.score = 0;
     this.maxHeight = 0;
+    this.comboJumps = 0;
     this.gameOver = false;
     this.isPaused = false;
+    this.animTime = 0;
+    this.screenShake = 0;
+
     this.platforms = [];
     this.particles = [];
 
-    // Starting platforms
-    this.platforms.push({ x: 240, y: 550, width: 120, type: "normal" });
-    for (let i = 1; i < 10; i++) {
-      this.spawnPlatform(550 - i * 65);
+    // Starting stable platform
+    this.platforms.push({
+      id: Math.random(),
+      x: 230,
+      y: 550,
+      width: 140,
+      type: "normal",
+      dir: 1,
+      broken: false,
+      hasGem: false,
+    });
+
+    for (let i = 1; i < 11; i++) {
+      this.spawnPlatform(550 - i * 68);
     }
   }
 
   private spawnPlatform(y: number): void {
-    const roll = this.ctx.random.next();
+    const roll = Math.random();
     let type: PlatformType = "normal";
-    if (roll > 0.8) type = "spring";
-    else if (roll > 0.6) type = "moving";
-    else if (roll > 0.45) type = "fragile";
+    let width = 85;
+
+    if (roll > 0.85) {
+      type = "spring";
+      width = 80;
+    } else if (roll > 0.65) {
+      type = "moving";
+      width = 80;
+    } else if (roll > 0.48) {
+      type = "fragile";
+      width = 75;
+    }
 
     this.platforms.push({
-      x: 40 + this.ctx.random.next() * 440,
+      id: Math.random(),
+      x: 40 + Math.random() * (520 - width),
       y,
-      width: 80,
+      width,
       type,
-      dir: this.ctx.random.next() > 0.5 ? 1 : -1,
+      dir: Math.random() > 0.5 ? 1 : -1,
       broken: false,
+      hasGem: Math.random() > 0.45 && type !== "fragile",
     });
   }
 
-  private addParticles(x: number, y: number, color: string, count = 6): void {
-    for (let i = 0; i < count; i++) {
-      const ang = this.ctx.random.next() * Math.PI * 2;
-      const spd = 30 + this.ctx.random.next() * 80;
-      this.particles.push({
-        x,
-        y,
-        vx: Math.cos(ang) * spd,
-        vy: Math.sin(ang) * spd,
-        life: 0.35,
-        color,
-      });
-    }
-  }
-
   public update(dt: number): void {
+    globalParticles.update(dt);
     if (this.gameOver || this.isPaused) return;
+
     this.animTime += dt;
+    if (this.screenShake > 0) this.screenShake -= dt * 3;
 
-    if (this.moveLeft) this.playerVel.x = -340;
-    else if (this.moveRight) this.playerVel.x = 340;
-    else this.playerVel.x *= 0.88;
+    // Smooth horizontal steering
+    const steerSpeed = 440;
+    if (this.moveLeft) {
+      this.playerVel.x = -steerSpeed;
+    } else if (this.moveRight) {
+      this.playerVel.x = steerSpeed;
+    } else {
+      this.playerVel.x *= 0.86;
+    }
 
-    // Gravity
-    this.playerVel.y += 1100 * dt;
+    // Gravity & Kinematics
+    this.playerVel.y += 1150 * dt;
     this.playerPos.x += this.playerVel.x * dt;
     this.playerPos.y += this.playerVel.y * dt;
 
-    // Screen horizontal wrap
-    if (this.playerPos.x < 0) this.playerPos.x = 600;
-    else if (this.playerPos.x > 600) this.playerPos.x = 0;
+    // Horizontal Screen Wrap (Seamless looping through screen sides)
+    if (this.playerPos.x < 10) this.playerPos.x = 590;
+    else if (this.playerPos.x > 590) this.playerPos.x = 10;
 
-    // Update moving platforms
+    // Update Moving Platforms
     for (const p of this.platforms) {
-      if (p.type === "moving" && p.dir) {
-        p.x += p.dir * 120 * dt;
-        if (p.x < 30) { p.x = 30; p.dir = 1; }
-        if (p.x > 490) { p.x = 490; p.dir = -1; }
+      if (p.type === "moving") {
+        p.x += p.dir * 130 * dt;
+        if (p.x < 30) {
+          p.x = 30;
+          p.dir = 1;
+        } else if (p.x > 570 - p.width) {
+          p.x = 570 - p.width;
+          p.dir = -1;
+        }
       }
     }
 
-    // Platform collision when falling
+    // Downward Platform Landing Check
+    this.isGrounded = false;
     if (this.playerVel.y > 0) {
       for (const p of this.platforms) {
-        if (
-          !p.broken &&
-          this.playerPos.x >= p.x - 10 &&
-          this.playerPos.x <= p.x + p.width + 10 &&
-          this.playerPos.y >= p.y - 12 &&
-          this.playerPos.y <= p.y + 14
-        ) {
+        if (p.broken) continue;
+
+        const isXMatch =
+          this.playerPos.x >= p.x - 12 &&
+          this.playerPos.x <= p.x + p.width + 12;
+        const isYMatch =
+          this.playerPos.y >= p.y - 14 &&
+          this.playerPos.y <= p.y + 16;
+
+        if (isXMatch && isYMatch) {
+          this.isGrounded = true;
+
           if (p.type === "fragile") {
+            // Fragile Break
             p.broken = true;
-            this.addParticles(p.x + p.width / 2, p.y, "#B45309", 10);
-            this.ctx.audio.playExplosion();
+            this.playerVel.y = -520;
+            this.screenShake = 0.2;
+            this.ctx.audio?.playExplosion?.();
+            globalParticles.emitBurst(p.x + p.width / 2, p.y, 20, ["#B45309", "#78350F", "#FFFFFF"], 60, 180);
+            globalParticles.emitText("CRACK!", p.x + p.width / 2, p.y - 16, "#B45309", 12);
           } else if (p.type === "spring") {
-            this.playerVel.y = -950;
-            this.addParticles(p.x + p.width / 2, p.y, "#FFD84D", 12);
-            this.ctx.audio.playPowerUp();
+            // Super Spring Launch
+            this.playerVel.y = -1050;
+            this.comboJumps++;
+            this.screenShake = 0.4;
+            this.ctx.audio?.playPowerUp?.();
+            globalParticles.emitBurst(p.x + p.width / 2, p.y, 24, ["#FEF08A", "#F59E0B", "#FFFFFF"], 80, 260);
+            globalParticles.emitText("⚡ SUPER BOUNCE! +500", this.playerPos.x, this.playerPos.y - 28, "#FEF08A", 14);
+            this.score += 500;
           } else {
-            this.playerVel.y = -620;
-            this.addParticles(p.x + p.width / 2, p.y, "#22C55E", 6);
-            this.ctx.audio.playRotate();
+            // Normal / Moving Rebound
+            this.playerVel.y = -680;
+            this.comboJumps++;
+            this.ctx.audio?.playRotate?.();
+            globalParticles.emitBurst(this.playerPos.x, p.y, 10, ["#34D399", "#FFFFFF"], 40, 120);
+          }
+
+          // Collectible Gem Check
+          if (p.hasGem) {
+            p.hasGem = false;
+            this.score += 300;
+            this.ctx.audio?.playCoin?.();
+            globalParticles.emitBurst(p.x + p.width / 2, p.y - 10, 16, ["#FEF08A", "#38BDF8", "#FFFFFF"], 50, 160);
+            globalParticles.emitText("+300 GEM!", p.x + p.width / 2, p.y - 20, "#FEF08A", 13);
           }
           break;
         }
       }
     }
 
-    // Camera upward scroll
-    if (this.playerPos.y < 300) {
-      const diff = 300 - this.playerPos.y;
-      this.playerPos.y = 300;
+    // Camera Upward Ascent Scrolling
+    if (this.playerPos.y < 320) {
+      const diff = 320 - this.playerPos.y;
+      this.playerPos.y = 320;
       this.maxHeight += diff;
-      this.score = Math.floor(this.maxHeight / 10);
+      this.score = Math.floor(this.maxHeight / 8);
 
       for (const p of this.platforms) {
         p.y += diff;
       }
 
       // Recycle fallen platforms
-      this.platforms = this.platforms.filter((p) => p.y < 700);
-      while (this.platforms.length < 10) {
+      this.platforms = this.platforms.filter((p) => p.y < 720);
+      while (this.platforms.length < 11) {
         const topY = Math.min(...this.platforms.map((p) => p.y));
-        this.spawnPlatform(topY - 65);
+        this.spawnPlatform(topY - 68);
       }
     }
 
-    // Fall death
-    if (this.playerPos.y > 720) {
+    // Fall Death Check
+    if (this.playerPos.y > 710) {
       this.gameOver = true;
-      this.ctx.audio.playGameOver();
+      this.screenShake = 0.8;
+      this.ctx.audio?.playGameOver?.();
       this.ctx.session.setStatus("game-over");
+      globalParticles.emitBurst(this.playerPos.x, 690, 40, ["#EF4444", "#F59E0B", "#FFFFFF"], 120, 360);
     }
 
     // Update Particles
@@ -194,68 +258,161 @@ export class PixelJumperGame implements GameInstance {
   public resume(): void { this.isPaused = false; }
   public destroy(): void {}
   public getScore(): number { return this.score; }
-  public getLevel(): number { return Math.floor(this.score / 1000) + 1; }
+  public getLevel(): number { return Math.floor(this.maxHeight / 1500) + 1; }
 
   public render(renderer: Renderer): void {
     const pr = renderer as PixelRenderer;
-    pr.clear("#040714");
+    const ctx2d = (pr as any).getContext?.() as CanvasRenderingContext2D | undefined;
+    const w = pr.getWidth();
+    const h = pr.getHeight();
 
-    const w = renderer.getWidth();
-    const h = renderer.getHeight();
+    pr.save();
+    if (this.screenShake > 0) {
+      const sx = (Math.random() - 0.5) * this.screenShake * 12;
+      const sy = (Math.random() - 0.5) * this.screenShake * 12;
+      pr.translate(sx, sy);
+    }
 
-    // 1. Vertical Sky Grid
-    pr.drawGrid(8, 9, 65, "rgba(56, 189, 248, 0.03)", 40, 60);
+    // 1. Dynamic Vertical Sky Gradient (Deep Sky -> High Stratosphere)
+    if (ctx2d) {
+      const skyGrad = ctx2d.createLinearGradient(0, 0, 0, h);
+      skyGrad.addColorStop(0, "#08061C");
+      skyGrad.addColorStop(0.5, "#150E34");
+      skyGrad.addColorStop(1, "#0A0520");
+      ctx2d.fillStyle = skyGrad;
+      ctx2d.fillRect(0, 0, w, h);
+    } else {
+      pr.clear("#08061C");
+    }
 
-    // 2. Platforms
+    // Vertical Ascension Parallax Grid
+    pr.drawGrid(8, 10, 60, "rgba(56, 189, 248, 0.04)", 0, (this.maxHeight * 0.4) % 60);
+
+    // Parallax Ascending Clouds
+    for (let i = 0; i < 8; i++) {
+      const cy = ((i * 120 - this.maxHeight * 0.25) % (h + 100));
+      const cx = (i * 95) % (w - 60) + 30;
+      pr.drawCircle(cx, cy, 32, "rgba(56, 189, 248, 0.06)", true);
+      pr.drawCircle(cx + 20, cy - 8, 24, "rgba(56, 189, 248, 0.06)", true);
+      pr.drawCircle(cx - 20, cy - 8, 24, "rgba(56, 189, 248, 0.06)", true);
+    }
+
+    // 2. High-Polish Multi-Tier Platforms
     for (const p of this.platforms) {
       if (p.broken) continue;
 
       if (p.type === "spring") {
-        pr.drawPixelBlock(p.x, p.y, 16, "#F59E0B", "#FEF08A", "#B45309");
-        pr.drawRect(p.x + 16, p.y, p.width - 32, 14, "#F59E0B", true);
-        // Spring coil
-        pr.drawCircle(p.x + p.width / 2, p.y - 4, 6, "#FFD84D", true);
+        // Super Spring Golden Booster Platform
+        pr.drawRect(p.x, p.y, p.width, 14, "#F59E0B", true);
+        pr.drawRect(p.x, p.y, p.width, 3, "#FEF08A", true);
+        pr.drawRect(p.x, p.y + 11, p.width, 3, "#B45309", true);
+
+        // Animated Spring Coils
+        const springX = p.x + p.width / 2;
+        const coilH = 6 + Math.sin(this.animTime * 10) * 2;
+        pr.drawRect(springX - 10, p.y - coilH, 20, coilH, "#FEF08A", true);
+        pr.drawCircle(springX, p.y - coilH, 6, "#FFFFFF", true);
       } else if (p.type === "moving") {
-        pr.drawPixelBlock(p.x, p.y, 16, "#0284C7", "#38BDF8", "#0369A1");
-        pr.drawRect(p.x + 16, p.y, p.width - 32, 14, "#0284C7", true);
+        // Cyan Mag-Lev Moving Platform
+        pr.drawRect(p.x, p.y, p.width, 14, "#0284C7", true);
+        pr.drawRect(p.x, p.y, p.width, 3, "#00F0FF", true);
+        pr.drawRect(p.x, p.y + 11, p.width, 3, "#0369A1", true);
+
+        // Jet Thrusters on Sides
+        pr.drawRect(p.x - 3, p.y + 3, 3, 8, "#38BDF8", true);
+        pr.drawRect(p.x + p.width, p.y + 3, 3, 8, "#38BDF8", true);
       } else if (p.type === "fragile") {
-        pr.drawPixelBlock(p.x, p.y, 16, "#78350F", "#B45309", "#451A03");
-        pr.drawRect(p.x + 16, p.y, p.width - 32, 14, "#78350F", true);
-        pr.drawLine(p.x + 20, p.y + 2, p.x + 60, p.y + 12, "#000000", 2);
+        // Cracked Timber Fragile Platform
+        pr.drawRect(p.x, p.y, p.width, 14, "#78350F", true);
+        pr.drawRect(p.x, p.y, p.width, 3, "#B45309", true);
+        pr.drawRect(p.x, p.y + 11, p.width, 3, "#451A03", true);
+
+        // Cracks
+        pr.drawLine(p.x + 15, p.y + 2, p.x + 35, p.y + 12, "#1E293B", 2);
+        pr.drawLine(p.x + 45, p.y + 2, p.x + 65, p.y + 12, "#1E293B", 2);
       } else {
-        pr.drawPixelBlock(p.x, p.y, 16, "#16A34A", "#4ADE80", "#15803D");
-        pr.drawRect(p.x + 16, p.y, p.width - 32, 14, "#16A34A", true);
+        // Standard Emerald Platform
+        pr.drawRect(p.x, p.y, p.width, 14, "#15803D", true);
+        pr.drawRect(p.x, p.y, p.width, 3, "#34D399", true);
+        pr.drawRect(p.x, p.y + 11, p.width, 3, "#065F46", true);
+      }
+
+      // Collectible Floating Diamond
+      if (p.hasGem) {
+        const gx = p.x + p.width / 2;
+        const gy = p.y - 14;
+        const gemPulse = Math.sin(this.animTime * 6 + p.id) * 3;
+        pr.drawCircle(gx, gy, 8 + gemPulse, "rgba(254, 240, 138, 0.25)", true);
+
+        if (ctx2d) {
+          ctx2d.fillStyle = "#FEF08A";
+          ctx2d.beginPath();
+          ctx2d.moveTo(gx, gy - 7);
+          ctx2d.lineTo(gx + 6, gy);
+          ctx2d.lineTo(gx, gy + 7);
+          ctx2d.lineTo(gx - 6, gy);
+          ctx2d.closePath();
+          ctx2d.fill();
+
+          ctx2d.fillStyle = "#FFFFFF";
+          ctx2d.beginPath();
+          ctx2d.moveTo(gx - 2, gy - 4);
+          ctx2d.lineTo(gx + 2, gy - 4);
+          ctx2d.lineTo(gx, gy);
+          ctx2d.closePath();
+          ctx2d.fill();
+        }
       }
     }
 
     // 3. Particles
     for (const pt of this.particles) {
-      pr.drawCircle(pt.x, pt.y, 2.5, pt.color, true);
+      const alpha = pt.life / pt.maxLife;
+      pr.drawCircle(pt.x, pt.y, 2.5 * alpha, pt.color, true);
     }
 
-    // 4. Draw Jumper Character (Squash & Stretch)
+    // 4. Pixel Runner Character (Matching Gravity Flip & Rope Swing)
     const px = this.playerPos.x;
     const py = this.playerPos.y;
-    const stretchY = Math.max(-6, Math.min(6, -this.playerVel.y * 0.015));
 
-    pr.drawPixelBlock(px - 12, py - 18 - stretchY, 24, "#00F0FF", "#E0F2FE", "#0284C7");
-    pr.drawCircle(px, py - 24 - stretchY, 8, "#FFFFFF", true);
-    // Eyes
-    pr.drawCircle(px - 3, py - 25 - stretchY, 2, "#0F172A", true);
-    pr.drawCircle(px + 3, py - 25 - stretchY, 2, "#0F172A", true);
+    drawGravityRunner(
+      pr,
+      px,
+      py,
+      1, // Standing/jumping upright
+      this.animTime,
+      this.isGrounded,
+      2.4
+    );
 
-    // 5. Top HUD
-    pr.drawRect(0, 0, w, 52, "#080e1c", true);
-    pr.drawLine(0, 52, w, 52, "#1e293b", 1);
-    pr.drawText(`ALTITUDE: ${Math.floor(this.maxHeight / 10)}m`, 20, 32, { size: 13, color: "#ffd84d", font: "monospace" });
-    pr.drawText(`SCORE: ${this.score}`, w / 2, 32, { size: 13, color: "#38bdf8", align: "center", font: "monospace" });
-    pr.drawText(`LVL ${this.getLevel()}`, w - 20, 32, { size: 13, color: "#22c55e", align: "right", font: "monospace" });
+    // Particle Bursts
+    globalParticles.render(pr);
 
+    pr.restore();
+
+    // 5. Top Cyber HUD
+    pr.drawRect(12, 12, w - 24, 44, "rgba(8, 14, 28, 0.94)", true);
+    pr.drawRect(12, 12, w - 24, 44, "#34D399", false);
+
+    pr.drawText(`ALTITUDE: ${Math.floor(this.maxHeight / 10)}M`, 24, 28, { size: 14, color: "#FFD84D", font: "monospace" });
+    pr.drawText(`LEVEL ${this.getLevel()}`, w / 2, 28, { size: 12, color: "#00F0FF", align: "center", font: "monospace" });
+    pr.drawText(`SCORE: ${this.score}`, w - 24, 28, { size: 13, color: "#34D399", align: "right", font: "monospace" });
+
+    // Controls Legend (Bottom-Left)
+    pr.drawRect(16, h - 34, 300, 20, "rgba(8, 14, 28, 0.9)", true);
+    pr.drawText("[← / → or A / D: STEER RUNNER  •  R: RETRY]", 166, h - 20, {
+      size: 8,
+      color: "#CBD5E1",
+      align: "center",
+      font: "monospace",
+    });
+
+    // Game Over Overlay
     if (this.gameOver) {
-      pr.drawRect(0, h / 2 - 45, w, 90, "rgba(8,14,28,0.95)", true);
-      pr.drawRect(0, h / 2 - 45, w, 90, "#FF3366", false);
-      pr.drawText("GRAVITY PREVAILED — GAME OVER", w / 2, h / 2 - 10, { size: 20, color: "#FF3366", align: "center", font: "monospace" });
-      pr.drawText("PRESS [R] TO BOUNCE AGAIN", w / 2, h / 2 + 18, { size: 12, color: "#cbd5e1", align: "center", font: "monospace" });
+      pr.drawRect(0, h / 2 - 50, w, 100, "rgba(8, 14, 28, 0.96)", true);
+      pr.drawRect(0, h / 2 - 50, w, 100, "#EF4444", false);
+      pr.drawText("FELL INTO THE VOID — RUN TERMINATED", w / 2, h / 2 - 12, { size: 18, color: "#EF4444", align: "center", font: "monospace" });
+      pr.drawText("PRESS [R] TO BOUNCE AGAIN", w / 2, h / 2 + 18, { size: 12, color: "#CBD5E1", align: "center", font: "monospace" });
     }
   }
 }

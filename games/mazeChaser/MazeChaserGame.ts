@@ -77,7 +77,7 @@ export class MazeChaserGame implements GameInstance {
     this.ghosts = [];
     this.popups = [];
     
-    let ghostTypes = 0;
+    const ghostTypes = 0;
     
     for (let y = 0; y < 23; y++) {
       for (let x = 0; x < 23; x++) {

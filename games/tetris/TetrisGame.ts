@@ -7,7 +7,7 @@ import { TetrisBoard } from "./TetrisBoard";
 import type { TetrominoType} from "./TetrisPiece";
 import { TetrisPiece, TETROMINO_SHAPES } from "./TetrisPiece";
 import { tryRotateSRS } from "./TetrisRotation";
-import { calculateLineScore, getGravityForLevel } from "./TetrisScoring";
+import { calculateLineScore } from "./TetrisScoring";
 import { globalParticles } from "../../engine/particles/ParticleSystem";
 
 export class TetrisGame implements GameInstance {

@@ -14,8 +14,8 @@
 If you discover a security vulnerability in the ARCADE_ engine or web shell, please do **NOT** file a public GitHub issue.
 
 Please report vulnerabilities privately to the maintainers via:
-- **Discord:** Direct Message on Discord to the maintainer (`slythnox`)
 - **GitHub:** [GitHub Private Vulnerability Reporting](https://github.com/slythnox/Arcade_/security/advisories/new)
+- **Discord:** Direct Message to `slythnox`
 
 Please include:
 1. Detailed description of the vulnerability.

@@ -126,9 +126,9 @@ c:\1337\arcade_\
 │   ├── GameLoop.ts                      # 60Hz fixed accumulator loop
 │   └── GameSession.ts                   # State machine & scoring session
 │
-├── games/                               # Cartridge Implementations (61 games)
-│   ├── definitions/                     # 61 cartridge definition metadata files
-│   ├── {gameName}/                      # 61 game cartridge logic classes
+├── games/                               # Cartridge Implementations (60 games)
+│   ├── definitions/                     # 60 cartridge definition metadata files
+│   ├── {gameName}/                      # 60 game cartridge logic classes
 │   ├── registry.ts                      # Central single-source-of-truth registry
 │   └── types.ts                         # GameInstance & GameDefinition contracts
 │

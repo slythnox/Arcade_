@@ -24,12 +24,13 @@ export const sudokuDefinition: GameDefinition = {
   },
   controls: {
     keyboard: [
-      { key: "Arrow Keys / WASD", description: "Navigate 9x9 Grid" },
-      { key: "SPACE / 1-9", description: "Enter / Cycle Digit" },
+      { key: "Arrow Keys / WASD / Click", description: "Select 9x9 Grid Cell" },
+      { key: "Click Option / 1, 2, 3", description: "Choose from 3 Answer Candidates" },
+      { key: "Reveal Button", description: "Reveal Complete Final Solution" },
       { key: "P", description: "Pause / Resume" },
-      { key: "R", description: "Restart" },
+      { key: "R", description: "New Puzzle / Restart" },
     ],
-    touch: "Tap cell to select and enter digits.",
+    touch: "Tap any empty cell, then tap one of the 3 candidate options.",
   },
   seo: {
     title: "Sudoku — 9x9 Constraint Satisfaction Number Puzzle",

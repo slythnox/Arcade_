@@ -18,10 +18,12 @@ export const logicGatesDefinition: GameDefinition = {
   thumbnail: { src: "/games/logicGates/thumb.png", alt: "Logic Gates" },
   controls: {
     keyboard: [
-      { key: "Z", description: "Toggle state / Interaction" },
-      { key: "R", description: "Reset Puzzle" },
-      { key: "Arrows", description: "Move Cursor" },
+      { key: "Direct Mouse Click / Tap", description: "Click any Input Switch (0/1) to Toggle" },
+      { key: "Up / Down / Arrows", description: "Select Input Switch" },
+      { key: "SPACE / Enter", description: "Toggle Selected Switch (0/1)" },
+      { key: "R", description: "Restart Level" },
     ],
+    touch: "Tap any input switch on the left to flip between 0 and 1.",
   },
   seo: {
     title: "Logic Gates Puzzle Game — Digital Circuit Simulator",

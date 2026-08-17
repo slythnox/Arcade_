@@ -1,37 +1,45 @@
 import type { GameDefinition } from "../types";
+
 export const infiniteForestDefinition: GameDefinition = {
   id: "infiniteForest",
   slug: "infinite-forest",
-  name: "Infinite Forest",
+  name: "Tractor Mulcher",
   platform: "arcade",
-  genre: "experimental",
+  genre: "action",
   era: "2000s",
-  year: 2023,
-  tags: ["procedural", "relaxation", "art"],
-  tagline: "Scroll through an infinite procedurally generated terrain.",
-  description: "Trees, hills, and clouds generated via layered noise. Serene visualization.",
-  difficulty: "easy",
+  year: 2026,
+  tags: ["Tractor", "Mulcher", "Deforestation", "Lumberjack", "Christmas", "Destruction", "Action"],
+  tagline: "Drive a heavy green & yellow tractor equipped with a high-speed wood grinder to mulch Christmas trees.",
+  description:
+    "High-speed winter deforestation action! Drive a heavy-duty green & yellow tractor, using a front industrial circular wood grinder to mulch Christmas trees down to stumps.",
+  difficulty: "medium",
   players: "single",
   category: "arcade",
   subcategory: "platformer",
-  estimatedPlayTime: "Infinite",
-  thumbnail: { src: "/games/infiniteForest/thumb.png", alt: "Infinite Forest" },
+  estimatedPlayTime: "5-15 min",
+  thumbnail: { src: "/games/infiniteForest/thumb.png", alt: "Tractor Mulcher" },
   controls: {
     keyboard: [
-      { key: "LEFT / RIGHT", description: "Adjust scroll speed" }
-    ]
+      { key: "E / Action", description: "Upgrade Grinder (Bigger Size & Denser Teeth)" },
+      { key: "RIGHT / D (Hold)", description: "Drive Forward / Accelerate" },
+      { key: "LEFT / A (Hold)", description: "Brake / Reverse" },
+      { key: "UP / SPACE / W", description: "Tractor Jump" },
+      { key: "R", description: "Restart Run" },
+    ],
+    touch: "Tap right side to drive forward, tap E button to upgrade grinder, tap left to reverse.",
   },
   seo: {
-    title: "Infinite Forest",
-    description: "Procedurally generated forest visualization.",
-    keywords: ["procedural", "noise", "forest"]
+    title: "Tractor Mulcher — Heavy Logging Tractor Christmas Tree Shredder",
+    description: "Drive an industrial wood grinder tractor and mulch Christmas trees across infinite snowy mountains.",
+    keywords: ["tractor mulcher", "tractor game", "logging tractor", "christmas tree destruction", "deforestation game", "pixel tractor"],
   },
   math: {
-    title: "Procedural Noise",
-    summary: "Fractal terrain, layered noise functions.",
+    title: "Procedural Terrain & Elastic Splinter Kinematics",
+    summary: "y_{\\text{ground}}(x) = h_0 + \\sum_{i=1}^k A_i \\cdot \\text{Noise}(f_i x).",
     concepts: [
-      { name: "Value Noise", description: "1D/2D noise for natural variation" }
-    ]
+      { name: "Continuous Noise Heightmap", description: "\\text{Multi-octave value noise terrain generation}." },
+      { name: "Debris Ballistics", description: "\\text{2D projectile trajectories with parabolic gravity and angular rotation}." },
+    ],
   },
   createGame: async () => {
     const { InfiniteForestGame } = await import("../infiniteForest/InfiniteForestGame");

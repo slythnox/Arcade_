@@ -22,11 +22,13 @@ export const caveHunterDefinition: GameDefinition = {
   },
   controls: {
     keyboard: [
-      { key: "W / A / S / D", description: "Move & Dig" },
-      { key: "SPACE", description: "Use Air Pump" },
+      { key: "W / A / S / D (or Arrows)", description: "Move & Dig" },
+      { key: "SPACE / X", description: "Use Air Pump / Attack" },
       { key: "P", description: "Pause / Resume" },
       { key: "R", description: "Restart" },
     ],
+    touch: "Use left directional dial to dig tunnels, tap right A button to pump and pop monsters.",
+    gamepad: "D-pad to dig, A button to use air pump."
   },
   seo: {
     title: "Play Cave Hunter Online - Classic Arcade Digging",

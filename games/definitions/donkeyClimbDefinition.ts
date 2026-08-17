@@ -22,12 +22,14 @@ export const donkeyClimbDefinition: GameDefinition = {
   },
   controls: {
     keyboard: [
-      { key: "← / →", description: "Move Left / Right" },
-      { key: "↑ / ↓", description: "Climb Ladder Up / Down" },
-      { key: "SPACE", description: "Jump" },
+      { key: "← / → (or A / D)", description: "Move Left / Right" },
+      { key: "↑ / ↓ (or W / S)", description: "Climb Ladder Up / Down" },
+      { key: "SPACE", description: "Jump Over Barrels" },
       { key: "P", description: "Pause / Resume" },
       { key: "R", description: "Restart" },
     ],
+    touch: "Use left dial to run and climb ladders, tap right A button to jump over rolling barrels.",
+    gamepad: "D-pad to move and climb, A button to jump."
   },
   seo: {
     title: "Play Donkey Climb Online - Retro Arcade Platformer",

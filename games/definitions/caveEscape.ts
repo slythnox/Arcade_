@@ -24,11 +24,11 @@ export const caveEscapeDefinition: GameDefinition = {
   },
   controls: {
     keyboard: [
-      { key: "SPACE / ↑", description: "Hold to Engage Upward Thrust" },
+      { key: "SPACE / Left-Click / ↑ / W", description: "Hold to Engage Plasma Thrusters" },
       { key: "P", description: "Pause / Resume" },
-      { key: "R", description: "Restart" },
+      { key: "R", description: "Restart Flight" },
     ],
-    touch: "Press and hold screen to thrust upward, release to fall.",
+    touch: "Press and hold screen to thrust upward, release to descend.",
   },
   seo: {
     title: "Cave Escape — Procedural Cavern Helicopter Flight",

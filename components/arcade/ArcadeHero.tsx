@@ -166,22 +166,19 @@ export const ArcadeHero: React.FC<ArcadeHeroProps> = ({
   onPlatformChange,
 }) => {
   const accent = "#ffd84d";
-  const accentDim = "rgba(255,216,77,0.35)";
-  const accentGlow = "rgba(255,216,77,0.6)";
   return (
     <section
       style={{
         position: "relative",
-        paddingTop: "72px",
-        paddingBottom: "56px",
+        width: "100%",
+        paddingTop: "clamp(48px, 6vw, 68px)",
+        paddingBottom: "clamp(36px, 5vw, 52px)",
         textAlign: "center",
         overflow: "hidden",
-        /* Deep navy space — matching Google Arcade */
-        background: "radial-gradient(ellipse 120% 80% at 50% 60%, #0d1b3e 0%, #0a1628 45%, #060e1c 100%)",
-        marginLeft: "calc(-1 * var(--space-6))",
-        marginRight: "calc(-1 * var(--space-6))",
-        paddingLeft: "var(--space-6)",
-        paddingRight: "var(--space-6)",
+        /* 100% full-width ambient radial glow that softly fades into background transparent on all sides */
+        background: "radial-gradient(ellipse 75% 65% at 50% 45%, rgba(22, 44, 88, 0.28) 0%, rgba(13, 27, 62, 0.08) 55%, transparent 100%)",
+        border: "none",
+        outline: "none",
       }}
     >
       {/* ── Star field dots ── */}
@@ -205,6 +202,7 @@ export const ArcadeHero: React.FC<ArcadeHeroProps> = ({
             backgroundColor: i % 4 === 0 ? accent : "#ffffff",
             borderRadius: "50%",
             opacity: 0.4 + (i % 3) * 0.15,
+            pointerEvents: "none",
           }}
         />
       ))}
@@ -238,59 +236,68 @@ export const ArcadeHero: React.FC<ArcadeHeroProps> = ({
       </FloatingElement>
 
       {/* ── Left: Steering Wheel / Helm ── */}
-      <FloatingElement animName="helmSpin" duration={12} delay={0} style={{ top: "15%", left: "3%", opacity: 0.95 }}>
-        <PixelHelm size={80} />
+      <FloatingElement animName="helmSpin" duration={12} delay={0} style={{ top: "12%", left: "4%", opacity: 0.95 }}>
+        <PixelHelm size={72} />
       </FloatingElement>
 
       {/* ── Left: Compass Badge ── */}
-      <FloatingElement animName="floatY" duration={4.2} delay={0.8} style={{ top: "55%", left: "5%", opacity: 0.9 }}>
-        <PixelCompass size={60} />
+      <FloatingElement animName="floatY" duration={4.2} delay={0.8} style={{ top: "54%", left: "6%", opacity: 0.9 }}>
+        <PixelCompass size={56} />
       </FloatingElement>
 
       {/* ── Right: Planet with signs ── */}
-      <FloatingElement animName="floatY" duration={5} delay={0.3} style={{ top: "8%", right: "18%", opacity: 0.95 }}>
-        <PixelPlanet size={68} />
+      <FloatingElement animName="floatY" duration={5} delay={0.3} style={{ top: "6%", right: "14%", opacity: 0.95 }}>
+        <PixelPlanet size={64} />
       </FloatingElement>
 
       {/* ── Rockets ── */}
-      <FloatingElement animName="rocketDrift" duration={7} delay={0} style={{ top: "5%", right: "5%", opacity: 0.9 }}>
-        <PixelRocket size={36} rotate={-20} color="#c0c8e0" />
+      <FloatingElement animName="rocketDrift" duration={7} delay={0} style={{ top: "4%", right: "6%", opacity: 0.9 }}>
+        <PixelRocket size={34} rotate={-20} color="#c0c8e0" />
       </FloatingElement>
-      <FloatingElement animName="rocketDrift" duration={9} delay={1.5} style={{ top: "42%", right: "3%", opacity: 0.85 }}>
-        <PixelRocket size={28} rotate={10} flip color="#a0a8c0" />
+      <FloatingElement animName="rocketDrift" duration={9} delay={1.5} style={{ top: "42%", right: "4%", opacity: 0.85 }}>
+        <PixelRocket size={26} rotate={10} flip color="#a0a8c0" />
       </FloatingElement>
       <FloatingElement animName="rocketDrift" duration={6} delay={0.8} style={{ top: "68%", right: "8%", opacity: 0.9 }}>
-        <PixelRocket size={40} rotate={-35} color="#c8d0e8" />
+        <PixelRocket size={36} rotate={-35} color="#c8d0e8" />
       </FloatingElement>
-      <FloatingElement animName="rocketDrift" duration={8} delay={2} style={{ top: "22%", left: "14%", opacity: 0.7 }}>
+      <FloatingElement animName="rocketDrift" duration={8} delay={2} style={{ top: "20%", left: "14%", opacity: 0.7 }}>
         <PixelRocket size={22} rotate={15} flip color="#9099b8" />
       </FloatingElement>
 
       {/* ── Central Hero Content ── */}
-      <div style={{ position: "relative", zIndex: 10 }}>
+      <div style={{ position: "relative", zIndex: 10, maxWidth: "720px", margin: "0 auto" }}>
 
-        {/* Dotted pixel border box around title */}
+        {/* Marquee Title with Seamless Subtle Frame */}
         <div
           style={{
-            display: "inline-block",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
             position: "relative",
-            padding: "28px 52px 24px",
-            marginBottom: "20px",
+            padding: "20px clamp(24px, 4vw, 48px)",
+            marginBottom: "16px",
+            borderRadius: "6px",
+            border: "1px solid rgba(255, 216, 77, 0.25)",
+            backgroundColor: "rgba(10, 16, 30, 0.4)",
+            boxShadow: "0 0 30px rgba(255, 216, 77, 0.08), inset 0 0 20px rgba(13, 27, 62, 0.3)",
           }}
         >
-          {/* Dotted border SVG — top */}
-          <DottedBorder />
+          {/* Subtle Corner Brackets for authentic Arcade Marquee */}
+          <div style={{ position: "absolute", top: "-2px", left: "-2px", width: "8px", height: "8px", borderTop: "2px solid #ffd84d", borderLeft: "2px solid #ffd84d" }} />
+          <div style={{ position: "absolute", top: "-2px", right: "-2px", width: "8px", height: "8px", borderTop: "2px solid #ffd84d", borderRight: "2px solid #ffd84d" }} />
+          <div style={{ position: "absolute", bottom: "-2px", left: "-2px", width: "8px", height: "8px", borderBottom: "2px solid #ffd84d", borderLeft: "2px solid #ffd84d" }} />
+          <div style={{ position: "absolute", bottom: "-2px", right: "-2px", width: "8px", height: "8px", borderBottom: "2px solid #ffd84d", borderRight: "2px solid #ffd84d" }} />
 
           {/* Title */}
           <h1
             style={{
               fontFamily: "var(--font-pixel)",
-              fontSize: "clamp(26px, 5vw, 56px)",
+              fontSize: "clamp(24px, 4.5vw, 50px)",
               fontWeight: 900,
               color: accent,
               letterSpacing: "0.06em",
               lineHeight: 1.1,
-              textShadow: "3px 3px 0px rgba(0,0,0,0.6)",
+              textShadow: "0 0 16px rgba(255, 216, 77, 0.4), 3px 3px 0px rgba(0,0,0,0.8)",
               margin: 0,
             }}
           >
@@ -299,24 +306,25 @@ export const ArcadeHero: React.FC<ArcadeHeroProps> = ({
         </div>
 
         {/* Subtitle — clean white sans-serif */}
-        <div
+        <p
           style={{
             fontFamily: "var(--font-sans)",
-            fontSize: "clamp(14px, 2vw, 18px)",
+            fontSize: "clamp(14px, 1.8vw, 17px)",
             fontWeight: 400,
             color: "rgba(255,255,255,0.85)",
             letterSpacing: "0.01em",
-            marginBottom: "32px",
+            marginBottom: "28px",
+            lineHeight: 1.5,
           }}
         >
-          61 deterministic cartridges · zero ROMs · pure TypeScript mathematics
-        </div>
+          60 deterministic cartridges · zero ROMs · pure TypeScript mathematics
+        </p>
 
         {/* Search bar */}
         <div
           id="arcade-grid-section"
           style={{
-            maxWidth: "580px",
+            maxWidth: "540px",
             margin: "0 auto",
             position: "relative",
           }}
@@ -336,26 +344,26 @@ export const ArcadeHero: React.FC<ArcadeHeroProps> = ({
               filter: "drop-shadow(0 0 6px rgba(77, 232, 232, 0.6))",
             }}
           >
-            <Search size={20} strokeWidth={2.5} />
+            <Search size={18} strokeWidth={2.5} />
           </div>
 
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search 61 cartridges — hotlap, tetris, physics, retro..."
+            placeholder="Search 60 cartridges — hotlap, tetris, physics, retro..."
             style={{
               width: "100%",
-              padding: "16px 20px 16px 52px",
+              padding: "14px 20px 14px 48px",
               fontSize: "14px",
               fontFamily: "var(--font-sans)",
               fontWeight: 600,
-              backgroundColor: "rgba(10, 18, 36, 0.8)",
+              backgroundColor: "rgba(12, 19, 36, 0.75)",
               color: "#ffffff",
-              border: "1px solid rgba(77, 232, 232, 0.35)",
-              borderRadius: "8px",
+              border: "1px solid rgba(77, 232, 232, 0.3)",
+              borderRadius: "6px",
               backdropFilter: "blur(12px)",
-              boxShadow: "0 8px 32px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
+              boxShadow: "0 6px 24px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08)",
               outline: "none",
             }}
           />

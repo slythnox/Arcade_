@@ -119,8 +119,8 @@ export class NewtonsBoxGame implements GameInstance {
   private move(dc: number, dr: number): void {
     if (this.isWon || this.isPaused) return;
 
-    let nextC = this.playerPos.col + dc;
-    let nextR = this.playerPos.row + dr;
+    const nextC = this.playerPos.col + dc;
+    const nextR = this.playerPos.row + dr;
 
     if (this.walls[nextR][nextC]) return;
 

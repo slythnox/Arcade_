@@ -1,27 +1,48 @@
-import React from 'react';
+import React from "react";
+import type { Metadata } from "next";
+import { constructSiteMetadata } from "@/lib/seo/metadata";
+import { BreadcrumbTrail } from "@/components/marketing/BreadcrumbTrail";
+
+export const metadata: Metadata = constructSiteMetadata({
+  title: "Privacy Manifesto & Trust Policy — ARCADE_",
+  description: "Privacy manifesto, zero-server architecture, and localStorage schema for ARCADE_.",
+  path: "/privacy",
+});
 
 export default function PrivacyPage() {
   return (
-    <main style={{
-      minHeight: '100vh',
-      backgroundColor: '#080B12',
-      color: 'var(--color-text-dim, #ccc)',
-      fontFamily: 'var(--font-sans, sans-serif)',
-      padding: 'clamp(2rem, 5vw, 4rem) clamp(1rem, 3vw, 2rem)',
-      lineHeight: 1.6
-    }}>
-      <div style={{ maxWidth: 'min(960px, 94vw)', margin: '0 auto' }}>
-        <header style={{ marginBottom: 'clamp(2rem, 4vw, 4rem)', textAlign: 'center' }}>
-          <h1 style={{
-            fontFamily: 'var(--font-pixel, monospace)',
-            color: 'var(--arcade-cyan, #4DE8E8)',
-            fontSize: 'clamp(1.3rem, 3.5vw, 2.2rem)',
-            marginBottom: '1rem',
-            textShadow: '2px 2px 0px rgba(77,232,232,0.3)',
-            lineHeight: 1.3
-          }}>PRIVACY MANIFESTO</h1>
-          <p style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: '0.9rem' }}>
-            LAST UPDATED: AUGUST 2026
+    <div className="container" style={{ paddingTop: "var(--space-6)", paddingBottom: "var(--space-16)" }}>
+      <BreadcrumbTrail items={[{ label: "PRIVACY" }]} />
+
+      <div style={{ maxWidth: "880px", margin: "0 auto" }}>
+        <header style={{ marginBottom: "36px", borderBottom: "1px solid var(--color-surface-border)", paddingBottom: "24px" }}>
+          <span
+            style={{
+              fontSize: "12px",
+              fontFamily: "var(--font-mono)",
+              fontWeight: 800,
+              color: "var(--arcade-cyan)",
+              textTransform: "uppercase",
+              letterSpacing: "0.15em",
+            }}
+          >
+            ✦ PRIVACY & DATA TRANSPARENCY
+          </span>
+          <h1
+            style={{
+              fontFamily: "var(--font-pixel)",
+              fontSize: "clamp(24px, 4vw, 36px)",
+              fontWeight: 900,
+              color: "#FFFFFF",
+              marginTop: "12px",
+              marginBottom: "10px",
+              lineHeight: 1.25,
+            }}
+          >
+            PRIVACY MANIFESTO
+          </h1>
+          <p style={{ fontSize: "15px", color: "var(--color-text-dim)" }}>
+            LAST UPDATED: AUGUST 2026 · ZERO-SERVER ARCHITECTURE
           </p>
         </header>
 
@@ -82,7 +103,7 @@ export default function PrivacyPage() {
 
         </div>
       </div>
-    </main>
+    </div>
   );
 }
 

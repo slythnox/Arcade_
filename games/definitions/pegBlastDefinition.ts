@@ -22,11 +22,13 @@ export const pegBlastDefinition: GameDefinition = {
   },
   controls: {
     keyboard: [
-      { key: "← / →", description: "Aim Launcher Left / Right" },
-      { key: "SPACE", description: "Fire Ball" },
+      { key: "← / → (or A / D)", description: "Aim Cannon Angle" },
+      { key: "SPACE / X", description: "Fire Ball" },
       { key: "P", description: "Pause / Resume" },
-      { key: "R", description: "Restart" },
+      { key: "R", description: "Restart Level" },
     ],
+    touch: "Use left directional dial to adjust aiming angle, tap right A button to launch bouncing ball.",
+    gamepad: "Left stick or D-pad to aim launcher, A button to fire."
   },
   seo: {
     title: "Play Peg Blast Online - Casual Physics Arcade",

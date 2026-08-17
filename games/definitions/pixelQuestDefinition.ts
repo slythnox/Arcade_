@@ -22,11 +22,15 @@ export const pixelQuestDefinition: GameDefinition = {
   },
   controls: {
     keyboard: [
-      { key: "← / →", description: "Move Left / Right" },
-      { key: "SPACE / ↑", description: "Jump" },
+      { key: "LEFT / A", description: "Move Left" },
+      { key: "RIGHT / D", description: "Move Right" },
+      { key: "SPACE / UP / W", description: "Jump / Wall Jump" },
+      { key: "DOWN / S", description: "Crouch / Drop Down" },
       { key: "P", description: "Pause" },
       { key: "R", description: "Restart" }
-    ]
+    ],
+    touch: "Use left directional dial to run, tap right A button to jump.",
+    gamepad: "D-pad or stick to move, A button to jump."
   },
   seo: {
     title: "Play Pixel Quest Online - Retro Precision Platformer",

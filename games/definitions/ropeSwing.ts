@@ -24,11 +24,11 @@ export const ropeSwingDefinition: GameDefinition = {
   },
   controls: {
     keyboard: [
-      { key: "SPACE", description: "Attach / Release Rope" },
+      { key: "SPACE / Click / ↑", description: "Hold to Grapple & Swing, Release to Slingshot" },
       { key: "P", description: "Pause / Resume" },
       { key: "R", description: "Restart" },
     ],
-    touch: "Tap and hold to attach rope, release to swing free.",
+    touch: "Tap and hold to attach rope, release to slingshot forward.",
   },
   seo: {
     title: "Rope Swing — Pendulum Physics & Angular Momentum",

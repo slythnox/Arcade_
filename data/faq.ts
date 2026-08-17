@@ -11,7 +11,7 @@ export const faqs: FAQItem[] = [
   {
     id: "what-is-arcade",
     question: "What exactly is ARCADE_?",
-    answer: "ARCADE_ is a modern, browser-based retro gaming platform featuring 61 mathematically pure cartridge games. It is built completely from scratch using web standards, relying on zero ROMs or third-party emulators, and operates directly in your browser with zero dependencies.",
+    answer: "ARCADE_ is a modern, browser-based retro gaming platform featuring 60 mathematically pure cartridge games. It is built completely from scratch using web standards, relying on zero ROMs or third-party emulators, and operates directly in your browser with zero dependencies.",
     category: "general"
   },
   {
@@ -53,7 +53,7 @@ export const faqs: FAQItem[] = [
   {
     id: "game-count",
     question: "How many games are available?",
-    answer: "There are precisely 61 unique games built into the platform, meticulously categorized into 7 distinct tiers ranging from Core Classics like Tetris and Snake, up to complex Strategy, Racing, and Experimental concepts.",
+    answer: "There are precisely 60 unique games built into the platform, meticulously categorized into 7 distinct tiers ranging from Core Classics like Tetris and Snake, up to complex Strategy, Racing, and Experimental concepts.",
     category: "general"
   },
   {

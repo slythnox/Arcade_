@@ -22,10 +22,12 @@ export const roadHopperDefinition: GameDefinition = {
   },
   controls: {
     keyboard: [
-      { key: "WASD / Arrows", description: "Hop" },
+      { key: "WASD / Arrows", description: "Hop Up / Down / Left / Right" },
       { key: "P", description: "Pause / Resume" },
       { key: "R", description: "Restart" },
     ],
+    touch: "Swipe or tap left directional dial in any cardinal direction to hop forward across lanes.",
+    gamepad: "D-pad to hop across lanes."
   },
   seo: {
     title: "Play Road Hopper Online - Hop Across the Traffic",

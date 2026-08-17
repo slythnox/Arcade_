@@ -8,9 +8,9 @@ export const wallRunnerDefinition: GameDefinition = {
   era: "2000s",
   year: 2008,
   tags: ["Wall Jump", "Ninja", "Runner", "Platformer", "Action"],
-  tagline: "Jump back and forth between vertical walls while climbing an endless vertical shaft.",
+  tagline: "Wall jump across high-tech cliffs to dodge and katana-slash hostile attack spaceships.",
   description:
-    "Ascend an endless vertical shaft by wall jumping between opposing surfaces while dodging hazardous wall spikes.",
+    "Ascend an endless cyber canyon by wall jumping between vertical surfaces while dodging laser salvos and air-slashing enemy fighter spaceships.",
   difficulty: "hard",
   players: "single",
   category: "arcade",
@@ -24,11 +24,13 @@ export const wallRunnerDefinition: GameDefinition = {
   },
   controls: {
     keyboard: [
-      { key: "SPACE / ↑", description: "Execute Wall Jump" },
+      { key: "A / ←", description: "Jump / Dash to Left Wall" },
+      { key: "D / →", description: "Jump / Dash to Right Wall" },
+      { key: "SPACE / Left-Click", description: "Katana Slash Attack (Destroy Ships & Lasers)" },
       { key: "P", description: "Pause / Resume" },
-      { key: "R", description: "Restart" },
+      { key: "R", description: "Restart Run" },
     ],
-    touch: "Tap anywhere on screen to execute wall jump.",
+    touch: "Tap left/right side to wall jump, tap center to Katana slash.",
   },
   seo: {
     title: "Wall Runner — Ninja Wall Jump Vertical Shaft Ascender",

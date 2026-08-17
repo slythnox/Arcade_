@@ -3,28 +3,93 @@ import type { GameContext } from "../../engine/GameContext";
 import type { Renderer } from "../../engine/rendering/Renderer";
 import type { PixelRenderer } from "../../engine/rendering/PixelRenderer";
 import type { GameAction } from "../../core/types/game";
+import { globalParticles } from "../../engine/particles/ParticleSystem";
+
+interface DroppingDisc {
+  col: number;
+  fromY: number;
+  toY: number;
+  currentY: number;
+  velocity: number;
+  player: number;
+  bounces: number;
+}
 
 export class ConnectFourGame implements GameInstance {
   private ctx!: GameContext;
   private readonly cols: number = 7;
   private readonly rows: number = 6;
-  private grid: number[][] = []; // 0 = empty, 1 = player, 2 = AI
+  private grid: number[][] = []; // 0: empty, 1: Player (Ruby), 2: AI (Gold)
   private hoverCol: number = 3;
   private turn: "player" | "ai" = "player";
   private winner: number | "draw" | null = null;
-  private winCells: {r: number, c: number}[] = [];
-  
+  private winCells: { r: number; c: number }[] = [];
+
   private p1Wins: number = 0;
   private aiWins: number = 0;
   private score: number = 0;
   private isPaused: boolean = false;
-  private time: number = 0;
+  private animTime: number = 0;
 
-  private dropping: {col: number, fromRow: number, toRow: number, progress: number, player: number} | null = null;
+  private dropping: DroppingDisc | null = null;
+  private boundPointerDown?: (e: MouseEvent | PointerEvent) => void;
+  private boundPointerMove?: (e: MouseEvent | PointerEvent) => void;
 
   public init(ctx: GameContext): void {
     this.ctx = ctx;
     this.reset();
+    this.attachPointerControls();
+  }
+
+  private attachPointerControls(): void {
+    const getBoardCoords = (e: MouseEvent | PointerEvent) => {
+      const target = e.target as HTMLElement;
+      if (target && target.tagName === "CANVAS") {
+        const rect = target.getBoundingClientRect();
+        const scaleX = 600 / rect.width;
+        const scaleY = 700 / rect.height;
+        const clickX = (e.clientX - rect.left) * scaleX;
+        const clickY = (e.clientY - rect.top) * scaleY;
+
+        const cellSize = 76;
+        const boardWidth = this.cols * cellSize;
+        const offX = Math.floor((600 - boardWidth) / 2);
+        const offY = 145;
+
+        if (clickX >= offX && clickX <= offX + boardWidth) {
+          const col = Math.floor((clickX - offX) / cellSize);
+          return { col: Math.max(0, Math.min(this.cols - 1, col)), clickY };
+        }
+      }
+      return null;
+    };
+
+    this.boundPointerMove = (e: MouseEvent | PointerEvent) => {
+      if (this.winner !== null || this.turn !== "player" || this.dropping !== null) return;
+      const coords = getBoardCoords(e);
+      if (coords !== null) {
+        this.hoverCol = coords.col;
+      }
+    };
+
+    this.boundPointerDown = (e: MouseEvent | PointerEvent) => {
+      if (this.winner !== null) {
+        this.reset();
+        return;
+      }
+      if (this.turn !== "player" || this.dropping !== null) return;
+
+      const coords = getBoardCoords(e);
+      if (coords !== null) {
+        this.hoverCol = coords.col;
+        this.dropPlayerPiece(coords.col);
+      }
+    };
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("pointerdown", this.boundPointerDown);
+      window.addEventListener("pointermove", this.boundPointerMove);
+    }
   }
 
   public reset(seed?: number): void {
@@ -36,93 +101,108 @@ export class ConnectFourGame implements GameInstance {
     this.winCells = [];
     this.dropping = null;
     this.isPaused = false;
+    this.animTime = 0;
   }
 
-  private dropPieceLogic(col: number, player: number): number {
+  private getLowestEmptyRow(col: number): number {
     for (let r = this.rows - 1; r >= 0; r--) {
-      if (this.grid[r][col] === 0) {
-        return r;
-      }
+      if (this.grid[r][col] === 0) return r;
     }
     return -1;
   }
 
-  private dropPiece(col: number, player: number): boolean {
-    const toRow = this.dropPieceLogic(col, player);
-    if (toRow !== -1) {
-      this.grid[toRow][col] = player;
-      return true;
+  private dropPlayerPiece(col: number): void {
+    const toRow = this.getLowestEmptyRow(col);
+    if (toRow === -1) {
+      this.ctx.audio?.playLaser?.();
+      return;
     }
-    return false;
+
+    const cellSize = 76;
+    const offY = 145;
+    const startY = offY - 45;
+    const targetY = offY + toRow * cellSize + cellSize / 2;
+
+    this.dropping = {
+      col,
+      fromY: startY,
+      toY: targetY,
+      currentY: startY,
+      velocity: 0,
+      player: 1,
+      bounces: 0,
+    };
+
+    this.ctx.audio?.playMove?.();
   }
 
-  private checkWinFull(p: number, testGrid = this.grid): {r:number,c:number}[] | null {
+  private checkWinFull(p: number, testGrid = this.grid): { r: number; c: number }[] | null {
     for (let r = 0; r < this.rows; r++) {
       for (let c = 0; c < this.cols; c++) {
         if (testGrid[r][c] !== p) continue;
-        if (c <= this.cols - 4 && testGrid[r][c + 1] === p && testGrid[r][c + 2] === p && testGrid[r][c + 3] === p) return [{r,c}, {r,c:c+1}, {r,c:c+2}, {r,c:c+3}];
-        if (r <= this.rows - 4 && testGrid[r + 1][c] === p && testGrid[r + 2][c] === p && testGrid[r + 3][c] === p) return [{r,c}, {r:r+1,c}, {r:r+2,c}, {r:r+3,c}];
-        if (r <= this.rows - 4 && c <= this.cols - 4 && testGrid[r + 1][c + 1] === p && testGrid[r + 2][c + 2] === p && testGrid[r + 3][c + 3] === p) return [{r,c}, {r:r+1,c:c+1}, {r:r+2,c:c+2}, {r:r+3,c:c+3}];
-        if (r <= this.rows - 4 && c >= 3 && testGrid[r + 1][c - 1] === p && testGrid[r + 2][c - 2] === p && testGrid[r + 3][c - 3] === p) return [{r,c}, {r:r+1,c:c-1}, {r:r+2,c:c-2}, {r:r+3,c:c-3}];
+        // Horizontal
+        if (c <= this.cols - 4 && testGrid[r][c + 1] === p && testGrid[r][c + 2] === p && testGrid[r][c + 3] === p) {
+          return [{ r, c }, { r, c: c + 1 }, { r, c: c + 2 }, { r, c: c + 3 }];
+        }
+        // Vertical
+        if (r <= this.rows - 4 && testGrid[r + 1][c] === p && testGrid[r + 2][c] === p && testGrid[r + 3][c] === p) {
+          return [{ r, c }, { r: r + 1, c }, { r: r + 2, c }, { r: r + 3, c }];
+        }
+        // Diagonal Down-Right
+        if (r <= this.rows - 4 && c <= this.cols - 4 && testGrid[r + 1][c + 1] === p && testGrid[r + 2][c + 2] === p && testGrid[r + 3][c + 3] === p) {
+          return [{ r, c }, { r: r + 1, c: c + 1 }, { r: r + 2, c: c + 2 }, { r: r + 3, c: c + 3 }];
+        }
+        // Diagonal Down-Left
+        if (r <= this.rows - 4 && c >= 3 && testGrid[r + 1][c - 1] === p && testGrid[r + 2][c - 2] === p && testGrid[r + 3][c - 3] === p) {
+          return [{ r, c }, { r: r + 1, c: c - 1 }, { r: r + 2, c: c - 2 }, { r: r + 3, c: c - 3 }];
+        }
       }
     }
     return null;
   }
 
-  // Improved evaluate function
   private evaluateBoard(player: number): number {
     let score = 0;
     const opp = player === 1 ? 2 : 1;
 
-    // Center column preference
     let centerCount = 0;
     for (let r = 0; r < this.rows; r++) {
       if (this.grid[r][3] === player) centerCount++;
     }
-    score += centerCount * 3;
+    score += centerCount * 6;
 
-    // We can evaluate windows of 4
-    const evaluateWindow = (window: number[]) => {
-      let score = 0;
-      let pCount = window.filter(c => c === player).length;
-      let emptyCount = window.filter(c => c === 0).length;
-      let oppCount = window.filter(c => c === opp).length;
+    const evalWindow = (window: number[]) => {
+      let s = 0;
+      const pCount = window.filter((c) => c === player).length;
+      const emptyCount = window.filter((c) => c === 0).length;
+      const oppCount = window.filter((c) => c === opp).length;
 
-      if (pCount === 4) score += 1000000;
-      else if (pCount === 3 && emptyCount === 1) score += 100;
-      else if (pCount === 2 && emptyCount === 2) score += 10;
+      if (pCount === 4) s += 1000000;
+      else if (pCount === 3 && emptyCount === 1) s += 120;
+      else if (pCount === 2 && emptyCount === 2) s += 12;
 
-      if (oppCount === 3 && emptyCount === 1) score -= 1000;
-      
-      return score;
+      if (oppCount === 3 && emptyCount === 1) s -= 1200;
+      return s;
     };
 
-    // Horizontal
     for (let r = 0; r < this.rows; r++) {
       for (let c = 0; c < this.cols - 3; c++) {
-        let window = [this.grid[r][c], this.grid[r][c+1], this.grid[r][c+2], this.grid[r][c+3]];
-        score += evaluateWindow(window);
+        score += evalWindow([this.grid[r][c], this.grid[r][c + 1], this.grid[r][c + 2], this.grid[r][c + 3]]);
       }
     }
-    // Vertical
     for (let c = 0; c < this.cols; c++) {
       for (let r = 0; r < this.rows - 3; r++) {
-        let window = [this.grid[r][c], this.grid[r+1][c], this.grid[r+2][c], this.grid[r+3][c]];
-        score += evaluateWindow(window);
+        score += evalWindow([this.grid[r][c], this.grid[r + 1][c], this.grid[r + 2][c], this.grid[r + 3][c]]);
       }
     }
-    // Diag
     for (let r = 0; r < this.rows - 3; r++) {
       for (let c = 0; c < this.cols - 3; c++) {
-        let window = [this.grid[r][c], this.grid[r+1][c+1], this.grid[r+2][c+2], this.grid[r+3][c+3]];
-        score += evaluateWindow(window);
+        score += evalWindow([this.grid[r][c], this.grid[r + 1][c + 1], this.grid[r + 2][c + 2], this.grid[r + 3][c + 3]]);
       }
     }
-    // Anti-Diag
     for (let r = 0; r < this.rows - 3; r++) {
       for (let c = 0; c < this.cols - 3; c++) {
-        let window = [this.grid[r+3][c], this.grid[r+2][c+1], this.grid[r+1][c+2], this.grid[r][c+3]];
-        score += evaluateWindow(window);
+        score += evalWindow([this.grid[r + 3][c], this.grid[r + 2][c + 1], this.grid[r + 1][c + 2], this.grid[r][c + 3]]);
       }
     }
 
@@ -132,56 +212,73 @@ export class ConnectFourGame implements GameInstance {
   private triggerAIMove(): void {
     let bestScore = -Infinity;
     let bestCol = -1;
-    
-    // Depth 3 Minimax (adjusting to avoid slow execution while providing good challenge)
+
     for (let c = 0; c < this.cols; c++) {
-      let r = this.dropPieceLogic(c, 2);
+      const r = this.getLowestEmptyRow(c);
       if (r !== -1) {
         this.grid[r][c] = 2;
-        if (this.checkWinFull(2)) { // Immediate win
+        if (this.checkWinFull(2)) {
           bestCol = c;
           this.grid[r][c] = 0;
           break;
         }
-        let score = this.minimax(3, false, -Infinity, Infinity);
+        const s = this.minimax(3, false, -Infinity, Infinity);
         this.grid[r][c] = 0;
-        
-        if (score > bestScore) {
-          bestScore = score;
+
+        if (s > bestScore) {
+          bestScore = s;
           bestCol = c;
-        } else if (score === bestScore && Math.random() < 0.5) {
+        } else if (s === bestScore && Math.random() < 0.5) {
           bestCol = c;
         }
       }
     }
 
-    // Fallback if somehow -1 (e.g. board full but not caught)
     if (bestCol === -1) {
-      for (let c = 0; c < this.cols; c++) if (this.grid[0][c] === 0) bestCol = c;
+      for (let c = 0; c < this.cols; c++) {
+        if (this.grid[0][c] === 0) {
+          bestCol = c;
+          break;
+        }
+      }
     }
 
     if (bestCol !== -1) {
-      const toRow = this.dropPieceLogic(bestCol, 2);
-      this.dropping = { col: bestCol, fromRow: -1, toRow, progress: 0, player: 2 };
-      this.ctx.audio.playMove();
-      this.turn = "player"; // Let player wait while dropping visually
+      const toRow = this.getLowestEmptyRow(bestCol);
+      const cellSize = 76;
+      const offY = 145;
+      const startY = offY - 45;
+      const targetY = offY + toRow * cellSize + cellSize / 2;
+
+      this.dropping = {
+        col: bestCol,
+        fromY: startY,
+        toY: targetY,
+        currentY: startY,
+        velocity: 0,
+        player: 2,
+        bounces: 0,
+      };
+
+      this.ctx.audio?.playMove?.();
     }
   }
 
   private minimax(depth: number, isMaximizing: boolean, alpha: number, beta: number): number {
     if (this.checkWinFull(2)) return 1000000;
     if (this.checkWinFull(1)) return -1000000;
-    
-    let isFull = true;
-    for (let c = 0; c < this.cols; c++) if (this.grid[0][c] === 0) isFull = false;
-    if (isFull) return 0;
 
+    let isFull = true;
+    for (let c = 0; c < this.cols; c++) {
+      if (this.grid[0][c] === 0) isFull = false;
+    }
+    if (isFull) return 0;
     if (depth === 0) return this.evaluateBoard(2);
 
     if (isMaximizing) {
       let value = -Infinity;
       for (let c = 0; c < this.cols; c++) {
-        let r = this.dropPieceLogic(c, 2);
+        const r = this.getLowestEmptyRow(c);
         if (r !== -1) {
           this.grid[r][c] = 2;
           value = Math.max(value, this.minimax(depth - 1, false, alpha, beta));
@@ -194,7 +291,7 @@ export class ConnectFourGame implements GameInstance {
     } else {
       let value = Infinity;
       for (let c = 0; c < this.cols; c++) {
-        let r = this.dropPieceLogic(c, 1);
+        const r = this.getLowestEmptyRow(c);
         if (r !== -1) {
           this.grid[r][c] = 1;
           value = Math.min(value, this.minimax(depth - 1, true, alpha, beta));
@@ -209,41 +306,69 @@ export class ConnectFourGame implements GameInstance {
 
   public update(dt: number): void {
     if (this.isPaused) return;
-    this.time += dt;
+    globalParticles.update(dt);
+    this.animTime += dt;
 
     if (this.dropping) {
-      this.dropping.progress += dt * 8; // Drop speed
-      if (this.dropping.progress >= 1.0) {
-        // Finalize drop
-        this.grid[this.dropping.toRow][this.dropping.col] = this.dropping.player;
-        this.ctx.audio.playDrop();
-        
-        const win = this.checkWinFull(this.dropping.player);
-        if (win) {
-          this.winner = this.dropping.player;
-          this.winCells = win;
-          if (this.winner === 1) {
-            this.score += 2500;
-            this.p1Wins++;
-            this.ctx.audio.playVictory();
-          } else {
-            this.aiWins++;
-            this.ctx.audio.playExplosion();
-          }
-          this.ctx.session.setStatus("game-over");
+      this.dropping.velocity += 1900 * dt;
+      this.dropping.currentY += this.dropping.velocity * dt;
+
+      if (this.dropping.currentY >= this.dropping.toY) {
+        this.dropping.currentY = this.dropping.toY;
+
+        if (this.dropping.bounces < 2 && Math.abs(this.dropping.velocity) > 150) {
+          this.dropping.velocity = -this.dropping.velocity * 0.35;
+          this.dropping.bounces++;
+          this.ctx.audio?.playHit?.();
         } else {
-          // Check draw
-          let full = true;
-          for (let c = 0; c < this.cols; c++) if (this.grid[0][c] === 0) full = false;
-          if (full) {
-            this.winner = "draw";
-            this.ctx.session.setStatus("game-over");
-          } else if (this.dropping.player === 1) {
-            this.turn = "ai";
-            setTimeout(() => this.triggerAIMove(), 250);
+          // Finalize placement
+          const targetRow = this.getLowestEmptyRow(this.dropping.col);
+          if (targetRow !== -1) {
+            this.grid[targetRow][this.dropping.col] = this.dropping.player;
           }
+          this.ctx.audio?.playCoin?.();
+
+          const cellSize = 76;
+          const offX = Math.floor((600 - this.cols * cellSize) / 2);
+          const offY = 145;
+          const dropPx = offX + this.dropping.col * cellSize + cellSize / 2;
+          const dropPy = this.dropping.toY;
+          globalParticles.emitBurst(dropPx, dropPy, 12, [this.dropping.player === 1 ? "#F43F5E" : "#FBBF24", "#FFFFFF"], 40, 140);
+
+          const win = this.checkWinFull(this.dropping.player);
+          if (win) {
+            this.winner = this.dropping.player;
+            this.winCells = win;
+            if (this.winner === 1) {
+              this.score += 2500;
+              this.p1Wins++;
+              this.ctx.audio?.playVictory?.();
+              globalParticles.emitBurst(300, 350, 50, ["#F43F5E", "#38BDF8", "#FFFFFF"], 90, 280);
+              globalParticles.emitText("CONNECT 4! PLAYER WINS!", 300, 110, "#F43F5E", 22);
+            } else {
+              this.aiWins++;
+              this.ctx.audio?.playExplosion?.();
+              globalParticles.emitBurst(300, 350, 50, ["#FBBF24", "#EF4444", "#FFFFFF"], 90, 280);
+              globalParticles.emitText("AI WINS!", 300, 110, "#FBBF24", 22);
+            }
+            this.ctx.session.setStatus("ready");
+          } else {
+            let full = true;
+            for (let c = 0; c < this.cols; c++) {
+              if (this.grid[0][c] === 0) full = false;
+            }
+            if (full) {
+              this.winner = "draw";
+              this.ctx.session.setStatus("ready");
+            } else if (this.dropping.player === 1) {
+              this.turn = "ai";
+              setTimeout(() => this.triggerAIMove(), 280);
+            } else {
+              this.turn = "player";
+            }
+          }
+          this.dropping = null;
         }
-        this.dropping = null;
       }
     }
   }
@@ -260,117 +385,328 @@ export class ConnectFourGame implements GameInstance {
 
     if (action === "MOVE_LEFT") {
       this.hoverCol = Math.max(0, this.hoverCol - 1);
-      this.ctx.audio.playMove();
+      this.ctx.audio?.playMove?.();
     } else if (action === "MOVE_RIGHT") {
       this.hoverCol = Math.min(this.cols - 1, this.hoverCol + 1);
-      this.ctx.audio.playMove();
-    } else if (action === "ACTION_PRIMARY" || action === "MOVE_DOWN") {
-      const toRow = this.dropPieceLogic(this.hoverCol, 1);
-      if (toRow !== -1) {
-        this.dropping = { col: this.hoverCol, fromRow: -1, toRow, progress: 0, player: 1 };
-        this.ctx.audio.playMove();
-      }
+      this.ctx.audio?.playMove?.();
+    } else if (action === "ACTION_PRIMARY" || action === "MOVE_DOWN" || action === "CONFIRM") {
+      this.dropPlayerPiece(this.hoverCol);
     }
   }
 
   public pause(): void { this.isPaused = true; }
   public resume(): void { this.isPaused = false; }
-  public destroy(): void {}
+  public destroy(): void {
+    if (typeof window !== "undefined") {
+      if (this.boundPointerDown) window.removeEventListener("pointerdown", this.boundPointerDown);
+      if (this.boundPointerMove) window.removeEventListener("pointermove", this.boundPointerMove);
+    }
+  }
+
   public getScore(): number { return this.score; }
-  public getLevel(): number { return 1; }
+  public getLevel(): number { return this.p1Wins + 1; }
 
   public render(renderer: Renderer): void {
     const pr = renderer as PixelRenderer;
-    const rawCtx = pr.getContext();
-    pr.clear("#000000"); // Dark background
+    const ctx2d = (pr as any).getContext?.() as CanvasRenderingContext2D | undefined;
     const w = renderer.getWidth();
     const h = renderer.getHeight();
 
-    const cellSize = 75;
+    // 1. Modern Midnight Indigo Background
+    if (ctx2d) {
+      const bgGrad = ctx2d.createLinearGradient(0, 0, w, h);
+      bgGrad.addColorStop(0, "#080E1C");
+      bgGrad.addColorStop(0.5, "#0E182F");
+      bgGrad.addColorStop(1, "#050912");
+      ctx2d.fillStyle = bgGrad;
+      ctx2d.fillRect(0, 0, w, h);
+    } else {
+      pr.clear("#080E1C");
+    }
+
+    // 2. Header & Match Score Cards
+    pr.drawText("CONNECT FOUR", 28, 38, {
+      size: 26,
+      color: "#38BDF8",
+      font: "system-ui, -apple-system, sans-serif",
+    });
+
+    if (ctx2d) {
+      // Player 1 Card (Ruby)
+      ctx2d.save();
+      ctx2d.fillStyle = "rgba(15, 23, 42, 0.9)";
+      ctx2d.strokeStyle = "#F43F5E";
+      ctx2d.lineWidth = 2;
+      ctx2d.shadowColor = "rgba(244, 63, 94, 0.4)";
+      ctx2d.shadowBlur = 10;
+      ctx2d.beginPath();
+      ctx2d.roundRect(w - 250, 14, 110, 48, 8);
+      ctx2d.fill();
+      ctx2d.stroke();
+      ctx2d.restore();
+
+      pr.drawText("PLAYER (YOU)", w - 195, 30, { size: 9.5, color: "#FDA4AF", align: "center", font: "monospace" });
+      pr.drawText(`${this.p1Wins} WINS`, w - 195, 50, { size: 15, color: "#F43F5E", align: "center", font: "bold monospace" });
+
+      // AI Card (Gold)
+      ctx2d.save();
+      ctx2d.fillStyle = "rgba(15, 23, 42, 0.9)";
+      ctx2d.strokeStyle = "#FBBF24";
+      ctx2d.lineWidth = 2;
+      ctx2d.shadowColor = "rgba(251, 191, 36, 0.4)";
+      ctx2d.shadowBlur = 10;
+      ctx2d.beginPath();
+      ctx2d.roundRect(w - 128, 14, 110, 48, 8);
+      ctx2d.fill();
+      ctx2d.stroke();
+      ctx2d.restore();
+
+      pr.drawText("AI OPPONENT", w - 73, 30, { size: 9.5, color: "#FDE68A", align: "center", font: "monospace" });
+      pr.drawText(`${this.aiWins} WINS`, w - 73, 50, { size: 15, color: "#FBBF24", align: "center", font: "bold monospace" });
+    }
+
+    // Board Geometry
+    const cellSize = 76;
     const boardWidth = this.cols * cellSize;
     const boardHeight = this.rows * cellSize;
     const offX = Math.floor((w - boardWidth) / 2);
-    const offY = 160;
+    const offY = 145;
 
-    // HUD
-    pr.drawText(`CONNECT FOUR`, w / 2, 40, { size: 32, color: "#FFFFFF", align: "center" });
-    pr.drawText(`P1 WINS: ${this.p1Wins}`, 50, 90, { size: 18, color: "#f44336" });
-    pr.drawText(`AI WINS: ${this.aiWins}`, w - 50, 90, { size: 18, color: "#ffeb3b", align: "right" });
-    pr.drawText(`SCORE: ${this.score}`, w / 2, 90, { size: 18, color: "#FFFFFF", align: "center" });
-
-    // Hover Preview
+    // 3. Hover Target Pointer & Floating Preview Disc
     if (this.winner === null && this.turn === "player" && !this.dropping) {
-      const px = offX + this.hoverCol * cellSize + cellSize / 2;
-      pr.drawCircle(px, offY - 40, 30, "#f44336", true); // Player red
+      const hoverPx = offX + this.hoverCol * cellSize + cellSize / 2;
+      const hoverPy = offY - 42;
+
+      // Glow Disc Preview
+      if (ctx2d) {
+        ctx2d.save();
+        ctx2d.shadowColor = "rgba(244, 63, 94, 0.8)";
+        ctx2d.shadowBlur = 18;
+
+        const discGrad = ctx2d.createRadialGradient(hoverPx - 6, hoverPy - 6, 4, hoverPx, hoverPy, 30);
+        discGrad.addColorStop(0, "#FFA4B6");
+        discGrad.addColorStop(0.6, "#F43F5E");
+        discGrad.addColorStop(1, "#BE123C");
+        ctx2d.fillStyle = discGrad;
+        ctx2d.beginPath();
+        ctx2d.arc(hoverPx, hoverPy, 30, 0, Math.PI * 2);
+        ctx2d.fill();
+
+        ctx2d.strokeStyle = "#FFFFFF";
+        ctx2d.lineWidth = 2.5;
+        ctx2d.stroke();
+        ctx2d.restore();
+      }
+
+      // Column Indicator Arrow
+      const arrowY = offY - 12;
+      pr.drawLine(hoverPx, arrowY, hoverPx, arrowY - 8, "#38BDF8", 3);
+      pr.drawLine(hoverPx, arrowY, hoverPx - 6, arrowY - 6, "#38BDF8", 3);
+      pr.drawLine(hoverPx, arrowY, hoverPx + 6, arrowY - 6, "#38BDF8", 3);
     }
 
-    // Board Background
-    rawCtx.fillStyle = '#1a237e'; // Dark blue board
-    rawCtx.fillRect(offX - 10, offY - 10, boardWidth + 20, boardHeight + 20);
+    // 4. Heavy 3D Cobalt Arcade Matrix Housing
+    if (ctx2d) {
+      ctx2d.save();
+      ctx2d.fillStyle = "#1E3A8A"; // Deep Cobalt Blue
+      ctx2d.strokeStyle = "#38BDF8";
+      ctx2d.lineWidth = 3;
+      ctx2d.shadowColor = "rgba(56, 189, 248, 0.35)";
+      ctx2d.shadowBlur = 24;
+      ctx2d.beginPath();
+      ctx2d.roundRect(offX - 12, offY - 12, boardWidth + 24, boardHeight + 24, 18);
+      ctx2d.fill();
+      ctx2d.stroke();
+      ctx2d.restore();
 
-    // Draw Pieces & Holes
+      // Top Bevel Highlight
+      ctx2d.save();
+      ctx2d.fillStyle = "rgba(255, 255, 255, 0.12)";
+      ctx2d.beginPath();
+      ctx2d.roundRect(offX - 8, offY - 8, boardWidth + 16, (boardHeight + 16) / 2.5, 14);
+      ctx2d.fill();
+      ctx2d.restore();
+    }
+
+    // 5. Draw Board Cells & Discs
     for (let r = 0; r < this.rows; r++) {
       for (let c = 0; c < this.cols; c++) {
-        let val = this.grid[r][c];
-        
-        // If this exact slot is where dropping piece is going, it is visually empty right now
-        if (this.dropping && this.dropping.col === c && this.dropping.toRow === r) {
-          val = 0;
-        }
-
+        const val = this.grid[r][c];
         const cx = offX + c * cellSize + cellSize / 2;
         const cy = offY + r * cellSize + cellSize / 2;
 
-        if (val === 0) {
-          pr.drawCircle(cx, cy, 32, "#000000", true); // Hole
-        } else {
-          const color = val === 1 ? "#f44336" : "#ffeb3b";
-          const isWin = this.winCells.some(wc => wc.r === r && wc.c === c);
-          
-          if (isWin) {
-            rawCtx.shadowColor = color;
-            rawCtx.shadowBlur = 15 + Math.sin(this.time * 5) * 5;
-          }
-          pr.drawCircle(cx, cy, 32, color, true);
-          // Inner shadow/depth
-          pr.drawCircle(cx, cy, 24, val === 1 ? "#d32f2f" : "#fbc02d", true);
-          if (isWin) {
-            rawCtx.shadowBlur = 0; // reset
+        if (ctx2d) {
+          if (val === 0) {
+            // Recessed Dark Glass Socket
+            ctx2d.save();
+            ctx2d.fillStyle = "#090E1A";
+            ctx2d.beginPath();
+            ctx2d.arc(cx, cy, 31, 0, Math.PI * 2);
+            ctx2d.fill();
+
+            // Inner Shadow
+            ctx2d.strokeStyle = "rgba(0, 0, 0, 0.6)";
+            ctx2d.lineWidth = 3;
+            ctx2d.stroke();
+            ctx2d.restore();
+          } else {
+            const isP1 = val === 1;
+            const isWinningCell = this.winCells.some((wc) => wc.r === r && wc.c === c);
+
+            ctx2d.save();
+
+            if (isWinningCell) {
+              ctx2d.shadowColor = isP1 ? "#F43F5E" : "#FBBF24";
+              ctx2d.shadowBlur = 24 + Math.sin(this.animTime * 10) * 8;
+            } else {
+              ctx2d.shadowColor = "rgba(0, 0, 0, 0.35)";
+              ctx2d.shadowBlur = 8;
+            }
+
+            // Tactile Metallic Radial Gradient
+            const discGrad = ctx2d.createRadialGradient(cx - 7, cy - 7, 5, cx, cy, 32);
+            if (isP1) {
+              discGrad.addColorStop(0, "#FDA4AF");
+              discGrad.addColorStop(0.6, "#F43F5E");
+              discGrad.addColorStop(1, "#9F1239");
+            } else {
+              discGrad.addColorStop(0, "#FEF08A");
+              discGrad.addColorStop(0.6, "#FBBF24");
+              discGrad.addColorStop(1, "#B45309");
+            }
+            ctx2d.fillStyle = discGrad;
+            ctx2d.beginPath();
+            ctx2d.arc(cx, cy, 31, 0, Math.PI * 2);
+            ctx2d.fill();
+
+            // Concentric Ring Bevel
+            ctx2d.strokeStyle = isP1 ? "#FECDD3" : "#FEF08A";
+            ctx2d.lineWidth = 2;
+            ctx2d.stroke();
+
+            // Inner Core Ring
+            ctx2d.strokeStyle = "rgba(255, 255, 255, 0.35)";
+            ctx2d.lineWidth = 2;
+            ctx2d.beginPath();
+            ctx2d.arc(cx, cy, 18, 0, Math.PI * 2);
+            ctx2d.stroke();
+
+            if (isWinningCell) {
+              // Bright Star in center
+              ctx2d.fillStyle = "#FFFFFF";
+              ctx2d.beginPath();
+              ctx2d.arc(cx, cy, 7, 0, Math.PI * 2);
+              ctx2d.fill();
+            }
+
+            ctx2d.restore();
           }
         }
       }
     }
 
-    // Draw Dropping Piece
-    if (this.dropping) {
-      const startY = offY - 40;
-      const targetY = offY + this.dropping.toRow * cellSize + cellSize / 2;
-      const currentY = startY + (targetY - startY) * this.dropping.progress;
-      const cx = offX + this.dropping.col * cellSize + cellSize / 2;
-      
-      const color = this.dropping.player === 1 ? "#f44336" : "#ffeb3b";
-      const innerColor = this.dropping.player === 1 ? "#d32f2f" : "#fbc02d";
-      
-      // Draw over board (partially clipping logic would be ideal but rendering above is fine)
-      pr.drawCircle(cx, currentY, 32, color, true);
-      pr.drawCircle(cx, currentY, 24, innerColor, true);
+    // 6. Draw Animated Dropping Disc
+    if (this.dropping && ctx2d) {
+      const dropX = offX + this.dropping.col * cellSize + cellSize / 2;
+      const dropY = this.dropping.currentY;
+      const isP1 = this.dropping.player === 1;
+
+      ctx2d.save();
+      ctx2d.shadowColor = isP1 ? "rgba(244, 63, 94, 0.9)" : "rgba(251, 191, 36, 0.9)";
+      ctx2d.shadowBlur = 18;
+
+      const discGrad = ctx2d.createRadialGradient(dropX - 7, dropY - 7, 5, dropX, dropY, 32);
+      if (isP1) {
+        discGrad.addColorStop(0, "#FDA4AF");
+        discGrad.addColorStop(0.6, "#F43F5E");
+        discGrad.addColorStop(1, "#9F1239");
+      } else {
+        discGrad.addColorStop(0, "#FEF08A");
+        discGrad.addColorStop(0.6, "#FBBF24");
+        discGrad.addColorStop(1, "#B45309");
+      }
+      ctx2d.fillStyle = discGrad;
+      ctx2d.beginPath();
+      ctx2d.arc(dropX, dropY, 31, 0, Math.PI * 2);
+      ctx2d.fill();
+
+      ctx2d.strokeStyle = "#FFFFFF";
+      ctx2d.lineWidth = 2.5;
+      ctx2d.stroke();
+      ctx2d.restore();
     }
 
-    // Board front overlay (to make pieces look inside holes)
-    rawCtx.globalCompositeOperation = 'destination-out';
-    // Punch holes in an overlay? Simple rendering is ok as is, pieces over holes.
-    rawCtx.globalCompositeOperation = 'source-over';
+    // 7. Draw Connective Laser Beam through Winning 4 Discs
+    if (this.winCells.length === 4 && ctx2d) {
+      const startCell = this.winCells[0];
+      const endCell = this.winCells[3];
+      const sx = offX + startCell.c * cellSize + cellSize / 2;
+      const sy = offY + startCell.r * cellSize + cellSize / 2;
+      const ex = offX + endCell.c * cellSize + cellSize / 2;
+      const ey = offY + endCell.r * cellSize + cellSize / 2;
 
-    if (this.winner) {
-      pr.drawRect(0, h / 2 - 50, w, 100, "rgba(0,0,0,0.85)", true);
-      if (this.winner === "draw") {
-        pr.drawText("DRAW", w / 2, h / 2 - 10, { size: 32, color: "#FFF", align: "center" });
-      } else {
-        const tColor = this.winner === 1 ? "#f44336" : "#ffeb3b";
-        const tText = this.winner === 1 ? "PLAYER WINS!" : "AI WINS!";
-        pr.drawText(tText, w / 2, h / 2 - 10, { size: 36, color: tColor, align: "center" });
-      }
-      pr.drawText("PRESS R TO RESTART", w / 2, h / 2 + 25, { size: 16, color: "#FFF", align: "center" });
+      ctx2d.save();
+      ctx2d.strokeStyle = "#FFFFFF";
+      ctx2d.lineWidth = 5;
+      ctx2d.shadowColor = "#38BDF8";
+      ctx2d.shadowBlur = 20;
+      ctx2d.beginPath();
+      ctx2d.moveTo(sx, sy);
+      ctx2d.lineTo(ex, ey);
+      ctx2d.stroke();
+      ctx2d.restore();
+    }
+
+    // 8. Particle Sparks
+    globalParticles.render(pr);
+
+    // 9. Sub-Board Turn Indicator & Controls HUD
+    const statusColor = this.turn === "player" ? "#F43F5E" : "#FBBF24";
+    const statusText =
+      this.winner !== null
+        ? "MATCH OVER"
+        : this.turn === "player"
+        ? "YOUR TURN (DROP PIECE)"
+        : "AI CALCULATING MOVE...";
+
+    pr.drawRect(16, h - 54, w - 32, 42, "rgba(15, 23, 42, 0.94)", true);
+    pr.drawRect(16, h - 54, w - 32, 42, statusColor, false);
+
+    pr.drawText(statusText, 32, h - 28, {
+      size: 13,
+      color: statusColor,
+      font: "bold system-ui, sans-serif",
+    });
+
+    pr.drawText("[CLICK ANY COLUMN  •  OR USE ARROW KEYS + SPACE]", w - 32, h - 28, {
+      size: 10.5,
+      color: "#94A3B8",
+      align: "right",
+      font: "monospace",
+    });
+
+    // 10. Victory / Draw Overlay
+    if (this.winner !== null) {
+      const isP1Won = this.winner === 1;
+      const bannerColor = isP1Won ? "#F43F5E" : this.winner === "draw" ? "#94A3B8" : "#FBBF24";
+
+      pr.drawRect(0, h / 2 - 50, w, 100, "rgba(8, 14, 28, 0.96)", true);
+      pr.drawRect(0, h / 2 - 50, w, 100, bannerColor, false);
+
+      const winTitle = isP1Won ? "VICTORY! CONNECT 4!" : this.winner === "draw" ? "STALEMATE DRAW!" : "AI WINS THIS ROUND!";
+      pr.drawText(winTitle, w / 2, h / 2 - 12, {
+        size: 24,
+        color: bannerColor,
+        align: "center",
+        font: "system-ui, -apple-system, sans-serif",
+      });
+
+      pr.drawText("CLICK ANYWHERE OR PRESS [SPACE / R] TO PLAY NEXT ROUND", w / 2, h / 2 + 18, {
+        size: 12.5,
+        color: "#FFFFFF",
+        align: "center",
+        font: "monospace",
+      });
     }
   }
 }

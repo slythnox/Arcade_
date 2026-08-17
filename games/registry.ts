@@ -59,7 +59,6 @@ import { missileCommandDefinition } from "./definitions/missileCommand";
 import { pixelJumperDefinition } from "./definitions/pixelJumper";
 import { wallRunnerDefinition } from "./definitions/wallRunner";
 import { caveEscapeDefinition } from "./definitions/caveEscape";
-import { ladderClimbDefinition } from "./definitions/ladderClimb";
 import { shadowRunnerDefinition } from "./definitions/shadowRunner";
 
 // Tier 6 — Strategy & Board Games
@@ -127,7 +126,6 @@ export const gameRegistry: readonly GameDefinition[] = [
   pixelJumperDefinition,
   wallRunnerDefinition,
   caveEscapeDefinition,
-  ladderClimbDefinition,
   shadowRunnerDefinition,
 
   // Puzzle & Brain
@@ -153,7 +151,7 @@ export const gameRegistry: readonly GameDefinition[] = [
   liquidCellsDefinition,
 ];
 
-/** Games visible in the main ARCADE_ game library (62 cartridges). */
+/** Games visible in the main ARCADE_ game library (60 cartridges). */
 export const arcadeRegistry: readonly GameDefinition[] = gameRegistry;
 
 /** Legacy labs registry fallback. */
@@ -178,6 +176,10 @@ export function getGameBySlug(slug: string): GameDefinition | undefined {
   return gameRegistry.find(
     (g) => g.slug === slug || g.id === slug || norm(g.slug) === target || norm(g.id) === target
   );
+}
+
+export function getGameById(id: string): GameDefinition | undefined {
+  return getGameBySlug(id);
 }
 
 export async function createGameInstance(idOrSlug: string): Promise<GameInstance | null> {

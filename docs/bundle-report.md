@@ -6,8 +6,8 @@ Generated: 2026-08-15 via `npm run analyze` (Turbopack build)
 
 | Metric | Value |
 |--------|-------|
-| Total static pages | 82 |
-| Total routes | `/`, `/games/[slug]` (60), plus case studies, about, FAQ, etc. |
+| Total static pages | 76 |
+| Total routes | `/`, `/games`, `/games/[slug]` (60), case studies (4), about, FAQ, terms, privacy |
 | Build tool | Next.js 16.3.1 + Turbopack |
 | TypeScript errors | 0 |
 
@@ -42,7 +42,7 @@ Top 20 largest chunks in `.next/static/chunks/`:
 
 ## Dynamic Loading Architecture
 
-ARCADE_ uses `import()` for all 102 game implementations:
+ARCADE_ uses `import()` for all 60 game implementations:
 
 ```ts
 // Each game definition uses:
