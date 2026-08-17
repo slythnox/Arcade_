@@ -453,7 +453,7 @@ Explore the complete technical documentation suite in the [`docs/`](docs/) direc
 
 ## Contributing
 
-We welcome contributions! Please read our [Contributing Guidelines](docs/CONTRIBUTING.md) and [Security Policy](docs/SECURITY.md) before submitting pull requests.
+We welcome contributions! Please read our [Contributing Guidelines](CONTRIBUTING.md) and [Security Policy](SECURITY.md) before submitting pull requests.
 
 ---
 
