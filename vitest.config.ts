@@ -1,4 +1,4 @@
-// ARCADE_ v1.2.2 Test Config
+// ARCADE_ Test Config
 import { defineConfig } from "vitest/config";
 import path from "path";
 import { fileURLToPath } from "url";

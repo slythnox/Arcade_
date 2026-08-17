@@ -1,4 +1,4 @@
-// ARCADE_ v1.2.2 E2E Config
+// ARCADE_ E2E Config
 import { defineConfig, devices } from "@playwright/test";
 
 /**

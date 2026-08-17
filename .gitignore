@@ -1,4 +1,4 @@
-# ARCADE_ v1.2.2 .gitignore
+# ARCADE_ .gitignore
 # dependencies
 /node_modules
 /.pnp
@@ -30,3 +30,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# generated agent files
+AGENTS.md
+CLAUDE.md

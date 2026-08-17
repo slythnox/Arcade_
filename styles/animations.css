@@ -1,3 +1,4 @@
+/* ARCADE_ Keyframe Animations */
 @keyframes crt-flicker {
   0% { opacity: 0.99; }
   50% { opacity: 1; }

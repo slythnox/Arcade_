@@ -5,7 +5,7 @@ const withBundleAnalyzer = bundleAnalyzer({
   openAnalyzer: false,
 });
 
-// ARCADE_ v1.2.2
+// ARCADE_ Next.js Configuration
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,

@@ -1,3 +1,4 @@
+/** ARCADE_ E2E Game Spec */
 import { test, expect } from "@playwright/test";
 
 test.describe("Game page — /games/[slug]", () => {

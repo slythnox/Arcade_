@@ -1,4 +1,4 @@
-# ARCADE_ v1.2.2 CI Workflow
+# ARCADE_ CI Workflow
 name: CI
 
 on:
