@@ -553,8 +553,8 @@ export class RaySectorGame implements GameInstance {
 
       // Pursuit vector
       if (dist > 1.4) {
-        let vx = (dx / dist) * e.moveSpeed * dt;
-        let vy = (dy / dist) * e.moveSpeed * dt;
+        const vx = (dx / dist) * e.moveSpeed * dt;
+        const vy = (dy / dist) * e.moveSpeed * dt;
         if (!hasLOS) {
           // Corridor slide navigation
           if (this.map[Math.floor(e.y)][Math.floor(e.x + vx + Math.sign(vx) * 0.3)] === 0) {
@@ -922,12 +922,7 @@ export class RaySectorGame implements GameInstance {
       const lineHeight = Math.floor(sceneH / Math.max(0.01, perpWallDist));
       let drawStart = -lineHeight / 2 + sceneH / 2;
       let drawEnd = lineHeight / 2 + sceneH / 2;
-
-      // Atmospheric distance depth fog falloff
       const depthFog = Math.max(0.14, 1.0 / (1.0 + perpWallDist * 0.16));
-      const sideFactor = side === 1 ? 0.76 : 1.0;
-      const intensity = depthFog * sideFactor;
-
       let wallBaseColor = "#334155";
       const isConduit = (wallHitU * 8) % 1 > 0.82;
       const isPanelSeam = (wallHitU * 4) % 1 > 0.94;
